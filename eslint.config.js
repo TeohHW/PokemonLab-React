@@ -32,4 +32,10 @@ export default [
       ],
     },
   },
+  {
+    files: ['**/*.cjs'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
 ]

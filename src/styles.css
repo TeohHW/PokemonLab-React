@@ -637,6 +637,17 @@ button.brand-home-button:focus-visible {
   font-weight: 700;
 }
 
+.tcg-other-note {
+  margin: 0;
+  border-left: 4px solid var(--gb-primary);
+  padding: 8px 10px;
+  color: #3f454c;
+  background: #e6fbf8;
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .set-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
@@ -650,14 +661,14 @@ button.brand-home-button:focus-visible {
 .set-card {
   display: grid;
   align-content: start;
-  grid-template-rows: 52px minmax(34px, auto) minmax(28px, 1fr) auto;
-  gap: 8px;
+  grid-template-rows: 52px minmax(48px, auto) 30px 22px 24px;
+  gap: 9px;
   justify-items: start;
   width: 100%;
-  min-height: 198px;
-  overflow: visible;
+  min-height: 262px;
+  overflow: hidden;
   border: 1px solid var(--border);
-  padding: 14px;
+  padding: 16px 14px 16px;
   color: var(--text);
   background: #ffffff;
   text-align: left;
@@ -683,6 +694,10 @@ button.brand-home-button:focus-visible {
   opacity: 0.95;
 }
 
+.set-card.is-selected .set-card-symbol {
+  filter: none;
+}
+
 .set-card-logo {
   justify-self: start;
   align-self: center;
@@ -693,6 +708,8 @@ button.brand-home-button:focus-visible {
 }
 
 .set-card-name {
+  align-self: start;
+  min-height: 48px;
   overflow-wrap: anywhere;
   white-space: normal;
   color: inherit;
@@ -701,36 +718,72 @@ button.brand-home-button:focus-visible {
 }
 
 .set-card-series {
-  display: inline-flex;
-  gap: 8px;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 7px;
+  align-items: center;
   max-width: 100%;
+  width: 100%;
   min-width: 0;
-  overflow-wrap: anywhere;
-  white-space: normal;
+  overflow: hidden;
+  overflow-wrap: normal;
+  white-space: nowrap;
   color: inherit;
   opacity: 0.78;
   font-size: 0.86rem;
-  line-height: 1.2;
+  line-height: 1;
 }
 
 .set-card-symbol {
-  flex: 0 0 auto;
+  justify-self: center;
+  align-self: center;
   width: 22px;
   height: 22px;
+  min-width: 22px;
   object-fit: contain;
   background: #ffffff;
 }
 
+.set-card-series-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .set-card-date {
   align-self: end;
-  margin-top: 6px;
-  padding-top: 4px;
+  margin-top: 0;
+  padding-top: 2px;
   color: inherit;
   opacity: 0.68;
   font-size: 0.78rem;
   font-weight: 800;
   line-height: 1.2;
+}
+
+.set-category-pill {
+  display: inline-block;
+  width: fit-content;
+  border: 2px solid #212529;
+  padding: 2px 5px;
+  color: #050505;
+  background: #e7f7ff;
+  font-size: 0.66rem;
+  font-weight: 900;
+  line-height: 1.1;
+  text-shadow: none;
+  vertical-align: middle;
+}
+
+.set-card .set-category-pill {
+  align-self: end;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.set-card.is-selected .set-category-pill {
+  color: #050505;
+  background: #ffffff;
 }
 
 .pack-grid {
@@ -1651,6 +1704,27 @@ button.brand-home-button:focus-visible {
   background: #e3350d;
 }
 
+.choice-card.trainerdex-choice-card,
+.choice-card.trainerdex-choice-card:hover:not(:disabled),
+.choice-card.trainerdex-choice-card:focus-visible {
+  color: #050505;
+  background-color: #25d0b5;
+}
+
+.choice-card.trainerdex-choice-card::after {
+  box-shadow: inset -4px -4px #0f766e;
+}
+
+.choice-card.trainerdex-choice-card:hover:not(:disabled)::after,
+.choice-card.trainerdex-choice-card:focus-visible::after {
+  box-shadow: inset -6px -6px #0f766e;
+}
+
+.choice-card.trainerdex-choice-card .choice-icon {
+  color: #050505;
+  background: #f97316;
+}
+
 .team-planner-page.app-container {
   width: min(1680px, calc(100% - 24px));
 }
@@ -2460,8 +2534,19 @@ button.brand-home-button:focus-visible {
 .pokedex-game-region {
   grid-column: 1;
   min-width: 0;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  max-width: 100%;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.pokedex-game-card strong {
+  font-size: 0.78rem;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.pokedex-game-region {
+  white-space: normal;
 }
 
 .pokedex-game-region {
@@ -3543,6 +3628,509 @@ button.brand-home-button:focus-visible {
   line-height: 1.45;
 }
 
+.trainerdex-page {
+  --trainerdex-teal: #0f766e;
+  --trainerdex-teal-dark: #134e4a;
+  --trainerdex-teal-soft: #e6fffb;
+  --trainerdex-orange: #f97316;
+  --trainerdex-orange-dark: #9a3412;
+}
+
+.trainerdex-page.app-container {
+  width: min(1540px, calc(100% - 24px));
+}
+
+.trainerdex-page .app-header {
+  background:
+    linear-gradient(135deg, var(--trainerdex-teal) 0 48%, #fff7ed 48% 64%, var(--trainerdex-orange) 64% 100%);
+}
+
+.trainerdex-page .brand-mark h1 {
+  color: #ffffff;
+  text-shadow:
+    2px 2px 0 var(--trainerdex-teal-dark),
+    -2px 2px 0 var(--trainerdex-teal-dark),
+    2px -2px 0 var(--trainerdex-teal-dark),
+    -2px -2px 0 var(--trainerdex-teal-dark);
+}
+
+.trainerdex-ball {
+  background:
+    radial-gradient(circle at 50% 50%, #ffffff 0 12%, #050505 13% 20%, transparent 21%),
+    linear-gradient(var(--trainerdex-teal) 0 46%, #050505 47% 55%, var(--trainerdex-orange) 56% 100%);
+}
+
+.trainerdex-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.trainerdex-sidebar,
+.trainerdex-dossier,
+.trainerdex-hero {
+  border: var(--gb-frame-width) solid transparent;
+  border-image: var(--gb-frame) var(--gb-frame-slice) round;
+  background: #ffffff;
+  background-clip: padding-box;
+  box-shadow: inset 0 0 0 4px #ffffff;
+  image-rendering: pixelated;
+}
+
+.trainerdex-sidebar {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  background:
+    linear-gradient(var(--trainerdex-teal-soft), #ffffff 220px),
+    #ffffff;
+}
+
+.trainerdex-region-grid {
+  grid-template-columns: 1fr;
+  max-height: none;
+}
+
+.trainerdex-region-card.nes-btn {
+  grid-template-rows: auto auto;
+  gap: 8px;
+  min-height: 86px;
+  align-content: center;
+  padding: 12px 14px;
+}
+
+.trainerdex-region-card.nes-btn.is-selected,
+.trainerdex-region-card.nes-btn.is-selected:hover:not(:disabled),
+.trainerdex-game-version-button.nes-btn.is-selected,
+.trainerdex-game-version-button.nes-btn.is-selected:hover:not(:disabled),
+.trainerdex-battle-stage-button.nes-btn.is-selected,
+.trainerdex-battle-stage-button.nes-btn.is-selected:hover:not(:disabled),
+.trainerdex-trainer-button.nes-btn.is-selected,
+.trainerdex-trainer-button.nes-btn.is-selected:hover:not(:disabled) {
+  color: #ffffff;
+  background-color: var(--trainerdex-orange);
+}
+
+.trainerdex-region-card.nes-btn.is-selected::after,
+.trainerdex-game-version-button.nes-btn.is-selected::after,
+.trainerdex-battle-stage-button.nes-btn.is-selected::after,
+.trainerdex-trainer-button.nes-btn.is-selected::after {
+  box-shadow: inset -4px -4px var(--trainerdex-orange-dark);
+}
+
+.trainerdex-game-version-grid {
+  max-height: none;
+  margin-bottom: 6px;
+}
+
+.trainerdex-region-card strong {
+  max-width: 100%;
+  color: inherit;
+  font-size: 0.76rem;
+  line-height: 1.25;
+  overflow-wrap: normal;
+  word-break: normal;
+  white-space: nowrap;
+}
+
+.trainerdex-region-card .pokedex-game-region {
+  color: inherit;
+  font-size: 0.82rem;
+  font-weight: 900;
+  line-height: 1.2;
+  opacity: 0.78;
+}
+
+.trainerdex-trainer-list {
+  display: grid;
+  gap: 18px;
+  max-height: 590px;
+  overflow: auto;
+  padding: 2px;
+}
+
+.trainerdex-trainer-group {
+  display: grid;
+  gap: 8px;
+}
+
+.trainerdex-trainer-group h2 {
+  margin: 0;
+  color: var(--trainerdex-teal-dark);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.trainerdex-trainer-button.nes-btn {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  min-height: 112px;
+  padding: 9px 12px;
+  color: #212529;
+  background-color: #ffffff;
+  text-align: left;
+}
+
+.trainerdex-trainer-button img {
+  justify-self: center;
+  width: 86px;
+  height: 96px;
+  object-fit: contain;
+}
+
+.trainerdex-trainer-button span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.trainerdex-trainer-button strong,
+.trainerdex-trainer-button small {
+  overflow-wrap: anywhere;
+  line-height: 1.2;
+}
+
+.trainerdex-trainer-button small {
+  color: inherit;
+  font-size: 0.72rem;
+  opacity: 0.84;
+}
+
+.trainerdex-dossier {
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+  background:
+    linear-gradient(90deg, #ffffff 0 70%, var(--trainerdex-teal-soft) 70% 100%),
+    #ffffff;
+}
+
+.trainerdex-hero {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.36fr) minmax(0, 0.64fr);
+  gap: 22px;
+  align-items: stretch;
+  padding: 18px;
+  background: #ffffff;
+}
+
+.trainerdex-art-panel {
+  display: grid;
+  place-items: end center;
+  min-height: 390px;
+  background:
+    linear-gradient(180deg, var(--trainerdex-teal-soft), #ffffff 70%),
+    #ffffff;
+}
+
+.trainerdex-art-panel img {
+  max-width: min(100%, 340px);
+  max-height: 380px;
+  object-fit: contain;
+  filter: drop-shadow(8px 10px 0 rgb(15 118 110 / 18%));
+}
+
+.trainerdex-summary {
+  display: grid;
+  align-content: center;
+  gap: 14px;
+}
+
+.trainerdex-summary h2 {
+  margin: 0;
+  color: #050505;
+  font-size: clamp(1.8rem, 4vw, 3.4rem);
+  line-height: 1.05;
+}
+
+.trainerdex-entry-summary {
+  max-width: 76ch;
+  margin: 0;
+  color: #050505;
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.trainerdex-meta,
+.trainerdex-stat-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.trainerdex-meta div,
+.trainerdex-stat-list div {
+  border: 3px solid #212529;
+  padding: 10px;
+  background: #ffffff;
+  box-shadow:
+    inset -3px -3px 0 #adafbc,
+    inset 3px 3px 0 #ffffff;
+}
+
+.trainerdex-meta dt,
+.trainerdex-stat-list dt {
+  color: #555555;
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.trainerdex-meta dd,
+.trainerdex-stat-list dd {
+  margin: 4px 0 0;
+  color: #050505;
+  font-weight: 900;
+}
+
+.trainerdex-type-row,
+.trainerdex-counter-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trainerdex-info-cluster {
+  display: grid;
+  gap: 12px;
+  padding-top: 2px;
+}
+
+.trainerdex-info-cluster h3 {
+  margin: 0 0 8px;
+  color: #050505;
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.trainerdex-info-cluster .trainerdex-stat-list {
+  grid-template-columns: repeat(6, minmax(70px, 1fr));
+  gap: 6px;
+}
+
+.trainerdex-info-cluster .trainerdex-stat-list div {
+  padding: 7px 8px;
+}
+
+.trainerdex-info-cluster .trainerdex-stat-list dt {
+  font-size: 0.58rem;
+}
+
+.trainerdex-info-cluster .trainerdex-stat-list dd {
+  margin-top: 2px;
+}
+
+.trainerdex-team-panel {
+  display: grid;
+  gap: 0;
+  border: var(--gb-frame-width) solid transparent;
+  border-image: var(--gb-frame) var(--gb-frame-slice) round;
+  padding: 16px;
+  background: #ffffff;
+  background-clip: padding-box;
+  box-shadow: inset 0 0 0 4px #ffffff;
+  image-rendering: pixelated;
+}
+
+.trainerdex-team-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.34fr) minmax(120px, 0.18fr) minmax(280px, 0.48fr);
+  gap: 16px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 3px solid #212529;
+  cursor: pointer;
+}
+
+.trainerdex-team-row:first-child {
+  padding-top: 0;
+}
+
+.trainerdex-team-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.trainerdex-team-heading {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  text-align: left;
+}
+
+.trainerdex-team-row:focus-visible {
+  outline: 3px solid var(--trainerdex-orange);
+  outline-offset: 6px;
+}
+
+.trainerdex-section-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.trainerdex-team-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: baseline;
+}
+
+.trainerdex-section-heading h3 {
+  margin: 0;
+}
+
+.trainerdex-battle-stage-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.trainerdex-battle-stage-button.nes-btn {
+  min-height: 34px;
+  padding: 5px 10px;
+  font-size: 0.7rem;
+}
+
+.trainerdex-team-sprite {
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+}
+
+.trainerdex-team-sprite img {
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.trainerdex-team-heading div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.trainerdex-team-heading strong {
+  color: #050505;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.trainerdex-team-heading span {
+  color: var(--trainerdex-teal-dark);
+  font-weight: 900;
+}
+
+.trainerdex-move-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trainerdex-move-list li {
+  border-left: 4px solid var(--trainerdex-teal);
+  padding: 6px 8px;
+  background: var(--trainerdex-teal-soft);
+  color: #050505;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.trainerdex-tcg-section {
+  border-top: 4px solid var(--trainerdex-teal-dark);
+}
+
+.trainerdex-featured-groups {
+  display: grid;
+  gap: 18px;
+}
+
+.trainerdex-featured-group {
+  display: grid;
+  gap: 10px;
+}
+
+.trainerdex-featured-group h4 {
+  margin: 0;
+  color: #050505;
+  font-size: 0.82rem;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.trainerdex-card-help {
+  max-width: 58ch;
+  margin: 0;
+  color: #4a4a4a;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.trainerdex-team-tcg-modal {
+  position: relative;
+  display: grid;
+  gap: 18px;
+  width: min(1120px, calc(100vw - 72px));
+  max-height: min(860px, calc(100vh - 72px));
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 28px;
+  background: #ffffff;
+  background-clip: border-box;
+  box-shadow:
+    0 0 0 4px #ffffff,
+    0 0 0 8px #050505,
+    0 28px 90px rgb(0 0 0 / 48%);
+}
+
+.trainerdex-team-tcg-header {
+  display: grid;
+  gap: 8px;
+  padding-right: 96px;
+}
+
+.trainerdex-team-tcg-header h2 {
+  margin: 0;
+  color: #050505;
+  font-size: clamp(1.35rem, 3vw, 2.5rem);
+  line-height: 1.1;
+}
+
+.trainerdex-team-tcg-grid {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  justify-content: stretch;
+  max-height: calc(min(860px, 100vh - 72px) - 170px);
+  overflow: auto;
+  padding: 0 10px 4px 0;
+  scrollbar-color: #7a7a7a #f1f1f1;
+}
+
+.trainerdex-team-tcg-grid .binder-card {
+  min-width: 0;
+}
+
 .who-page {
   --who-yellow: #ffcb05;
   --who-blue: #2a75bb;
@@ -4502,9 +5090,14 @@ button.who-pokemon-button:focus-visible:not(:disabled) {
   position: absolute;
   min-height: 32px;
   padding: 4px 8px;
-  color: #212529;
-  background-color: #ffffff;
+  color: #ffffff;
+  background-color: #e76e55;
   font-size: 0.72rem;
+  text-shadow:
+    1px 1px 0 #050505,
+    -1px 1px 0 #050505,
+    1px -1px 0 #050505,
+    -1px -1px 0 #050505;
   transform: none;
 }
 
@@ -4512,9 +5105,19 @@ button.who-pokemon-button:focus-visible:not(:disabled) {
 .modal-close.nes-btn:active:not(:disabled),
 .modal-close.nes-btn:focus-visible {
   position: absolute;
-  color: #212529;
-  background-color: #e7e7e7;
+  color: #ffffff;
+  background-color: #d84f3a;
   transform: none;
+}
+
+.modal-close.nes-btn::after {
+  box-shadow: inset -4px -4px #8c2022;
+}
+
+.modal-close.nes-btn:hover:not(:disabled)::after,
+.modal-close.nes-btn:active:not(:disabled)::after,
+.modal-close.nes-btn:focus-visible::after {
+  box-shadow: inset -6px -6px #8c2022;
 }
 
 .pack-reveal-header .modal-close.nes-btn,
@@ -4604,6 +5207,8 @@ button.who-pokemon-button:focus-visible:not(:disabled) {
   .team-analysis-grid,
   .quiz-layout,
   .quiz-answer-grid,
+  .trainerdex-layout,
+  .trainerdex-hero,
   .who-setup-layout,
   .who-layout,
   .who-play-shell,
@@ -4613,6 +5218,15 @@ button.who-pokemon-button:focus-visible:not(:disabled) {
 
   .pokedex-card {
     min-height: 0;
+  }
+
+  .trainerdex-info-cluster .trainerdex-stat-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .trainerdex-team-row {
+    grid-template-columns: 1fr;
+    align-items: start;
   }
 
   .app-container .who-game-panel {
@@ -4810,6 +5424,8 @@ button.who-pokemon-button:focus-visible:not(:disabled) {
   .team-action-row,
   .team-move-grid,
   .team-member-heading,
+  .trainerdex-stat-list,
+  .trainerdex-move-list,
   .quiz-score-card,
   .quiz-control-actions,
   .quiz-versus-card {
