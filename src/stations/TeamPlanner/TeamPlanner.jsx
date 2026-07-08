@@ -99,7 +99,7 @@ import {
   summarizeTeamTypeMatchups,
   TEAM_POKEDEX_OPTIONS,
   TEN_PACK_FLIP_DELAY,
-  TYPE_ICONS,
+  TypeBadge,
   TYPE_NAMES,
   WHO_LEADERBOARD_STORAGE_KEY,
   writeCachedPokeApiResource
@@ -568,10 +568,7 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
                     <h2>{formatPokemonName(member.name)}</h2>
                     <div className="type-row">
                       {member.types.map((typeName) => (
-                        <span key={typeName} className={`type-badge type-${typeName}`}>
-                          <img src={TYPE_ICONS[typeName]} alt="" aria-hidden="true" />
-                          {typeName}
-                        </span>
+                        <TypeBadge key={typeName} type={typeName} />
                       ))}
                     </div>
                   </div>
@@ -610,9 +607,7 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
               <h2>Weaknesses</h2>
               <div className="team-type-list">
                 {teamWeaknesses.map((matchup) => (
-                  <span key={matchup.type} className={`type-badge type-${matchup.type}`}>
-                    {formatPokemonName(matchup.type)} x{matchup.weak}
-                  </span>
+                  <TypeBadge key={matchup.type} type={matchup.type} detail={`x${matchup.weak}`} />
                 ))}
                 {!teamWeaknesses.length && <p className="pokedex-status">Add Pokemon to scan team weaknesses.</p>}
               </div>
@@ -622,9 +617,11 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
               <h2>Resistances</h2>
               <div className="team-type-list">
                 {teamResistances.map((matchup) => (
-                  <span key={matchup.type} className={`type-badge type-${matchup.type}`}>
-                    {formatPokemonName(matchup.type)} {matchup.immune ? `immune ${matchup.immune}` : `resist ${matchup.resist}`}
-                  </span>
+                  <TypeBadge
+                    key={matchup.type}
+                    type={matchup.type}
+                    detail={matchup.immune ? `immune ${matchup.immune}` : `resist ${matchup.resist}`}
+                  />
                 ))}
                 {!teamResistances.length && <p className="pokedex-status">No resistances yet.</p>}
               </div>
@@ -634,9 +631,7 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
               <h2>Strong Against</h2>
               <div className="team-type-list">
                 {strongAgainstTypes.map((typeName) => (
-                  <span key={typeName} className={`type-badge type-${typeName}`}>
-                    {formatPokemonName(typeName)}
-                  </span>
+                  <TypeBadge key={typeName} type={typeName} />
                 ))}
                 {!strongAgainstTypes.length && <p className="pokedex-status">Choose moves to see offensive strengths.</p>}
               </div>

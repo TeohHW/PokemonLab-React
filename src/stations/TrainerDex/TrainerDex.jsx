@@ -6,6 +6,7 @@ import {
   getExpansionCategory,
   handleCardImageError,
   hasFeaturedTcgCards,
+  TypeBadge,
 } from '../shared/stationShared';
 import { TRAINERDEX_OPTIONS, TRAINERDEX_TRAINERS, TRAINER_GROUPS } from './trainerDexData';
 
@@ -130,7 +131,20 @@ const getTypeMultiplierMap = (typeData = []) =>
   }, {});
 
 const handlePokemonSpriteError = (event) => {
-  event.currentTarget.style.visibility = 'hidden';
+  const fallbackSrc = event.currentTarget.dataset.fallbackSrc;
+  const [nextFallback, ...remainingFallbacks] = fallbackSrc ? fallbackSrc.split('|').filter(Boolean) : [];
+
+  if (!nextFallback) {
+    event.currentTarget.removeAttribute('data-fallback-src');
+    return;
+  }
+
+  event.currentTarget.src = nextFallback;
+  if (remainingFallbacks.length) {
+    event.currentTarget.dataset.fallbackSrc = remainingFallbacks.join('|');
+  } else {
+    event.currentTarget.removeAttribute('data-fallback-src');
+  }
 };
 
 const handlePokemonSpriteLoad = (event) => {
@@ -461,6 +475,9 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
                     pokemon.stats.map((stat) => [stat.stat.name, stat.base_stat]),
                   ),
                   sprite: pokemon.sprites?.front_default || '',
+                  spriteFallbacks: [
+                    pokemon.sprites?.other?.['official-artwork']?.front_default,
+                  ].filter(Boolean),
                   defenseMultipliers: getTypeMultiplierMap(typeData),
                 };
               }),
@@ -641,9 +658,7 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
                   <h3>Types Used</h3>
                   <div className="trainerdex-type-row" aria-label="Trainer team types">
                     {trainerTypes.map((typeName) => (
-                      <span key={typeName} className={`move-type-pill type-${typeName}`}>
-                        {formatPokemonName(typeName)}
-                      </span>
+                      <TypeBadge key={typeName} type={typeName} className="move-type-pill" />
                     ))}
                   </div>
                 </div>
@@ -662,9 +677,7 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
                   <h3>Recommended Types</h3>
                   <div className="trainerdex-counter-list">
                     {recommendedCounters.map((counter) => (
-                      <span key={counter.type} className={`move-type-pill type-${counter.type}`}>
-                        {formatPokemonName(counter.type)}
-                      </span>
+                      <TypeBadge key={counter.type} type={counter.type} className="move-type-pill" />
                     ))}
                     {!recommendedCounters.length && (
                       <p className="pokedex-status">Counters load after team analysis.</p>
@@ -730,6 +743,9 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
                           <img
                             key={`${teamMember.name}-${enrichedMember.sprite}`}
                             src={enrichedMember.sprite}
+                            data-fallback-src={(enrichedMember.spriteFallbacks || [])
+                              .filter((spriteUrl) => spriteUrl && spriteUrl !== enrichedMember.sprite)
+                              .join('|')}
                             alt=""
                             loading="lazy"
                             onLoad={handlePokemonSpriteLoad}
@@ -745,9 +761,7 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
                     {enrichedMember?.types?.length > 0 && (
                       <div className="trainerdex-type-row">
                         {enrichedMember.types.map((typeName) => (
-                          <span key={typeName} className={`move-type-pill type-${typeName}`}>
-                            {formatPokemonName(typeName)}
-                          </span>
+                          <TypeBadge key={typeName} type={typeName} className="move-type-pill" />
                         ))}
                       </div>
                     )}

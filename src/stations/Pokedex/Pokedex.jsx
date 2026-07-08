@@ -12,6 +12,7 @@ import {
   buildPokemonQuizQuestion,
   CARD_BACK_IMAGE,
   CARD_FLIP_DELAY,
+  CachedImage,
   cardMatchesSearch,
   cleanPokeApiText,
   COLLECTION_STORAGE_KEY,
@@ -44,6 +45,7 @@ import {
   getExpansionCategory,
   getFeaturedTcgCards,
   getGenerationSprites,
+  getImageFallbackChain,
   getLevelUpMovesForVersionGroup,
   getPokeApiCacheDb,
   getPokemonIdFromPokemonUrl,
@@ -102,11 +104,13 @@ import {
   summarizeTeamTypeMatchups,
   TEAM_POKEDEX_OPTIONS,
   TEN_PACK_FLIP_DELAY,
-  TYPE_ICONS,
+  TypeBadge,
   TYPE_NAMES,
   WHO_LEADERBOARD_STORAGE_KEY,
   writeCachedPokeApiResource
 } from '../shared/stationShared';
+
+const POKEMON_LIST_PAGE_SIZE = 24;
 
 function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, onOpenTrainerDex }) {
   const [pokemonList, setPokemonList] = useState([]);
@@ -115,6 +119,8 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
   const [selectedTcgCard, setSelectedTcgCard] = useState(null);
   const [selectedSpriteSet, setSelectedSpriteSet] = useState(null);
   const [selectedPokedexDetail, setSelectedPokedexDetail] = useState(null);
+  const [unavailableGenerationSpriteIds, setUnavailableGenerationSpriteIds] = useState({});
+  const [unavailableSpriteVariantIds, setUnavailableSpriteVariantIds] = useState({});
   const [selectedMoveGroup, setSelectedMoveGroup] = useState('');
   const [speciesDetails, setSpeciesDetails] = useState(null);
   const [evolutionTree, setEvolutionTree] = useState(null);
@@ -123,6 +129,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
   const [tcgCards, setTcgCards] = useState([]);
   const [loadingTcgCards, setLoadingTcgCards] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [pokemonPage, setPokemonPage] = useState(1);
   const [pokemonSortMode, setPokemonSortMode] = useState('entry');
   const [pokemonMetadata, setPokemonMetadata] = useState({});
   const [loadingList, setLoadingList] = useState(true);
@@ -326,6 +333,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
         setMoveDetails({});
         setSelectedPokedexDetail(null);
         setSearchTerm(data.species?.name || data.name);
+        setPokemonPage(1);
       })
       .catch((fetchError) => {
         setSelectedPokemon(null);
@@ -461,6 +469,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
         setMoveDetails({});
         setSelectedPokedexDetail(null);
         setSearchTerm(data.species?.name || data.name);
+        setPokemonPage(1);
       })
       .catch((fetchError) => {
         setSelectedPokemon(null);
@@ -524,6 +533,10 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
       return compareByEntry(firstPokemon, secondPokemon);
     });
   }, [pokemonList, pokemonMetadata, pokemonSortMode, searchTerm]);
+  const pokemonPageCount = Math.max(1, Math.ceil(visiblePokemon.length / POKEMON_LIST_PAGE_SIZE));
+  const clampedPokemonPage = Math.min(pokemonPage, pokemonPageCount);
+  const pokemonPageStart = (clampedPokemonPage - 1) * POKEMON_LIST_PAGE_SIZE;
+  const pagedPokemon = visiblePokemon.slice(pokemonPageStart, pokemonPageStart + POKEMON_LIST_PAGE_SIZE);
 
   const pokedexSortOptions = useMemo(
     () => [
@@ -589,6 +602,17 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
     () => getGenerationSprites(selectedPokemon),
     [selectedPokemon],
   );
+  const visibleGenerationSprites = useMemo(
+    () => generationSprites.filter((sprite) => !unavailableGenerationSpriteIds[sprite.id]),
+    [generationSprites, unavailableGenerationSpriteIds],
+  );
+  const visibleSpriteVariants = useMemo(
+    () =>
+      (selectedSpriteSet?.variants || []).filter(
+        (variant) => !unavailableSpriteVariantIds[`${selectedSpriteSet.id}-${variant.label}`],
+      ),
+    [selectedSpriteSet, unavailableSpriteVariantIds],
+  );
   const alternateForms = useMemo(
     () =>
       (speciesDetails?.varieties || []).map((variety) => ({
@@ -602,6 +626,14 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
     () => getFeaturedTcgCards(tcgCards, [selectedPokemon?.name, selectedPokemon?.species?.name]),
     [tcgCards, selectedPokemon],
   );
+  useEffect(() => {
+    setUnavailableGenerationSpriteIds({});
+    setUnavailableSpriteVariantIds({});
+  }, [selectedPokemon?.id]);
+
+  useEffect(() => {
+    setUnavailableSpriteVariantIds({});
+  }, [selectedSpriteSet?.id]);
   const getStarterName = useCallback(
     (starterId) =>
       pokemonList.find((pokemon) => pokemon.pokemonId === String(starterId))?.name ||
@@ -658,6 +690,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                         : currentSortMode,
                     );
                     setSearchTerm('');
+                    setPokemonPage(1);
                     setError('');
                     setPokemonList([]);
                     setSelectedPokemon(null);
@@ -675,7 +708,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                   {pokedex.starters?.length > 0 && (
                     <span className="starter-sprite-row" aria-hidden="true">
                       {pokedex.starters.map((starterId) => (
-                        <img
+                        <CachedImage
                           key={starterId}
                           src={getPokemonSpriteUrl(starterId)}
                           alt=""
@@ -697,7 +730,10 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
               id="pokemon-search"
               type="search"
               value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
+              onChange={(event) => {
+                setSearchTerm(event.target.value);
+                setPokemonPage(1);
+              }}
               placeholder="Name or number..."
             />
             <button type="submit" className="nes-btn is-success" disabled={loadingPokemon}>
@@ -716,6 +752,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
               className="nes-btn"
               onClick={() => {
                 setSearchTerm('');
+                setPokemonPage(1);
                 setSelectedPokemon(null);
                 setSpeciesDetails(null);
                 setEvolutionTree(null);
@@ -738,6 +775,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
               onChange={(event) => {
                 const nextSortMode = event.target.value;
                 setPokemonSortMode(nextSortMode);
+                setPokemonPage(1);
               }}
               disabled={loadingList}
             >
@@ -754,9 +792,34 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
 
           {error && <p className="pokedex-error">{error}</p>}
 
+          {!loadingList && visiblePokemon.length > 0 && (
+            <div className="pokemon-list-pager" aria-label="Pokemon quick pick pages">
+              <button
+                type="button"
+                className="nes-btn"
+                onClick={() => setPokemonPage((currentPage) => Math.max(1, currentPage - 1))}
+                disabled={clampedPokemonPage === 1}
+              >
+                Prev
+              </button>
+              <span>
+                {pokemonPageStart + 1}-{Math.min(pokemonPageStart + POKEMON_LIST_PAGE_SIZE, visiblePokemon.length)} of{' '}
+                {visiblePokemon.length}
+              </span>
+              <button
+                type="button"
+                className="nes-btn"
+                onClick={() => setPokemonPage((currentPage) => Math.min(pokemonPageCount, currentPage + 1))}
+                disabled={clampedPokemonPage === pokemonPageCount}
+              >
+                Next
+              </button>
+            </div>
+          )}
+
           <div className="pokemon-list" aria-label="Pokemon quick picks">
             {loadingList && <p>Loading Pokemon...</p>}
-            {visiblePokemon.map((pokemon) => (
+            {pagedPokemon.map((pokemon) => (
               <button
                 key={pokemon.name}
                 type="button"
@@ -768,8 +831,9 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                 {selectedDex === ALL_POKEDEX_OPTION.id && (
                   <span>#{String(pokemon.entryNumber).padStart(3, '0')}</span>
                 )}
-                <img
+                <CachedImage
                   src={getPokemonSpriteUrl(pokemon.pokemonId)}
+                  fallbackSrc={getPokemonOfficialArtworkUrl(pokemon.pokemonId)}
                   alt=""
                   loading="lazy"
                   aria-hidden="true"
@@ -786,7 +850,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
             <section className="pokedex-section generation-sprites-section is-left-column">
               <h3>Generation Sprites</h3>
               <div className="generation-sprite-grid">
-                {generationSprites.map((sprite) => (
+                {visibleGenerationSprites.map((sprite) => (
                   <article
                     key={sprite.id}
                     className="generation-sprite-card"
@@ -800,7 +864,16 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                       }
                     }}
                   >
-                    <img src={sprite.image} alt={`${selectedPokemon.name} ${sprite.game} sprite`} />
+                    <CachedImage
+                      src={sprite.image}
+                      alt={`${selectedPokemon.name} ${sprite.game} sprite`}
+                      onUnavailable={() => {
+                        setUnavailableGenerationSpriteIds((previousIds) => ({
+                          ...previousIds,
+                          [sprite.id]: true,
+                        }));
+                      }}
+                    />
                     <strong>{sprite.generation}</strong>
                     <span>{sprite.game}</span>
                   </article>
@@ -816,7 +889,16 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
           {!loadingPokemon && selectedPokemon && (
             <>
               <div className="pokedex-card-media">
-                {officialArtwork && <img src={officialArtwork} alt={selectedPokemon.name} />}
+                {officialArtwork && (
+                  <CachedImage
+                    src={officialArtwork}
+                    fallbackSrc={getImageFallbackChain(
+                      selectedPokemon.sprites?.front_default,
+                      getPokemonSpriteUrl(selectedPokemon.id),
+                    ).join('|')}
+                    alt={selectedPokemon.name}
+                  />
+                )}
               </div>
               <div className="pokedex-card-info">
                 <p className="card-detail-set">#{String(selectedPokemon.id).padStart(3, '0')}</p>
@@ -834,10 +916,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                 </div>
                 <div className="type-row">
                   {selectedPokemon.types.map(({ type }) => (
-                    <span key={type.name} className={`type-badge type-${type.name}`}>
-                      <img src={TYPE_ICONS[type.name]} alt="" aria-hidden="true" />
-                      {type.name}
-                    </span>
+                    <TypeBadge key={type.name} type={type.name} />
                   ))}
                 </div>
                 {speciesDetails && (
@@ -849,10 +928,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                   <h3>Weak To</h3>
                   <div className="type-row">
                     {typeWeaknesses.map((weakness) => (
-                      <span key={weakness.name} className={`type-badge type-${weakness.name}`}>
-                        <img src={TYPE_ICONS[weakness.name]} alt="" aria-hidden="true" />
-                        {weakness.name} x{weakness.multiplier}
-                      </span>
+                      <TypeBadge key={weakness.name} type={weakness.name} detail={`x${weakness.multiplier}`} />
                     ))}
                     {!typeWeaknesses.length && <p>No weaknesses found.</p>}
                   </div>
@@ -933,14 +1009,16 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                         }`}
                         onClick={() => searchPokemon(form.name)}
                       >
-                        <img
+                        <CachedImage
                           src={getPokemonOfficialArtworkUrl(form.pokemonId)}
+                          fallbackSrc={getImageFallbackChain(
+                            getPokemonSpriteUrl(form.pokemonId),
+                            selectedPokemon.sprites?.front_default,
+                            officialArtwork,
+                          ).join('|')}
                           alt=""
                           loading="lazy"
                           aria-hidden="true"
-                          onError={(event) => {
-                            event.currentTarget.src = getPokemonSpriteUrl(form.pokemonId);
-                          }}
                         />
                         <strong>{formatPokemonName(form.name)}</strong>
                         {form.isDefault && <span>Default Form</span>}
@@ -1003,9 +1081,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                               <td>{move.level}</td>
                               <td>{formatPokemonName(move.name)}</td>
                               <td>
-                                <span className={`move-type-pill type-${moveDetails[move.name].type.name}`}>
-                                  {formatPokemonName(moveDetails[move.name].type.name)}
-                                </span>
+                                <TypeBadge type={moveDetails[move.name].type.name} className="move-type-pill" />
                               </td>
                               <td>
                                 <img
@@ -1083,8 +1159,9 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                               }
                             }}
                           >
-                            <img
+                            <CachedImage
                               src={getPokemonOfficialArtworkUrl(starterId)}
+                              fallbackSrc={getPokemonSpriteUrl(starterId)}
                               alt={`Open ${formatPokemonName(getStarterName(starterId))}`}
                               loading="lazy"
                             />
@@ -1174,9 +1251,18 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
               <h2 id="sprite-detail-title">{selectedSpriteSet.game} Sprites</h2>
             </div>
             <div className="sprite-variant-grid">
-              {selectedSpriteSet.variants.map((variant) => (
+              {visibleSpriteVariants.map((variant) => (
                 <article key={variant.label} className="sprite-variant-card">
-                  <img src={variant.image} alt={`${selectedSpriteSet.game} ${variant.label}`} />
+                  <CachedImage
+                    src={variant.image}
+                    alt={`${selectedSpriteSet.game} ${variant.label}`}
+                    onUnavailable={() => {
+                      setUnavailableSpriteVariantIds((previousIds) => ({
+                        ...previousIds,
+                        [`${selectedSpriteSet.id}-${variant.label}`]: true,
+                      }));
+                    }}
+                  />
                   <strong>{variant.label}</strong>
                 </article>
               ))}
@@ -1256,9 +1342,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                       <div>
                         <dt>Type</dt>
                         <dd>
-                          <span className={`move-type-pill type-${selectedPokedexDetail.data.type.name}`}>
-                            {formatPokemonName(selectedPokedexDetail.data.type.name)}
-                          </span>
+                          <TypeBadge type={selectedPokedexDetail.data.type.name} className="move-type-pill" />
                         </dd>
                       </div>
                       <div>

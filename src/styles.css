@@ -1893,16 +1893,8 @@ button.brand-home-button:focus-visible {
   margin-bottom: 0;
 }
 
-.team-member-heading .type-row span {
-  gap: 6px;
-  border-width: 3px;
-  padding: 5px 8px;
-  font-size: 0.84rem;
-}
-
-.team-member-heading .type-badge img {
-  width: 18px;
-  height: 18px;
+.team-member-heading .type-image-badge img {
+  height: 24px;
 }
 
 .team-move-grid {
@@ -1950,9 +1942,6 @@ button.brand-home-button:focus-visible {
 
 .team-type-list .type-badge {
   display: inline-flex;
-  border: 4px solid #212529;
-  padding: 6px 10px;
-  color: #050505;
   font-size: 0.76rem;
   font-weight: 900;
   line-height: 1.25;
@@ -2801,6 +2790,25 @@ button.brand-home-button:focus-visible {
   padding: 2px;
 }
 
+.pokemon-list-pager {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.pokemon-list-pager .nes-btn {
+  min-width: 88px;
+  padding: 8px 10px;
+  font-size: 0.72rem;
+}
+
+.pokemon-list-pager span {
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
 .pokemon-list p {
   margin: 0;
   color: #050505;
@@ -2955,21 +2963,42 @@ button.brand-home-button:focus-visible {
   margin-bottom: 18px;
 }
 
-.type-row span {
+.type-row .type-badge {
   display: inline-flex;
   gap: 8px;
   align-items: center;
-  border: 4px solid #212529;
-  padding: 6px 10px;
   color: #050505;
   font-weight: 900;
   text-transform: capitalize;
 }
 
-.type-badge img {
-  width: 22px;
-  height: 22px;
+.type-image-badge {
+  gap: 8px;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  line-height: 1;
+}
+
+.type-image-badge img {
+  display: block;
+  width: auto;
+  height: 24px;
   object-fit: contain;
+}
+
+.type-image-badge strong {
+  display: inline-flex;
+  align-items: center;
+  align-self: stretch;
+  border: 2px solid #212529;
+  padding: 0 6px;
+  color: #050505;
+  background: #ffffff;
+  font-size: 0.62rem;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .type-normal {
@@ -3421,12 +3450,13 @@ button.brand-home-button:focus-visible {
 }
 
 .move-type-pill {
-  display: inline-block;
-  border: 3px solid #212529;
-  padding: 4px 7px;
-  color: #050505;
+  display: inline-flex;
+  align-items: center;
   font-weight: 900;
-  line-height: 1;
+}
+
+.move-type-pill.type-image-badge img {
+  height: 20px;
 }
 
 .move-category-icon {

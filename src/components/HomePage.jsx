@@ -97,7 +97,6 @@ import {
   summarizeTeamTypeMatchups,
   TEAM_POKEDEX_OPTIONS,
   TEN_PACK_FLIP_DELAY,
-  TYPE_ICONS,
   TYPE_NAMES,
   WHO_LEADERBOARD_STORAGE_KEY,
   writeCachedPokeApiResource

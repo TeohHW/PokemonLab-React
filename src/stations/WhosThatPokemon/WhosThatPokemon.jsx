@@ -103,7 +103,7 @@ import {
   summarizeTeamTypeMatchups,
   TEAM_POKEDEX_OPTIONS,
   TEN_PACK_FLIP_DELAY,
-  TYPE_ICONS,
+  TypeBadge,
   TYPE_NAMES,
   WHO_LEADERBOARD_STORAGE_KEY,
   writeCachedPokeApiResource
@@ -1019,10 +1019,7 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
                 <h2 id="who-entry-title">{answerName}</h2>
                 <div className="type-row">
                   {currentPokemon.types.map(({ type }) => (
-                    <span key={type.name} className={`type-badge type-${type.name}`}>
-                      <img src={TYPE_ICONS[type.name]} alt="" aria-hidden="true" />
-                      {type.name}
-                    </span>
+                    <TypeBadge key={type.name} type={type.name} />
                   ))}
                 </div>
                 <section className="pokedex-section flavor-section">

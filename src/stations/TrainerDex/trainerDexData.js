@@ -297,7 +297,7 @@ const unovaGameData = {
 const getUnovaGameData = (name) => unovaGameData[name.toLowerCase().replace(/[^a-z0-9]+/g, '-')] || {};
 
 export const TRAINERDEX_OPTIONS = [
-  { id: 'kanto', label: 'FireRed / LeafGreen', region: 'Kanto', art: ['FireRed.png', 'LeafGreen.png'], games: [{ id: 'firered-leafgreen', label: 'FireRed LeafGreen' }, { id: 'red-blue', label: 'Red Blue' }] },
+  { id: 'kanto', label: 'FireRed / LeafGreen', region: 'Kanto', art: ['FireRed.png', 'LeafGreen.png'], games: [{ id: 'firered-leafgreen', label: 'FireRed LeafGreen' }, { id: 'heartgold-soulsilver', label: 'HeartGold SoulSilver' }] },
   { id: 'johto', label: 'HeartGold / SoulSilver', region: 'Johto', art: ['HeartGold.jpg', 'SoulSilver.jpg'], games: [{ id: 'heartgold-soulsilver', label: 'HeartGold SoulSilver' }, { id: 'gold-silver', label: 'Gold Silver' }] },
   { id: 'hoenn', label: 'Omega Ruby / Alpha Sapphire', region: 'Hoenn', art: ['OmegaRuby.png', 'AlphaSapphire.png'], games: [{ id: 'omega-ruby-alpha-sapphire', label: 'Omega Ruby Alpha Sapphire' }, { id: 'emerald', label: 'Emerald' }, { id: 'ruby-sapphire', label: 'Ruby Sapphire' }] },
   { id: 'sinnoh', label: 'Diamond / Pearl / Platinum', region: 'Sinnoh', art: ['Diamond.jpg', 'Pearl.jpg', 'Platinum.png'], games: [{ id: 'platinum', label: 'Platinum' }, { id: 'diamond-pearl', label: 'Diamond Pearl' }] },
@@ -326,6 +326,17 @@ export const TRAINERDEX_TRAINERS = [
     signature: 'Onix',
     summary: 'Brock awards the Boulder Badge and tests early teams with Rock-type defense.',
     team: [makeMember('Geodude', 12, ['Tackle', 'Defense Curl', 'Rock Tomb']), makeMember('Onix', 14, ['Tackle', 'Bind', 'Rock Tomb'])],
+    gameData: {
+      'heartgold-soulsilver': {
+        team: makeTeam([['Graveler', 51, 'rock'], ['Rhyhorn', 51, 'ground'], ['Omastar', 53, 'rock'], ['Kabutops', 52, 'rock'], ['Onix', 54, 'rock']]),
+        battleStages: {
+          rematch: {
+            label: 'Fighting Dojo Rematch',
+            team: makeTeam([['Golem', 55, 'rock'], ['Relicanth', 54, 'water'], ['Omastar', 56, 'rock'], ['Kabutops', 55, 'rock'], ['Onix', 61, 'rock'], ['Rampardos', 57, 'rock']]),
+          },
+        },
+      },
+    },
   }),
   makeTrainer({
     id: 'misty-kanto',
@@ -336,6 +347,17 @@ export const TRAINERDEX_TRAINERS = [
     signature: 'Staryu',
     summary: 'Misty awards the Cascade Badge and pressures Kanto teams with fast Water Pokemon.',
     team: [makeMember('Staryu', 18, ['Tackle', 'Harden', 'Recover', 'Water Pulse']), makeMember('Starmie', 21, ['Rapid Spin', 'Swift', 'Recover', 'Water Pulse'])],
+    gameData: {
+      'heartgold-soulsilver': {
+        team: makeTeam([['Golduck', 49, 'water'], ['Quagsire', 49, 'water'], ['Lapras', 52, 'water'], ['Starmie', 54, 'water']]),
+        battleStages: {
+          rematch: {
+            label: 'Fighting Dojo Rematch',
+            team: makeTeam([['Starmie', 60, 'water'], ['Quagsire', 56, 'water'], ['Lapras', 56, 'water'], ['Lanturn', 54, 'water'], ['Floatzel', 54, 'water'], ['Milotic', 60, 'water']]),
+          },
+        },
+      },
+    },
   }),
   makeTrainer({
     id: 'lt-surge-kanto',
@@ -346,6 +368,17 @@ export const TRAINERDEX_TRAINERS = [
     signature: 'Raichu',
     summary: 'Lt. Surge awards the Thunder Badge and leans on paralysis and quick Electric attacks.',
     team: [makeMember('Voltorb', 21, moves.electric), makeMember('Pikachu', 18, moves.electric), makeMember('Raichu', 24, moves.electric)],
+    gameData: {
+      'heartgold-soulsilver': {
+        team: makeTeam([['Raichu', 51, 'electric'], ['Electrode', 47, 'electric'], ['Electrode', 47, 'electric'], ['Magneton', 47, 'electric'], ['Electabuzz', 53, 'electric']]),
+        battleStages: {
+          rematch: {
+            label: 'Fighting Dojo Rematch',
+            team: makeTeam([['Raichu', 60, 'electric'], ['Manectric', 52, 'electric'], ['Magnezone', 52, 'electric'], ['Electrode', 52, 'electric'], ['Pachirisu', 58, 'electric'], ['Electivire', 56, 'electric']]),
+          },
+        },
+      },
+    },
   }),
   makeTrainer({
     id: 'erika-kanto',
@@ -356,6 +389,7 @@ export const TRAINERDEX_TRAINERS = [
     signature: 'Vileplume',
     summary: 'Erika awards the Rainbow Badge with a status-heavy Grass team.',
     team: [makeMember('Victreebel', 29, moves.grass), makeMember('Tangela', 24, ['Constrict', 'Ingrain', 'Giga Drain']), makeMember('Vileplume', 29, moves.grass)],
+    gameIds: ['firered-leafgreen'],
   }),
   makeTrainer({
     id: 'koga-kanto',
@@ -366,6 +400,7 @@ export const TRAINERDEX_TRAINERS = [
     signature: 'Weezing',
     summary: 'Koga awards the Soul Badge and uses poison, evasion, and disruptive tactics.',
     team: [makeMember('Koffing', 37, moves.poison), makeMember('Koffing', 37, moves.poison), makeMember('Muk', 39, moves.poison), makeMember('Weezing', 43, moves.poison)],
+    gameIds: ['firered-leafgreen'],
   }),
   makeTrainer({
     id: 'sabrina-kanto',
@@ -376,6 +411,7 @@ export const TRAINERDEX_TRAINERS = [
     signature: 'Alakazam',
     summary: 'Sabrina awards the Marsh Badge and uses high-special Psychic Pokemon.',
     team: [makeMember('Kadabra', 38, moves.psychic), makeMember('Mr. Mime', 37, ['Barrier', 'Psybeam', 'Baton Pass', 'Calm Mind']), makeMember('Venomoth', 38, ['Gust', 'Psybeam', 'Supersonic', 'Leech Life']), makeMember('Alakazam', 43, moves.psychic)],
+    gameIds: ['firered-leafgreen'],
   }),
   makeTrainer({
     id: 'blaine-kanto',
@@ -386,6 +422,7 @@ export const TRAINERDEX_TRAINERS = [
     signature: 'Arcanine',
     summary: 'Blaine awards the Volcano Badge after a quiz-themed Fire-type Gym.',
     team: [makeMember('Growlithe', 42, moves.fire), makeMember('Ponyta', 40, ['Stomp', 'Bounce', 'Fire Spin', 'Fire Blast']), makeMember('Rapidash', 42, ['Stomp', 'Bounce', 'Fire Spin', 'Fire Blast']), makeMember('Arcanine', 47, moves.fire)],
+    gameIds: ['firered-leafgreen'],
   }),
   makeTrainer({
     id: 'giovanni-kanto',
@@ -396,6 +433,7 @@ export const TRAINERDEX_TRAINERS = [
     signature: 'Rhydon',
     summary: 'Giovanni is Team Rocket\'s boss and Kanto\'s final Gym Leader.',
     team: [makeMember('Rhyhorn', 45, moves.ground), makeMember('Dugtrio', 42, moves.ground), makeMember('Nidoqueen', 44, moves.ground), makeMember('Nidoking', 45, moves.ground), makeMember('Rhydon', 50, moves.ground)],
+    gameIds: ['firered-leafgreen'],
   }),
   makeTrainer({
     id: 'lorelei-kanto',
@@ -407,6 +445,7 @@ export const TRAINERDEX_TRAINERS = [
     signature: 'Lapras',
     summary: 'Lorelei opens the Kanto Elite Four with Ice and Water Pokemon.',
     team: [makeMember('Dewgong', 52, moves.ice), makeMember('Cloyster', 51, moves.ice), makeMember('Slowbro', 52, ['Surf', 'Ice Beam', 'Amnesia', 'Yawn']), makeMember('Jynx', 54, ['Lovely Kiss', 'Ice Punch', 'Attract', 'Double Slap']), makeMember('Lapras', 54, ['Surf', 'Body Slam', 'Confuse Ray', 'Ice Beam'])],
+    gameIds: ['firered-leafgreen'],
   }),
   makeTrainer({
     id: 'bruno-kanto',
@@ -418,6 +457,7 @@ export const TRAINERDEX_TRAINERS = [
     signature: 'Machamp',
     summary: 'Bruno mixes Fighting specialists with Rock-type support.',
     team: [makeMember('Onix', 51, moves.rock), makeMember('Hitmonchan', 53, moves.fighting), makeMember('Hitmonlee', 53, moves.fighting), makeMember('Onix', 54, moves.rock), makeMember('Machamp', 56, moves.fighting)],
+    gameIds: ['firered-leafgreen'],
   }),
   makeTrainer({
     id: 'agatha-kanto',
@@ -429,6 +469,7 @@ export const TRAINERDEX_TRAINERS = [
     signature: 'Gengar',
     summary: 'Agatha uses Ghost and Poison tactics built around status and confusion.',
     team: [makeMember('Gengar', 54, moves.ghost), makeMember('Golbat', 54, ['Confuse Ray', 'Air Cutter', 'Bite', 'Poison Fang']), makeMember('Haunter', 53, moves.ghost), makeMember('Arbok', 56, moves.poison), makeMember('Gengar', 58, moves.ghost)],
+    gameIds: ['firered-leafgreen'],
   }),
   makeTrainer({
     id: 'lance-kanto',
@@ -440,6 +481,7 @@ export const TRAINERDEX_TRAINERS = [
     signature: 'Dragonite',
     summary: 'Lance closes the Kanto Elite Four with Dragon-themed Pokemon.',
     team: [makeMember('Gyarados', 56, ['Dragon Rage', 'Twister', 'Bite', 'Hyper Beam']), makeMember('Dragonair', 54, moves.dragon), makeMember('Dragonair', 54, moves.dragon), makeMember('Aerodactyl', 58, ['Ancient Power', 'Wing Attack', 'Scary Face', 'Hyper Beam']), makeMember('Dragonite', 60, moves.dragon)],
+    gameIds: ['firered-leafgreen'],
   }),
   makeTrainer({
     id: 'blue-kanto',
@@ -451,6 +493,29 @@ export const TRAINERDEX_TRAINERS = [
     signature: 'Charizard',
     summary: 'Blue is the Kanto Champion and the final FireRed / LeafGreen League battle.',
     team: [makeMember('Pidgeot', 59, moves.flying), makeMember('Alakazam', 57, moves.psychic), makeMember('Rhydon', 59, moves.ground), makeMember('Exeggutor', 59, moves.grass), makeMember('Gyarados', 61, moves.water), makeMember('Charizard', 63, moves.fire)],
+    gameData: {
+      'firered-leafgreen': {
+        battleStages: {
+          rematch: {
+            label: 'Sevii Islands Rematch',
+            team: [makeMember('Pidgeot', 72, moves.flying), makeMember('Alakazam', 73, moves.psychic), makeMember('Rhydon', 72, moves.ground), makeMember('Exeggutor', 73, moves.grass), makeMember('Gyarados', 73, moves.water), makeMember('Charizard', 75, moves.fire)],
+          },
+        },
+      },
+      'heartgold-soulsilver': {
+        division: 'gym',
+        role: 'Viridian City Gym Leader',
+        signature: 'Pidgeot',
+        summary: 'Blue returns as Viridian City Gym Leader in HeartGold / SoulSilver and can be rematched at the Fighting Dojo.',
+        team: [makeMember('Exeggutor', 55, moves.grass), makeMember('Arcanine', 58, moves.fire), makeMember('Rhydon', 58, moves.ground), makeMember('Gyarados', 52, moves.water), makeMember('Machamp', 56, moves.fighting), makeMember('Pidgeot', 60, moves.flying)],
+        battleStages: {
+          rematch: {
+            label: 'Fighting Dojo Rematch',
+            team: [makeMember('Exeggutor', 67, moves.grass), makeMember('Machamp', 69, moves.fighting), makeMember('Rhyperior', 70, moves.ground), makeMember('Arcanine', 68, moves.fire), makeMember('Tyranitar', 70, moves.dark), makeMember('Pidgeot', 72, moves.flying)],
+          },
+        },
+      },
+    },
   }),
   ...[
     ['Falkner', 'Violet City Gym Leader', ['flying'], 'Pidgeotto', [makeMember('Pidgey', 9, moves.flying), makeMember('Pidgeotto', 13, moves.flying)]],

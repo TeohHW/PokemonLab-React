@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from 'react';
 import bugTypeIcon from '../../../pokedex/types/bug.png';
 import darkTypeIcon from '../../../pokedex/types/dark.png';
 import dragonTypeIcon from '../../../pokedex/types/dragon.png';
@@ -54,9 +55,11 @@ const TEN_PACK_FLIP_DELAY = CARD_FLIP_DELAY / 10;
 const CARD_BACK_IMAGE = 'https://images.pokemontcg.io/unbroken-bond/back.png';
 const REPOSITORY_URL = 'https://github.com/TeohHW/Pokemon-TCG-Simulator-React';
 const POKEAPI_BASE_URL = 'https://pokeapi.co/api/v2';
+const POKEAPI_SPRITES_CDN_URL = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites';
 const POKEAPI_CACHE_DB_NAME = 'pokemon-pack-simulator-pokeapi-cache';
 const POKEAPI_CACHE_STORE_NAME = 'resources';
 const POKEAPI_CACHE_DB_VERSION = 1;
+const IMAGE_CACHE_KEY_PREFIX = 'image:';
 const POKEDEX_OPTIONS = [
   {
     id: 'kanto',
@@ -369,12 +372,32 @@ const getPokemonIdFromUrl = (url = '') => {
 };
 
 const getPokemonSpriteUrl = (pokemonId) =>
-  pokemonId ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png` : '';
+  pokemonId ? `${POKEAPI_SPRITES_CDN_URL}/pokemon/${pokemonId}.png` : '';
 
 const getPokemonOfficialArtworkUrl = (pokemonId) =>
   pokemonId
-    ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`
+    ? `${POKEAPI_SPRITES_CDN_URL}/pokemon/other/official-artwork/${pokemonId}.png`
     : '';
+
+const getImageFallbackChain = (...images) =>
+  images.flat().filter(Boolean).filter((image, index, allImages) => allImages.indexOf(image) === index);
+
+const handleImageFallbackError = (event) => {
+  const fallbackSrc = event.currentTarget.dataset.fallbackSrc;
+  const [nextFallback, ...remainingFallbacks] = fallbackSrc ? fallbackSrc.split('|').filter(Boolean) : [];
+
+  if (!nextFallback) {
+    event.currentTarget.removeAttribute('data-fallback-src');
+    return;
+  }
+
+  event.currentTarget.src = nextFallback;
+  if (remainingFallbacks.length) {
+    event.currentTarget.dataset.fallbackSrc = remainingFallbacks.join('|');
+  } else {
+    event.currentTarget.removeAttribute('data-fallback-src');
+  }
+};
 
 const pokeApiMemoryCache = new Map();
 let pokeApiCacheDbPromise = null;
@@ -495,6 +518,200 @@ const fetchPokeApiJson = async (url, options = {}, errorMessage = 'Unable to loa
   await writeCachedPokeApiResource(cacheKey, data);
   return data;
 };
+
+const imageObjectUrlCache = new Map();
+const imageBlobMemoryCache = new Map();
+const failedImageUrlCache = new Set();
+
+const getImageCacheKey = (url) => `${IMAGE_CACHE_KEY_PREFIX}${url}`;
+
+const normalizePokeApiSpriteUrl = (url = '') =>
+  String(url).replace(
+    /^https:\/\/raw\.githubusercontent\.com\/PokeAPI\/sprites\/master\/sprites/,
+    POKEAPI_SPRITES_CDN_URL,
+  );
+
+const isCacheableRemoteImage = (url = '') =>
+  /^https:\/\/raw\.githubusercontent\.com\/PokeAPI\/sprites\//.test(url) ||
+  /^https:\/\/cdn\.jsdelivr\.net\/gh\/PokeAPI\/sprites@/.test(url);
+
+const readCachedImageBlob = async (url) => {
+  if (!isCacheableRemoteImage(url)) {
+    return null;
+  }
+
+  if (imageBlobMemoryCache.has(url)) {
+    return imageBlobMemoryCache.get(url);
+  }
+
+  const cachedBlob = await readCachedPokeApiResource(getImageCacheKey(url));
+
+  if (cachedBlob instanceof Blob) {
+    imageBlobMemoryCache.set(url, cachedBlob);
+    return cachedBlob;
+  }
+
+  return null;
+};
+
+const writeCachedImageBlob = async (url, blob) => {
+  if (!isCacheableRemoteImage(url) || !(blob instanceof Blob)) {
+    return;
+  }
+
+  imageBlobMemoryCache.set(url, blob);
+  await writeCachedPokeApiResource(getImageCacheKey(url), blob);
+};
+
+const getCachedImageObjectUrl = async (url, options = {}) => {
+  const normalizedUrl = normalizePokeApiSpriteUrl(url);
+
+  if (!normalizedUrl || !isCacheableRemoteImage(normalizedUrl)) {
+    return normalizedUrl;
+  }
+
+  if (failedImageUrlCache.has(normalizedUrl)) {
+    const error = new Error(`Unable to load image: ${normalizedUrl}`);
+    error.status = 404;
+    throw error;
+  }
+
+  if (imageObjectUrlCache.has(normalizedUrl)) {
+    return imageObjectUrlCache.get(normalizedUrl);
+  }
+
+  const cachedBlob = await readCachedImageBlob(normalizedUrl);
+  if (options.signal?.aborted) {
+    throw makeAbortError();
+  }
+
+  if (cachedBlob) {
+    const objectUrl = URL.createObjectURL(cachedBlob);
+    imageObjectUrlCache.set(normalizedUrl, objectUrl);
+    return objectUrl;
+  }
+
+  const response = await fetch(normalizedUrl, options);
+
+  if (!response.ok) {
+    failedImageUrlCache.add(normalizedUrl);
+    const error = new Error(`Unable to load image: ${normalizedUrl}`);
+    error.status = response.status;
+    throw error;
+  }
+
+  const blob = await response.blob();
+  await writeCachedImageBlob(normalizedUrl, blob);
+
+  if (options.signal?.aborted) {
+    throw makeAbortError();
+  }
+
+  const objectUrl = URL.createObjectURL(blob);
+  imageObjectUrlCache.set(normalizedUrl, objectUrl);
+  return objectUrl;
+};
+
+function CachedImage({ src, fallbackSrc = '', alt = '', onError, onUnavailable, ...imageProps }) {
+  const sources = useMemo(
+    () => getImageFallbackChain(src, typeof fallbackSrc === 'string' ? fallbackSrc.split('|') : fallbackSrc),
+    [fallbackSrc, src],
+  );
+  const sourcesKey = sources.join('|');
+  const [imageState, setImageState] = useState({
+    sourcesKey,
+    activeSourceIndex: 0,
+    renderedSrc: '',
+  });
+  const activeSourceIndex = imageState.sourcesKey === sourcesKey ? imageState.activeSourceIndex : 0;
+  const renderedSrc = imageState.sourcesKey === sourcesKey ? imageState.renderedSrc : '';
+
+  useEffect(() => {
+    const source = sources[activeSourceIndex] || '';
+    const controller = new AbortController();
+    let isCurrent = true;
+
+    if (!source) {
+      return () => controller.abort();
+    }
+
+    getCachedImageObjectUrl(source, { signal: controller.signal })
+      .then((imageSrc) => {
+        if (isCurrent) {
+          setImageState({
+            sourcesKey,
+            activeSourceIndex,
+            renderedSrc: imageSrc,
+          });
+        }
+      })
+      .catch((error) => {
+        if (!isCurrent || error.name === 'AbortError') {
+          return;
+        }
+
+        if (activeSourceIndex < sources.length - 1) {
+          setImageState({
+            sourcesKey,
+            activeSourceIndex: activeSourceIndex + 1,
+            renderedSrc: '',
+          });
+          return;
+        }
+
+        setImageState({
+          sourcesKey,
+          activeSourceIndex,
+          renderedSrc: '',
+        });
+        onUnavailable?.({ error, source });
+      });
+
+    return () => {
+      isCurrent = false;
+      controller.abort();
+    };
+  }, [activeSourceIndex, onUnavailable, sources, sourcesKey]);
+
+  const handleCachedImageError = (event) => {
+    if (activeSourceIndex < sources.length - 1) {
+      setImageState({
+        sourcesKey,
+        activeSourceIndex: activeSourceIndex + 1,
+        renderedSrc: '',
+      });
+      return;
+    }
+
+    onUnavailable?.({ source: sources[activeSourceIndex] || '' });
+    onError?.(event);
+  };
+
+  return <img {...imageProps} src={renderedSrc || undefined} alt={alt} onError={handleCachedImageError} />;
+}
+
+function TypeBadge({ type, detail = '', className = '' }) {
+  const typeName = String(type || '').toLowerCase();
+  const icon = TYPE_ICONS[typeName];
+  const label = formatPokemonName(typeName);
+  const detailText = detail ? String(detail) : '';
+
+  if (!icon) {
+    return (
+      <span className={`type-badge ${className}`.trim()}>
+        {label}
+        {detailText && <strong>{detailText}</strong>}
+      </span>
+    );
+  }
+
+  return (
+    <span className={`type-badge type-image-badge ${className}`.trim()}>
+      <img src={icon} alt={detailText ? `${label} ${detailText}` : label} />
+      {detailText && <strong>{detailText}</strong>}
+    </span>
+  );
+}
 
 const fetchPokemonListMetadata = (pokemonEntry, options = {}) =>
   fetchPokeApiJson(
@@ -1655,7 +1872,12 @@ function EvolutionBranch({ node, onChoosePokemon }) {
           }
         }}
       >
-        <img src={getPokemonSpriteUrl(node.id)} alt={formatPokemonName(node.name)} loading="lazy" />
+        <CachedImage
+          src={getPokemonSpriteUrl(node.id)}
+          fallbackSrc={getPokemonOfficialArtworkUrl(node.id)}
+          alt={formatPokemonName(node.name)}
+          loading="lazy"
+        />
         <strong>{formatPokemonName(node.name)}</strong>
         <span>{node.requirement}</span>
       </article>
@@ -1684,6 +1906,7 @@ export {
   buildPokemonQuizQuestion,
   CARD_BACK_IMAGE,
   CARD_FLIP_DELAY,
+  CachedImage,
   cardMatchesSearch,
   cleanPokeApiText,
   COLLECTION_STORAGE_KEY,
@@ -1716,6 +1939,7 @@ export {
   getExpansionCategory,
   getFeaturedTcgCards,
   getGenerationSprites,
+  getImageFallbackChain,
   getLevelUpMovesForVersionGroup,
   getPokeApiCacheDb,
   getPokemonIdFromPokemonUrl,
@@ -1734,6 +1958,7 @@ export {
   getTypeWeaknesses,
   GitHubRepoLink,
   handleCardImageError,
+  handleImageFallbackError,
   hasFeaturedTcgCards,
   hasPlayableCards,
   isReferenceOnlyExpansion,
@@ -1776,6 +2001,7 @@ export {
   summarizeTeamTypeMatchups,
   TEAM_POKEDEX_OPTIONS,
   TEN_PACK_FLIP_DELAY,
+  TypeBadge,
   TYPE_ICONS,
   TYPE_NAMES,
   WHO_LEADERBOARD_STORAGE_KEY,
