@@ -2,7 +2,7 @@
 
 A browser-based Pokémon lab built with React, combining a Pokédex, TCG simulator, Trainer Dex, Team Planner, Quiz, and "Who's That Pokémon?" in one retro-styled interface.
 
-Demo: [https://pokemon-tcg-simulator-react.vercel.app/](https://pokemon-lab-react.vercel.app/)
+Demo: https://pokemon-lab-react.vercel.app/
 
 ## Features
 
