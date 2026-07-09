@@ -70,6 +70,40 @@ const normalizeSearchText = (value = '') =>
 
 const compactSearchText = (value = '') => normalizeSearchText(value).replace(/\s+/g, '');
 
+const cardNameHasTrainerName = (cardName = '', trainerName = '') => {
+  const normalizedCardName = normalizeSearchText(cardName);
+  const normalizedTrainerName = normalizeSearchText(trainerName);
+
+  if (!normalizedCardName || !normalizedTrainerName) {
+    return false;
+  }
+
+  const cardWords = normalizedCardName.split(/\s+/).filter(Boolean);
+  const trainerWords = normalizedTrainerName.split(/\s+/).filter(Boolean);
+
+  if (trainerWords.length === 1 && trainerWords[0].length === 1) {
+    const trainerWord = trainerWords[0];
+    return cardWords.some((word, index) => (
+      word === trainerWord &&
+      (cardWords.length === 1 || cardWords[index + 1] === 's')
+    ));
+  }
+
+  return cardWords.some((word, index) => {
+    if (word !== trainerWords[0]) {
+      return false;
+    }
+
+    const nextWords = cardWords.slice(index, index + trainerWords.length);
+    const matchesTrainerName = nextWords.join(' ') === trainerWords.join(' ');
+
+    return matchesTrainerName && (
+      cardWords.length === trainerWords.length ||
+      cardWords[index + trainerWords.length] === 's'
+    );
+  });
+};
+
 const POKEMON_LOOKUP_ALIASES = {
   'mr mime': 'mr-mime',
   mrmime: 'mr-mime',
@@ -183,13 +217,13 @@ const getPokemonCardSearchNames = (teamMember) => {
 
 const getCardPokemonMatchScore = (card, pokemonSearchNames = [], trainerName = '') => {
   const cardName = compactSearchText(card.name);
-  const compactTrainerName = compactSearchText(trainerName);
+  const hasTrainerName = cardNameHasTrainerName(card.name, trainerName);
   const matchedPokemonName = pokemonSearchNames.find((pokemonName) => cardName.includes(pokemonName));
 
   if (!matchedPokemonName) return 0;
 
   let score = 10;
-  if (compactTrainerName && cardName.includes(compactTrainerName)) score += 60;
+  if (hasTrainerName) score += 60;
   if (card.supertype === 'Pokémon') score += 8;
   if (cardName === matchedPokemonName) score += 10;
   if (cardName.endsWith(matchedPokemonName)) score += 5;
@@ -210,18 +244,35 @@ const sortFeaturedCards = (trainerName, pokemonSearchNames = []) => (firstCard, 
   );
 };
 
+const getTrainerCardMatchScore = (card, trainer, trainerPokemonNames = []) => {
+  if (!cardNameHasTrainerName(card.name, trainer?.name)) {
+    return 0;
+  }
+
+  const cardName = compactSearchText(card.name);
+  const hasPokemonName = trainerPokemonNames.some((pokemonName) => cardName.includes(pokemonName));
+
+  return (
+    80 +
+    (hasPokemonName ? 25 : 0) +
+    (card.supertype === 'Trainer' ? 10 : 0) +
+    (card.supertype === 'PokÃ©mon' ? 8 : 0)
+  );
+};
+
 const getFeaturedTrainerTcgCards = (cards, trainer) => {
   if (!trainer) return [];
 
-  const trainerName = compactSearchText(trainer.name);
   const trainerPokemonNames = trainer.team.flatMap(getPokemonCardSearchNames);
 
   return cards
-    .filter((card) => (
-      compactSearchText(card.name).includes(trainerName) &&
-      trainerPokemonNames.some((pokemonName) => compactSearchText(card.name).includes(pokemonName))
+    .filter((card) => getTrainerCardMatchScore(card, trainer, trainerPokemonNames) > 0)
+    .sort((firstCard, secondCard) => (
+      getTrainerCardMatchScore(secondCard, trainer, trainerPokemonNames) -
+        getTrainerCardMatchScore(firstCard, trainer, trainerPokemonNames) ||
+      firstCard.name.localeCompare(secondCard.name) ||
+      firstCard.setName.localeCompare(secondCard.setName)
     ))
-    .sort(sortFeaturedCards(trainer.name, trainerPokemonNames))
     .slice(0, 8);
 };
 
