@@ -290,23 +290,26 @@ const getTrainerSummary = (trainer, region) => {
     ?.filter((typeName) => typeName !== 'mixed')
     .map(formatPokemonName)
     .join('- and ');
+  const specialtySentence = specialtyText
+    ? ` ${trainer.name} specializes in ${specialtyText}-type Pokemon.`
+    : '';
   const roleText = trainer.role || `${region?.region || trainer.regionId} trainer`;
   const officialGymMatch = roleText.match(/^(.+?) Gym Leader$/);
 
   if (officialGymMatch) {
     const gymName = officialGymMatch[1];
-    return `${trainer.name} is the Gym Leader of ${gymName}'s Gym. ${trainer.name} specializes in ${specialtyText || 'varied'}-type Pokemon.`;
+    return `${trainer.name} is the Gym Leader of ${gymName}'s Gym.${specialtySentence}`;
   }
 
   if (trainer.division === 'elite-four') {
-    return `${trainer.name} is a member of the ${region?.region || 'regional'} Elite Four. ${trainer.name} specializes in ${specialtyText || 'varied'}-type Pokemon.`;
+    return `${trainer.name} is a member of the ${region?.region || 'regional'} Elite Four.${specialtySentence}`;
   }
 
   if (trainer.division === 'champion') {
     return `${trainer.name} is the Champion of the ${region?.region || 'regional'} Pokemon League and tests the player after the Elite Four challenge.`;
   }
 
-  return `${trainer.name} is a ${roleText}. ${trainer.name} specializes in ${specialtyText || 'varied'}-type Pokemon.`;
+  return `${trainer.name} is a ${roleText}.${specialtySentence}`;
 };
 
 const getDefaultGameId = (regionId) => {
