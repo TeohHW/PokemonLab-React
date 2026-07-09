@@ -8,6 +8,7 @@ import {
   getPokemonSpriteUrl,
   handleCardImageError,
   hasFeaturedTcgCards,
+  TcgCardDetailModal,
   TypeBadge,
 } from '../shared/stationShared';
 import { TRAINERDEX_OPTIONS, TRAINERDEX_TRAINERS, TRAINER_GROUPS } from './trainerDexData';
@@ -976,55 +977,11 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
       )}
 
       {selectedTcgCard && (
-        <div
-          className="card-detail-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="trainerdex-tcg-card-detail-title"
-          onClick={() => setSelectedTcgCard(null)}
-        >
-          <div className="card-detail-modal" onClick={(event) => event.stopPropagation()}>
-            <button
-              type="button"
-              className="modal-close nes-btn"
-              onClick={() => setSelectedTcgCard(null)}
-              aria-label="Close card details"
-            >
-              Close
-            </button>
-            <div className="card-detail-image-wrap">
-              <img
-                src={getCardFaceImage(selectedTcgCard)}
-                data-fallback-src={getCardFallbackImage(selectedTcgCard)}
-                alt={selectedTcgCard.name}
-                onError={handleCardImageError}
-              />
-              {selectedTcgCard.isRare && <div className="holo-overlay" aria-hidden="true" />}
-            </div>
-            <div className="card-detail-info">
-              <p className="card-detail-set">{selectedTcgCard.setName}</p>
-              <h2 id="trainerdex-tcg-card-detail-title">{selectedTcgCard.name}</h2>
-              <dl className="card-detail-meta">
-                <div>
-                  <dt>Rarity</dt>
-                  <dd>{selectedTcgCard.rarity || 'Unknown'}</dd>
-                </div>
-                <div>
-                  <dt>Number</dt>
-                  <dd>{selectedTcgCard.number || 'N/A'}</dd>
-                </div>
-                <div>
-                  <dt>Type</dt>
-                  <dd>{selectedTcgCard.types?.join(', ') || 'N/A'}</dd>
-                </div>
-                <div>
-                  <dt>Artist</dt>
-                  <dd>{selectedTcgCard.artist || 'Unknown'}</dd>
-                </div>
-              </dl>
-            </div>
-          </div>
-        </div>
+        <TcgCardDetailModal
+          card={selectedTcgCard}
+          titleId="trainerdex-tcg-card-detail-title"
+          onClose={() => setSelectedTcgCard(null)}
+        />
       )}
     </div>
   );

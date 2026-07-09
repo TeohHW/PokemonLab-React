@@ -101,6 +101,7 @@ import {
   STATION_NAV_OPTIONS,
   summarizeTeamMoveCoverage,
   summarizeTeamTypeMatchups,
+  TcgCardDetailModal,
   TEAM_POKEDEX_OPTIONS,
   TEN_PACK_FLIP_DELAY,
   TYPE_NAMES,
@@ -983,118 +984,12 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
       )}
 
       {selectedCard && (
-        <div
-          className="card-detail-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="card-detail-title"
-          onClick={() => setSelectedCard(null)}
-        >
-          <div className="card-detail-modal" onClick={(event) => event.stopPropagation()}>
-            <button
-              type="button"
-              className="modal-close nes-btn"
-              onClick={() => setSelectedCard(null)}
-              aria-label="Close card details"
-            >
-              Close
-            </button>
-            <div
-              className={`card-detail-image-wrap ${
-                selectedCard.isOwnedInBinder === false ? 'is-unowned' : ''
-              }`}
-              onPointerMove={(event) => {
-                const card = event.currentTarget;
-                const rect = card.getBoundingClientRect();
-                const x = (event.clientX - rect.left) / rect.width;
-                const y = (event.clientY - rect.top) / rect.height;
-                card.style.setProperty('--pointer-x', `${x * 100}%`);
-                card.style.setProperty('--pointer-y', `${y * 100}%`);
-                card.style.setProperty('--rotate-x', `${(0.5 - y) * 24}deg`);
-                card.style.setProperty('--rotate-y', `${(x - 0.5) * 24}deg`);
-                card.style.setProperty('--card-shift-x', `${(x - 0.5) * 10}px`);
-                card.style.setProperty('--card-shift-y', `${(y - 0.5) * 10}px`);
-              }}
-              onPointerLeave={(event) => {
-                const card = event.currentTarget;
-                card.style.setProperty('--pointer-x', '50%');
-                card.style.setProperty('--pointer-y', '50%');
-                card.style.setProperty('--rotate-x', '0deg');
-                card.style.setProperty('--rotate-y', '0deg');
-                card.style.setProperty('--card-shift-x', '0px');
-                card.style.setProperty('--card-shift-y', '0px');
-              }}
-            >
-              <img
-                src={getCardFaceImage(selectedCard)}
-                data-fallback-src={getCardFallbackImage(selectedCard)}
-                alt={selectedCard.name}
-                onError={handleCardImageError}
-              />
-              {selectedCard.isRare && <div className="holo-overlay" aria-hidden="true" />}
-            </div>
-            <div className="card-detail-info">
-              <p className="card-detail-set">{selectedCard.setName}</p>
-              <h2 id="card-detail-title">{selectedCard.name}</h2>
-              <dl className="card-detail-meta">
-                <div>
-                  <dt>Rarity</dt>
-                  <dd>{selectedCard.rarity || 'Unknown'}</dd>
-                </div>
-                <div>
-                  <dt>Number</dt>
-                  <dd>{selectedCard.number || 'N/A'}</dd>
-                </div>
-                <div>
-                  <dt>HP</dt>
-                  <dd>{selectedCard.hp || 'N/A'}</dd>
-                </div>
-                <div>
-                  <dt>Type</dt>
-                  <dd>{selectedCard.types?.join(', ') || 'N/A'}</dd>
-                </div>
-                <div>
-                  <dt>Stage</dt>
-                  <dd>{selectedCard.subtypes?.join(', ') || selectedCard.supertype || 'N/A'}</dd>
-                </div>
-                <div>
-                  <dt>Artist</dt>
-                  <dd>{selectedCard.artist || 'Unknown'}</dd>
-                </div>
-              </dl>
-              {selectedCard.evolvesFrom && (
-                <p className="detail-copy">Evolves from {selectedCard.evolvesFrom}</p>
-              )}
-              {selectedCard.flavorText && (
-                <p className="detail-copy">{selectedCard.flavorText}</p>
-              )}
-              {selectedCard.abilities?.length > 0 && (
-                <section className="detail-section">
-                  <h3>Abilities</h3>
-                  {selectedCard.abilities.map((ability) => (
-                    <article key={`${ability.name}-${ability.type}`}>
-                      <strong>{ability.name}</strong>
-                      <p>{ability.text}</p>
-                    </article>
-                  ))}
-                </section>
-              )}
-              {selectedCard.attacks?.length > 0 && (
-                <section className="detail-section">
-                  <h3>Attacks</h3>
-                  {selectedCard.attacks.map((attack) => (
-                    <article key={`${attack.name}-${attack.damage}`}>
-                      <strong>
-                        {attack.name} {attack.damage && `- ${attack.damage}`}
-                      </strong>
-                      <p>{attack.text || 'No attack text.'}</p>
-                    </article>
-                  ))}
-                </section>
-              )}
-            </div>
-          </div>
-        </div>
+        <TcgCardDetailModal
+          card={selectedCard}
+          titleId="card-detail-title"
+          imageClassName={selectedCard.isOwnedInBinder === false ? 'is-unowned' : ''}
+          onClose={() => setSelectedCard(null)}
+        />
       )}
     </div>
   );

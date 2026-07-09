@@ -1700,6 +1700,186 @@ const handleCardImageError = (event) => {
   event.currentTarget.src = CARD_BACK_IMAGE;
 };
 
+const getCardTextEntries = (card = {}) => {
+  const textValues = [
+    ...(card.rules || []),
+    ...(Array.isArray(card.text) ? card.text : card.text ? [card.text] : []),
+  ];
+
+  return [...new Set(textValues.filter(Boolean))];
+};
+
+function TcgCardDetailModal({
+  card,
+  titleId = 'card-detail-title',
+  onClose,
+  imageClassName = '',
+}) {
+  if (!card) return null;
+
+  const textEntries = getCardTextEntries(card);
+  const typeLabel = card.types?.join(', ');
+  const stageLabel = card.subtypes?.join(', ') || card.supertype;
+  const retreatLabel = card.retreatCost?.join(', ');
+
+  return (
+    <div
+      className="card-detail-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      onClick={onClose}
+    >
+      <div className="card-detail-modal" onClick={(event) => event.stopPropagation()}>
+        <button
+          type="button"
+          className="modal-close nes-btn"
+          onClick={onClose}
+          aria-label="Close card details"
+        >
+          Close
+        </button>
+        <div
+          className={`card-detail-image-wrap ${imageClassName}`.trim()}
+          onPointerMove={(event) => {
+            const cardElement = event.currentTarget;
+            const rect = cardElement.getBoundingClientRect();
+            const x = (event.clientX - rect.left) / rect.width;
+            const y = (event.clientY - rect.top) / rect.height;
+            cardElement.style.setProperty('--pointer-x', `${x * 100}%`);
+            cardElement.style.setProperty('--pointer-y', `${y * 100}%`);
+            cardElement.style.setProperty('--rotate-x', `${(0.5 - y) * 24}deg`);
+            cardElement.style.setProperty('--rotate-y', `${(x - 0.5) * 24}deg`);
+            cardElement.style.setProperty('--card-shift-x', `${(x - 0.5) * 10}px`);
+            cardElement.style.setProperty('--card-shift-y', `${(y - 0.5) * 10}px`);
+          }}
+          onPointerLeave={(event) => {
+            const cardElement = event.currentTarget;
+            cardElement.style.setProperty('--pointer-x', '50%');
+            cardElement.style.setProperty('--pointer-y', '50%');
+            cardElement.style.setProperty('--rotate-x', '0deg');
+            cardElement.style.setProperty('--rotate-y', '0deg');
+            cardElement.style.setProperty('--card-shift-x', '0px');
+            cardElement.style.setProperty('--card-shift-y', '0px');
+          }}
+        >
+          <img
+            src={getCardFaceImage(card)}
+            data-fallback-src={getCardFallbackImage(card)}
+            alt={card.name}
+            onError={handleCardImageError}
+          />
+          {card.isRare && <div className="holo-overlay" aria-hidden="true" />}
+        </div>
+        <div className="card-detail-info">
+          <p className="card-detail-set">{card.setName}</p>
+          <h2 id={titleId}>{card.name}</h2>
+          <dl className="card-detail-meta">
+            <div>
+              <dt>Rarity</dt>
+              <dd>{card.rarity || 'Unknown'}</dd>
+            </div>
+            <div>
+              <dt>Number</dt>
+              <dd>{card.number || 'N/A'}</dd>
+            </div>
+            {card.hp && (
+              <div>
+                <dt>HP</dt>
+                <dd>{card.hp}</dd>
+              </div>
+            )}
+            {typeLabel && (
+              <div>
+                <dt>Type</dt>
+                <dd>{typeLabel}</dd>
+              </div>
+            )}
+            {stageLabel && (
+              <div>
+                <dt>Stage</dt>
+                <dd>{stageLabel}</dd>
+              </div>
+            )}
+            {retreatLabel && (
+              <div>
+                <dt>Retreat</dt>
+                <dd>{retreatLabel}</dd>
+              </div>
+            )}
+            <div>
+              <dt>Artist</dt>
+              <dd>{card.artist || 'Unknown'}</dd>
+            </div>
+          </dl>
+          {card.evolvesFrom && (
+            <p className="detail-copy">Evolves from {card.evolvesFrom}</p>
+          )}
+          {card.flavorText && (
+            <p className="detail-copy">{card.flavorText}</p>
+          )}
+          {textEntries.length > 0 && (
+            <section className="detail-section">
+              <h3>Rules</h3>
+              {textEntries.map((text) => (
+                <article key={text}>
+                  <p>{text}</p>
+                </article>
+              ))}
+            </section>
+          )}
+          {card.abilities?.length > 0 && (
+            <section className="detail-section">
+              <h3>Abilities</h3>
+              {card.abilities.map((ability) => (
+                <article key={`${ability.name}-${ability.type}`}>
+                  <strong>{ability.name}</strong>
+                  <p>{ability.text}</p>
+                </article>
+              ))}
+            </section>
+          )}
+          {card.attacks?.length > 0 && (
+            <section className="detail-section">
+              <h3>Attacks</h3>
+              {card.attacks.map((attack) => (
+                <article key={`${attack.name}-${attack.damage}`}>
+                  <strong>
+                    {attack.name} {attack.damage && `- ${attack.damage}`}
+                  </strong>
+                  <p>{attack.text || 'No attack text.'}</p>
+                </article>
+              ))}
+            </section>
+          )}
+          {card.weaknesses?.length > 0 && (
+            <section className="detail-section">
+              <h3>Weakness</h3>
+              {card.weaknesses.map((weakness) => (
+                <article key={`${weakness.type}-${weakness.value}`}>
+                  <strong>{weakness.type}</strong>
+                  <p>{weakness.value}</p>
+                </article>
+              ))}
+            </section>
+          )}
+          {card.resistances?.length > 0 && (
+            <section className="detail-section">
+              <h3>Resistance</h3>
+              {card.resistances.map((resistance) => (
+                <article key={`${resistance.type}-${resistance.value}`}>
+                  <strong>{resistance.type}</strong>
+                  <p>{resistance.value}</p>
+                </article>
+              ))}
+            </section>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const loadCollection = () => {
   try {
     const savedCollection = localStorage.getItem(COLLECTION_STORAGE_KEY);
@@ -2010,6 +2190,7 @@ export {
   STATION_NAV_OPTIONS,
   summarizeTeamMoveCoverage,
   summarizeTeamTypeMatchups,
+  TcgCardDetailModal,
   TEAM_POKEDEX_OPTIONS,
   TEN_PACK_FLIP_DELAY,
   TypeBadge,
