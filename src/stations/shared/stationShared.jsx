@@ -1814,16 +1814,27 @@ const getExpansionCards = (expansion) =>
 
 const hasFeaturedTcgCards = (expansion) => getExpansionCards(expansion).length > 0;
 
-const isReferenceOnlyExpansion = (expansion) => expansion?.series === 'Other';
+const hasPackRarityDistribution = (expansion) =>
+  Boolean(expansion?.commons?.length && expansion?.uncommons?.length && expansion?.rares?.length);
+
+const isReferenceOnlyExpansion = (expansion) => {
+  const setName = normalizeSearchText(expansion?.setName || '');
+  const series = normalizeSearchText(expansion?.series || '');
+
+  return (
+    series === 'other' ||
+    series === 'pop' ||
+    setName.includes('black star promos') ||
+    setName.includes('mcdonald') ||
+    setName.includes('trainer kit') ||
+    !hasPackRarityDistribution(expansion)
+  );
+};
 
 const hasPlayableCards = (expansion) =>
   !hasKnownMissingOfficialImages(expansion) &&
   !isReferenceOnlyExpansion(expansion) &&
-  Boolean(
-    expansion?.commons?.length &&
-      expansion?.uncommons?.length &&
-      expansion?.rares?.length,
-  );
+  hasPackRarityDistribution(expansion);
 
 const getExpansionCategory = (expansion) => {
   const setName = normalizeSearchText(expansion?.setName || '');

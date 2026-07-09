@@ -359,9 +359,13 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
           ...createCardSearchIndex(card),
         }));
         const setCategory = getExpansionCategory(expansion);
+        const seriesFilter = isReferenceOnlyExpansion(expansion)
+          ? 'Special / Limited'
+          : expansion.series || 'Unknown';
         const expansionSearchText = normalizeSearchText([
           expansion.setName,
           expansion.series,
+          seriesFilter,
           setCategory,
           expansion.releaseYear,
         ].join(' '));
@@ -372,6 +376,7 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
             ...expansion,
             allCards,
             setCategory,
+            seriesFilter,
             searchText: expansionSearchText,
             compactSearchText: expansionSearchText.replace(/\s+/g, ''),
           },
@@ -463,20 +468,20 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
   const openSearchResultCard = (card) => {
     setSelectedCard({
       ...card,
-      isOwnedInBinder: Boolean(collection[card.id]),
+      isOwnedInBinder: card.isReferenceOnly || Boolean(collection[card.id]),
     });
   };
 
   const seriesOptions = useMemo(() => {
     const options = [
       'All',
-      ...new Set(indexedReleasedExpansionEntries.map(([, expansion]) => expansion.series || 'Unknown')),
+      ...new Set(indexedReleasedExpansionEntries.map(([, expansion]) => expansion.seriesFilter)),
     ];
     return options.sort((a, b) => {
       if (a === 'All') return -1;
       if (b === 'All') return 1;
-      if (a === 'Other') return 1;
-      if (b === 'Other') return -1;
+      if (a === 'Special / Limited') return 1;
+      if (b === 'Special / Limited') return -1;
       return a.localeCompare(b);
     });
   }, [indexedReleasedExpansionEntries]);
@@ -486,7 +491,7 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
       indexedReleasedExpansionEntries
         .filter(([, expansion]) => {
           const matchesSeries =
-            selectedSeries === 'All' || expansion.series === selectedSeries;
+            selectedSeries === 'All' || expansion.seriesFilter === selectedSeries;
           const normalizedSearch = normalizeSearchText(deferredSearchTerm);
           const compactSearch = compactSearchText(deferredSearchTerm);
           const canSearchCards = compactSearch.length >= 2;
@@ -500,9 +505,9 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
         })
         .sort(([, firstExpansion], [, secondExpansion]) => {
           if (selectedSeries === 'All') {
-            const firstIsOther = firstExpansion.series === 'Other';
-            const secondIsOther = secondExpansion.series === 'Other';
-            if (firstIsOther !== secondIsOther) return firstIsOther ? 1 : -1;
+            const firstIsReference = firstExpansion.seriesFilter === 'Special / Limited';
+            const secondIsReference = secondExpansion.seriesFilter === 'Special / Limited';
+            if (firstIsReference !== secondIsReference) return firstIsReference ? 1 : -1;
           }
 
           if (sortMode === 'name') {
@@ -585,9 +590,9 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
             Sets available through {latestReleasedExpansion.setName} ({latestReleasedExpansion.releaseYear}).
           </p>
         )}
-        {(selectedSeries === 'Other' || activeSetIsReferenceOnly) && (
+        {(selectedSeries === 'Special / Limited' || activeSetIsReferenceOnly) && (
           <p className="tcg-other-note">
-            Other sets are reference-only. Some limited sets are omitted because reliable card art or card data is not available, and visible Other sets are shown as complete by default because they are not eligible for packs or binder progress.
+            Special and limited sets include promos, trainer kits, POP, and other releases that are not eligible for pack opening. Their binders are shown complete by default for browsing only.
           </p>
         )}
 
