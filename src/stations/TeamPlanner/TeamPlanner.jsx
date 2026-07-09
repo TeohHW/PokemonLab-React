@@ -482,7 +482,6 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
               setPokemonSearchTerm('');
               setPokemonPage(1);
               setPokemonSortMode('entry');
-              setTeamMembers([]);
             }}
           >
             {TEAM_POKEDEX_OPTIONS.map((pokedex) => (

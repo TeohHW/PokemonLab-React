@@ -1894,7 +1894,7 @@ button.brand-home-button:focus-visible {
 }
 
 .team-member-heading .type-image-badge img {
-  height: 24px;
+  height: 22px;
 }
 
 .team-move-grid {
@@ -2984,7 +2984,7 @@ button.brand-home-button:focus-visible {
 .type-image-badge img {
   display: block;
   width: auto;
-  height: 24px;
+  height: 22px;
   object-fit: contain;
 }
 
@@ -3456,7 +3456,7 @@ button.brand-home-button:focus-visible {
 }
 
 .move-type-pill.type-image-badge img {
-  height: 20px;
+  height: 18px;
 }
 
 .move-category-icon {
