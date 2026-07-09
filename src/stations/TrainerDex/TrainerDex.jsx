@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  CachedImage,
   getCardFaceImage,
   getCardFallbackImage,
   getExpansionCards,
   getExpansionCategory,
+  getPokemonSpriteUrl,
   handleCardImageError,
   hasFeaturedTcgCards,
   TypeBadge,
@@ -129,27 +131,6 @@ const getTypeMultiplierMap = (typeData = []) =>
       [typeName]: multiplier,
     };
   }, {});
-
-const handlePokemonSpriteError = (event) => {
-  const fallbackSrc = event.currentTarget.dataset.fallbackSrc;
-  const [nextFallback, ...remainingFallbacks] = fallbackSrc ? fallbackSrc.split('|').filter(Boolean) : [];
-
-  if (!nextFallback) {
-    event.currentTarget.removeAttribute('data-fallback-src');
-    return;
-  }
-
-  event.currentTarget.src = nextFallback;
-  if (remainingFallbacks.length) {
-    event.currentTarget.dataset.fallbackSrc = remainingFallbacks.join('|');
-  } else {
-    event.currentTarget.removeAttribute('data-fallback-src');
-  }
-};
-
-const handlePokemonSpriteLoad = (event) => {
-  event.currentTarget.style.visibility = 'visible';
-};
 
 const getTrainerTeamAverageLevel = (team = []) =>
   team.length ? Math.round(team.reduce((sum, member) => sum + member.level, 0) / team.length) : 0;
@@ -474,9 +455,9 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
                   stats: Object.fromEntries(
                     pokemon.stats.map((stat) => [stat.stat.name, stat.base_stat]),
                   ),
-                  sprite: pokemon.sprites?.front_default || '',
+                  sprite: getPokemonSpriteUrl(pokemon.id),
                   spriteFallbacks: [
-                    pokemon.sprites?.other?.['official-artwork']?.front_default,
+                    pokemon.sprites?.front_default,
                   ].filter(Boolean),
                   defenseMultipliers: getTypeMultiplierMap(typeData),
                 };
@@ -740,16 +721,14 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
                     <div className="trainerdex-team-heading">
                       <div className="trainerdex-team-sprite">
                         {enrichedMember?.sprite && (
-                          <img
+                          <CachedImage
                             key={`${teamMember.name}-${enrichedMember.sprite}`}
                             src={enrichedMember.sprite}
-                            data-fallback-src={(enrichedMember.spriteFallbacks || [])
+                            fallbackSrc={(enrichedMember.spriteFallbacks || [])
                               .filter((spriteUrl) => spriteUrl && spriteUrl !== enrichedMember.sprite)
                               .join('|')}
                             alt=""
                             loading="lazy"
-                            onLoad={handlePokemonSpriteLoad}
-                            onError={handlePokemonSpriteError}
                           />
                         )}
                       </div>

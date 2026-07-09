@@ -105,10 +105,13 @@ import {
   writeCachedPokeApiResource
 } from '../shared/stationShared';
 
+const TEAM_POKEMON_LIST_PAGE_SIZE = 24;
+
 function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenQuiz, onOpenTrainerDex }) {
   const [selectedDex, setSelectedDex] = useState(POKEDEX_OPTIONS[0].id);
   const [pokemonList, setPokemonList] = useState([]);
   const [pokemonSearchTerm, setPokemonSearchTerm] = useState('');
+  const [pokemonPage, setPokemonPage] = useState(1);
   const [pokemonSortMode, setPokemonSortMode] = useState('entry');
   const [pokemonMetadata, setPokemonMetadata] = useState({});
   const [teamMembers, setTeamMembers] = useState([]);
@@ -273,6 +276,19 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
       return compareByEntry(firstPokemon, secondPokemon);
     });
   }, [pokemonList, pokemonMetadata, pokemonSearchTerm, pokemonSortMode]);
+  const totalPokemonPages = Math.max(1, Math.ceil(visiblePokemon.length / TEAM_POKEMON_LIST_PAGE_SIZE));
+  const pagedPokemon = useMemo(() => {
+    const startIndex = (pokemonPage - 1) * TEAM_POKEMON_LIST_PAGE_SIZE;
+    return visiblePokemon.slice(startIndex, startIndex + TEAM_POKEMON_LIST_PAGE_SIZE);
+  }, [pokemonPage, visiblePokemon]);
+
+  useEffect(() => {
+    setPokemonPage(1);
+  }, [pokemonSearchTerm, pokemonSortMode, selectedDex]);
+
+  useEffect(() => {
+    setPokemonPage((currentPage) => Math.min(currentPage, totalPokemonPages));
+  }, [totalPokemonPages]);
 
   const pokemonSortOptions = useMemo(
     () => [
@@ -464,6 +480,7 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
               setError('');
               setPokemonList([]);
               setPokemonSearchTerm('');
+              setPokemonPage(1);
               setPokemonSortMode('entry');
               setTeamMembers([]);
             }}
@@ -480,7 +497,10 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
             id="team-pokemon-search"
             type="search"
             value={pokemonSearchTerm}
-            onChange={(event) => setPokemonSearchTerm(event.target.value)}
+            onChange={(event) => {
+              setPokemonSearchTerm(event.target.value);
+              setPokemonPage(1);
+            }}
             placeholder="Filter by name or number..."
           />
 
@@ -488,7 +508,10 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
           <select
             id="team-pokemon-sort"
             value={pokemonSortMode}
-            onChange={(event) => setPokemonSortMode(event.target.value)}
+            onChange={(event) => {
+              setPokemonSortMode(event.target.value);
+              setPokemonPage(1);
+            }}
             disabled={loadingList}
           >
             {pokemonSortOptions.map((option) => (
@@ -524,9 +547,33 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
 
           {error && <p className="pokedex-error">{error}</p>}
 
+          {!loadingList && visiblePokemon.length > TEAM_POKEMON_LIST_PAGE_SIZE && (
+            <div className="pokemon-list-pager team-pokemon-list-pager" aria-label="Team Pokemon pages">
+              <button
+                type="button"
+                className="nes-btn"
+                onClick={() => setPokemonPage((currentPage) => Math.max(1, currentPage - 1))}
+                disabled={pokemonPage <= 1}
+              >
+                Prev
+              </button>
+              <span>
+                Page {pokemonPage} / {totalPokemonPages}
+              </span>
+              <button
+                type="button"
+                className="nes-btn"
+                onClick={() => setPokemonPage((currentPage) => Math.min(totalPokemonPages, currentPage + 1))}
+                disabled={pokemonPage >= totalPokemonPages}
+              >
+                Next
+              </button>
+            </div>
+          )}
+
           <div className="team-pokemon-list" aria-label="Pokemon team choices">
             {loadingList && <p className="pokedex-status">Loading Pokemon...</p>}
-            {!loadingList && visiblePokemon.map((pokemon) => (
+            {!loadingList && pagedPokemon.map((pokemon) => (
               <button
                 key={pokemon.name}
                 type="button"
