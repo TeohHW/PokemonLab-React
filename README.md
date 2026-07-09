@@ -11,7 +11,7 @@ Demo: https://pokemon-tcg-simulator-react.vercel.app/
 - Binder collection tracking with saved progress, set filters, search, featured cards, and card detail views.
 - Pokedex browser with game/region filters, paged Pokemon lists, search, stats, weaknesses, abilities, evolutions, forms, cries, level-up moves, TCG links, and generation sprites.
 - Generation sprite viewer with lazy image loading and broken upstream sprite filtering for missing CDN files.
-- TrainerDex dossiers for Gym Leaders, Elite Four members, Champions, Kahunas, and special trainers, including teams, roles, type analysis, counters, featured TCG cards, and rematch stages where available.
+- TrainerDex information for Gym Leaders, Elite Four members, Champions, Kahunas, and special trainers, including teams, roles, type analysis, counters, featured TCG cards, and rematch stages where available.
 - Team Planner station for building a six-Pokemon team, choosing moves, and reviewing type matchups, coverage, and team stats.
 - Who's That Pokemon guessing station with silhouette rounds, hints, scoring, and saved leaderboard entries.
 - Pokemon Quiz station with mixed category questions for types, evolutions, generations, stats, cries, moves, Pokedex entries, and effectiveness.
