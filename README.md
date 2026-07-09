@@ -1,4 +1,4 @@
-## PokeLab
+## Pokemon Lab
 
 A browser-based Pokémon lab built with React, combining a Pokédex, TCG simulator, Trainer Dex, Team Planner, Quiz, and "Who's That Pokémon?" in one retro-styled interface.
 
