@@ -3754,6 +3754,61 @@ button.brand-home-button:focus-visible {
   margin-bottom: 6px;
 }
 
+.trainerdex-search-row {
+  margin-bottom: 0;
+}
+
+.trainerdex-search-row input {
+  width: 100%;
+  padding-right: 46px;
+}
+
+.trainerdex-search-row input::-webkit-search-cancel-button,
+.trainerdex-search-row input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+.trainerdex-search-row input::-ms-clear,
+.trainerdex-search-row input::-ms-reveal {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.trainerdex-search-row .search-clear-button {
+  top: 0;
+  right: 8px;
+  bottom: 0;
+  width: 26px;
+  min-height: 0;
+  height: 26px;
+  margin: auto 0;
+  border: 2px solid #212529;
+  border-radius: 0;
+  font-size: 0.78rem;
+  line-height: 1;
+  background: #ffffff;
+  box-shadow: inset -2px -2px 0 #adafbc;
+  transform: none;
+}
+
+.trainerdex-search-row .search-clear-button:hover:not(:disabled),
+.trainerdex-search-row .search-clear-button:focus-visible,
+.trainerdex-search-row .search-clear-button:active:not(:disabled) {
+  background: #f7d51d;
+  box-shadow: inset -2px -2px 0 #f2c409;
+  transform: none;
+}
+
+.trainerdex-search-row .search-clear-button:disabled {
+  border-color: transparent;
+  color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
 .trainerdex-region-card strong {
   max-width: 100%;
   color: inherit;

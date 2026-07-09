@@ -52,6 +52,8 @@ const getAssetByFileName = (modules, fileName) =>
 const getTrainerArt = (trainerName) =>
   getAssetByFileName(trainerArtModules, `${trainerName.replace(/\./g, '')}.png`);
 
+const getTrainerRegion = (regionId) => TRAINERDEX_OPTIONS.find((region) => region.id === regionId);
+
 const formatPokemonName = (name = '') =>
   name
     .split('-')
@@ -317,6 +319,16 @@ const getDefaultGameId = (regionId) => {
   return region?.games?.[0]?.id || regionId;
 };
 
+const getTrainerDefaultGameId = (trainer) => {
+  const regionGames = TRAINERDEX_OPTIONS.find((option) => option.id === trainer.regionId)?.games || [];
+  const regionGameIds = regionGames.map((game) => game.id);
+  return (
+    trainer.gameIds?.find((gameId) => regionGameIds.includes(gameId)) ||
+    Object.keys(trainer.gameData || {}).find((gameId) => regionGameIds.includes(gameId)) ||
+    getDefaultGameId(trainer.regionId)
+  );
+};
+
 const isTrainerAvailableForGame = (trainer, gameId) =>
   !trainer.gameIds?.length || trainer.gameIds.includes(gameId) || Boolean(trainer.gameData?.[gameId]);
 
@@ -330,6 +342,7 @@ const resolveTrainerForGame = (trainer, gameId, battleStage = 'initial') => {
     id: trainer.id,
     name: trainer.name,
     regionId: trainer.regionId,
+    resolvedGameId: gameId,
     team: stageData.team || gameData.team || trainer.team,
     battleStages: gameData.battleStages || trainer.battleStages,
   };
@@ -339,6 +352,41 @@ const getRegionTrainersForGame = (regionId, gameId) =>
   TRAINERDEX_TRAINERS
     .filter((trainer) => trainer.regionId === regionId && isTrainerAvailableForGame(trainer, gameId))
     .map((trainer) => resolveTrainerForGame(trainer, gameId));
+
+const trainerMatchesSearch = (trainer, searchValue = '') => {
+  const normalizedSearch = normalizeSearchText(searchValue);
+
+  if (!normalizedSearch) {
+    return true;
+  }
+
+  const gameDataValues = Object.values(trainer.gameData || {});
+  const gameDataTeam = gameDataValues.flatMap((gameData) => gameData.team || []);
+  const battleStageTeam = gameDataValues.flatMap((gameData) =>
+    Object.values(gameData.battleStages || {}).flatMap((stage) => stage.team || []),
+  );
+  const region = TRAINERDEX_OPTIONS.find((option) => option.id === trainer.regionId);
+  const searchableText = normalizeSearchText([
+    trainer.name,
+    trainer.role,
+    trainer.division,
+    trainer.signature,
+    region?.region,
+    region?.label,
+    ...(trainer.specialty || []),
+    ...gameDataValues.flatMap((gameData) => [
+      gameData.role,
+      gameData.division,
+      gameData.signature,
+      ...(gameData.specialty || []),
+    ]),
+    ...(trainer.team || []).flatMap((member) => [member.name, member.label]),
+    ...gameDataTeam.flatMap((member) => [member.name, member.label]),
+    ...battleStageTeam.flatMap((member) => [member.name, member.label]),
+  ].filter(Boolean).join(' '));
+
+  return searchableText.includes(normalizedSearch);
+};
 
 const hasSelectableGameVersionData = (regionId, games = []) =>
   games.length > 1 &&
@@ -353,6 +401,7 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
   const [selectedRegion, setSelectedRegion] = useState(TRAINERDEX_OPTIONS[0].id);
   const [selectedGame, setSelectedGame] = useState(getDefaultGameId(TRAINERDEX_OPTIONS[0].id));
   const [selectedBattleStage, setSelectedBattleStage] = useState('initial');
+  const [trainerSearchTerm, setTrainerSearchTerm] = useState('');
   const [selectedTrainerId, setSelectedTrainerId] = useState(
     TRAINERDEX_TRAINERS.find((trainer) => trainer.regionId === TRAINERDEX_OPTIONS[0].id)?.id,
   );
@@ -367,6 +416,19 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
   const regionTrainers = useMemo(
     () => getRegionTrainersForGame(selectedRegion, selectedGame),
     [selectedRegion, selectedGame],
+  );
+  const isSearchingTrainers = Boolean(normalizeSearchText(trainerSearchTerm));
+  const visibleTrainers = useMemo(
+    () => {
+      if (!isSearchingTrainers) {
+        return regionTrainers;
+      }
+
+      return TRAINERDEX_TRAINERS
+        .filter((trainer) => trainerMatchesSearch(trainer, trainerSearchTerm))
+        .map((trainer) => resolveTrainerForGame(trainer, getTrainerDefaultGameId(trainer)));
+    },
+    [isSearchingTrainers, regionTrainers, trainerSearchTerm],
   );
   const selectedTrainerBase = useMemo(
     () =>
@@ -396,9 +458,9 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
     () =>
       TRAINER_GROUPS.map((group) => ({
         ...group,
-        trainers: regionTrainers.filter((trainer) => trainer.division === group.id),
+        trainers: visibleTrainers.filter((trainer) => trainer.division === group.id),
       })).filter((group) => group.trainers.length),
-    [regionTrainers],
+    [visibleTrainers],
   );
   const featuredTrainerCards = useMemo(
     () => getFeaturedTrainerTcgCards(tcgCards, selectedTrainer),
@@ -417,6 +479,23 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
     () => getRecommendedTrainerCounters(enrichedTeam),
     [enrichedTeam],
   );
+  useEffect(() => {
+    if (!isSearchingTrainers || !visibleTrainers.length) {
+      return;
+    }
+
+    if (visibleTrainers.some((trainer) => trainer.id === selectedTrainerId)) {
+      return;
+    }
+
+    const nextTrainer = visibleTrainers[0];
+    setSelectedRegion(nextTrainer.regionId);
+    setSelectedGame(nextTrainer.resolvedGameId || getTrainerDefaultGameId(nextTrainer));
+    setSelectedBattleStage('initial');
+    setSelectedTrainerId(nextTrainer.id);
+    setLoadingTeamData(true);
+    setError('');
+  }, [isSearchingTrainers, selectedTrainerId, visibleTrainers]);
   const renderFeaturedCard = (card) => (
     <article
       key={`${card.setId}-${card.id}`}
@@ -592,6 +671,7 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
                   setSelectedTrainerId(
                     nextTrainer?.id,
                   );
+                  setTrainerSearchTerm('');
                   setLoadingTeamData(true);
                   setError('');
                 }}
@@ -617,6 +697,7 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
                       const nextTrainers = getRegionTrainersForGame(selectedRegion, game.id);
                       setSelectedGame(game.id);
                       setSelectedBattleStage('initial');
+                      setTrainerSearchTerm('');
                       if (!nextTrainers.some((trainer) => trainer.id === selectedTrainerId)) {
                         setSelectedTrainerId(nextTrainers[0]?.id);
                       }
@@ -631,6 +712,26 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
             </>
           )}
 
+          <label htmlFor="trainerdex-trainer-search">Search Trainers</label>
+          <div className="search-with-clear trainerdex-search-row">
+            <input
+              id="trainerdex-trainer-search"
+              type="search"
+              value={trainerSearchTerm}
+              onChange={(event) => setTrainerSearchTerm(event.target.value)}
+              placeholder="Name, role, Pokemon..."
+            />
+            <button
+              type="button"
+              className="search-clear-button"
+              onClick={() => setTrainerSearchTerm('')}
+              disabled={!trainerSearchTerm}
+              aria-label="Clear trainer search"
+            >
+              X
+            </button>
+          </div>
+
           <label>Trainers</label>
           <div className="trainerdex-trainer-list" aria-label={`${activeRegion?.region} trainers`}>
             {groupedTrainers.map((group) => (
@@ -644,6 +745,9 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
                       trainer.id === selectedTrainer?.id ? 'is-selected' : ''
                     }`}
                     onClick={() => {
+                      const nextGame = trainer.resolvedGameId || getTrainerDefaultGameId(trainer);
+                      setSelectedRegion(trainer.regionId);
+                      setSelectedGame(nextGame);
                       setSelectedTrainerId(trainer.id);
                       setSelectedBattleStage('initial');
                       setLoadingTeamData(true);
@@ -654,11 +758,17 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
                     <span>
                       <strong>{trainer.name}</strong>
                       <small>{trainer.role}</small>
+                      {isSearchingTrainers && (
+                        <small>{getTrainerRegion(trainer.regionId)?.region}</small>
+                      )}
                     </span>
                   </button>
                 ))}
               </section>
             ))}
+            {!groupedTrainers.length && (
+              <p className="pokedex-status">No trainers match this search.</p>
+            )}
           </div>
         </aside>
 
