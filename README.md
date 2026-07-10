@@ -16,9 +16,17 @@ Demo: https://pokemon-lab-react.vercel.app/
 
 ### Video walkthroughs
 
-- [Pokédex: search for Pikachu, browse Featured TCG Cards, and open a card](docs/demos/pokedex-search-to-tcg.webm)
-- [TCG Simulator: open a Base Set pack and verify the binder increases from 0 to 9 unique cards](docs/demos/tcg-pack-to-binder.webm)
-- [TrainerDex: browse Brock's featured trainer cards and open Brock's Geodude](docs/demos/trainerdex-featured-tcg.webm)
+**Pokédex — search for Pikachu, browse Featured TCG Cards, and open a card**
+
+![Pokédex search followed by opening a featured Pikachu TCG card](docs/demos/pokedex-search-to-tcg.gif)
+
+**TCG Simulator — open a Base Set pack and verify the binder increases from 0 to 9 unique cards**
+
+![TCG Simulator pack opening followed by the increased binder collection](docs/demos/tcg-pack-to-binder.gif)
+
+**TrainerDex — browse Brock's featured trainer cards and open Brock's Geodude**
+
+![TrainerDex featured TCG cards followed by Brock's Geodude card detail](docs/demos/trainerdex-featured-tcg.gif)
 
 ## Features
 
