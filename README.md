@@ -14,6 +14,12 @@ Demo: https://pokemon-lab-react.vercel.app/
 | **Pokémon Quiz** | **TrainerDex** |
 | ![Pokémon Quiz comparison question](docs/screenshots/quiz.png) | ![TrainerDex showing Brock and his team analysis](docs/screenshots/trainer-dex.png) |
 
+### Video walkthroughs
+
+- [Pokédex: search for Pikachu, browse Featured TCG Cards, and open a card](docs/demos/pokedex-search-to-tcg.webm)
+- [TCG Simulator: open a Base Set pack and verify the binder increases from 0 to 9 unique cards](docs/demos/tcg-pack-to-binder.webm)
+- [TrainerDex: browse Brock's featured trainer cards and open Brock's Geodude](docs/demos/trainerdex-featured-tcg.webm)
+
 ## Features
 
 - **Pokédex** — browse by game/region, search, view stats, weaknesses, abilities, evolutions, forms, moves, cries, and generation sprites
