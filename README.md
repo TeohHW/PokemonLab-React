@@ -4,6 +4,16 @@ A browser-based Pokémon lab built with React, combining a Pokédex, TCG simulat
 
 Demo: https://pokemon-lab-react.vercel.app/
 
+## Screenshots
+
+| Pokédex | TCG Simulator |
+| --- | --- |
+| ![Pokédex station showing Zamazenta's profile and stats](docs/screenshots/pokedex.png) | ![TCG Simulator expansion browser](docs/screenshots/tcg-simulator.png) |
+| **Who's That Pokémon?** | **Team Planner** |
+| ![Who's That Pokémon silhouette challenge](docs/screenshots/whos-that-pokemon.png) | ![Team Planner with a six-Pokémon team](docs/screenshots/team-planner.png) |
+| **Pokémon Quiz** | **TrainerDex** |
+| ![Pokémon Quiz comparison question](docs/screenshots/quiz.png) | ![TrainerDex showing Brock and his team analysis](docs/screenshots/trainer-dex.png) |
+
 ## Features
 
 - **Pokédex** — browse by game/region, search, view stats, weaknesses, abilities, evolutions, forms, moves, cries, and generation sprites
