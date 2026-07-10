@@ -648,6 +648,17 @@ button.brand-home-button:focus-visible {
   line-height: 1.35;
 }
 
+.tcg-artwork-note {
+  margin: 0;
+  border-left: 4px solid #d9a400;
+  padding: 8px 10px;
+  color: #4d3b00;
+  background: #fff6cf;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 .set-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));

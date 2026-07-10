@@ -591,6 +591,9 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
             Sets available through {latestReleasedExpansion.setName} ({latestReleasedExpansion.releaseYear}).
           </p>
         )}
+        <p className="tcg-artwork-note" role="note">
+          <strong>Artwork notice:</strong> Cards without available front artwork are excluded from set lists, binders, search results, and featured card galleries.
+        </p>
         {(selectedSeries === 'Special / Limited' || activeSetIsReferenceOnly) && (
           <p className="tcg-other-note">
             Special and limited sets include promos, trainer kits, POP, and other releases that are not eligible for pack opening. Their binders are shown complete by default for browsing only.

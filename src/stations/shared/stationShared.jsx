@@ -1998,7 +1998,7 @@ const getExpansionCards = (expansion) =>
         ...(expansion?.commons || []),
         ...(expansion?.uncommons || []),
         ...(expansion?.rares || []),
-      ];
+      ].filter((card) => !KNOWN_MISSING_OFFICIAL_IMAGE_CARD_IDS.has(card.id));
 
 const hasFeaturedTcgCards = (expansion) => getExpansionCards(expansion).length > 0;
 
