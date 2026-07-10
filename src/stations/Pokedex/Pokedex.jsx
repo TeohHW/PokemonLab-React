@@ -65,6 +65,7 @@ import {
   GitHubRepoLink,
   handleCardImageError,
   hasFeaturedTcgCards,
+  isCardBackPlaceholderImage,
   isPokemonGuessCorrect,
   LATEST_VERSION_GROUPS,
   loadCollection,
@@ -128,6 +129,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
   const [moveDetails, setMoveDetails] = useState({});
   const [tcgCards, setTcgCards] = useState([]);
   const [loadingTcgCards, setLoadingTcgCards] = useState(true);
+  const [unavailableTcgCardArtIds, setUnavailableTcgCardArtIds] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const [pokemonPage, setPokemonPage] = useState(1);
   const [pokemonSortMode, setPokemonSortMode] = useState('entry');
@@ -623,9 +625,35 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
     [speciesDetails],
   );
   const featuredCards = useMemo(
-    () => getFeaturedTcgCards(tcgCards, [selectedPokemon?.name, selectedPokemon?.species?.name]),
-    [tcgCards, selectedPokemon],
+    () =>
+      getFeaturedTcgCards(tcgCards, [selectedPokemon?.name, selectedPokemon?.species?.name])
+        .filter((card) => getCardFaceImage(card) !== CARD_BACK_IMAGE)
+        .filter((card) => !unavailableTcgCardArtIds[card.id]),
+    [tcgCards, selectedPokemon, unavailableTcgCardArtIds],
   );
+  const handleFeaturedCardImageError = useCallback((event, cardId) => {
+    const hasAnotherFaceImage = Boolean(
+      event.currentTarget.dataset.fallbackSrc?.split('|').some(Boolean),
+    );
+
+    if (hasAnotherFaceImage) {
+      handleCardImageError(event);
+      return;
+    }
+
+    setUnavailableTcgCardArtIds((currentIds) => (
+      currentIds[cardId] ? currentIds : { ...currentIds, [cardId]: true }
+    ));
+  }, []);
+  const handleFeaturedCardImageLoad = useCallback((event, cardId) => {
+    if (!isCardBackPlaceholderImage(event.currentTarget)) {
+      return;
+    }
+
+    setUnavailableTcgCardArtIds((currentIds) => (
+      currentIds[cardId] ? currentIds : { ...currentIds, [cardId]: true }
+    ));
+  }, []);
   useEffect(() => {
     setUnavailableGenerationSpriteIds({});
     setUnavailableSpriteVariantIds({});
@@ -1213,7 +1241,8 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                     data-fallback-src={getCardFallbackImage(card)}
                     alt={card.name}
                     loading="lazy"
-                    onError={handleCardImageError}
+                    onLoad={(event) => handleFeaturedCardImageLoad(event, card.id)}
+                    onError={(event) => handleFeaturedCardImageError(event, card.id)}
                   />
                   <div>
                     <h3>{card.name}</h3>

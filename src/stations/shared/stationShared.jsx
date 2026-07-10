@@ -1653,8 +1653,13 @@ const parseReleaseDate = (releaseDate = '') => {
 };
 
 const KNOWN_MISSING_OFFICIAL_IMAGE_SET_IDS = new Set(['mcd14', 'mcd15', 'mcd17', 'mcd18']);
+const KNOWN_MISSING_OFFICIAL_IMAGE_CARD_IDS = new Set(['xyp-XY68']);
 
 const getCardImageCandidates = (card = {}) => {
+  if (KNOWN_MISSING_OFFICIAL_IMAGE_CARD_IDS.has(card.id)) {
+    return [];
+  }
+
   const candidates = [];
   const addCandidate = (image) => {
     if (image && !candidates.includes(image) && image !== CARD_BACK_IMAGE) {
@@ -1682,6 +1687,9 @@ const getCardImageCandidates = (card = {}) => {
 const getCardFaceImage = (card) => getCardImageCandidates(card)[0] || CARD_BACK_IMAGE;
 
 const getCardFallbackImage = (card) => getCardImageCandidates(card).slice(1).join('|');
+
+const isCardBackPlaceholderImage = (image) =>
+  image?.naturalWidth === 640 && image?.naturalHeight === 892;
 
 const handleCardImageError = (event) => {
   const fallbackSrc = event.currentTarget.dataset.fallbackSrc;
@@ -2153,6 +2161,7 @@ export {
   hasFeaturedTcgCards,
   hasPlayableCards,
   isReferenceOnlyExpansion,
+  isCardBackPlaceholderImage,
   isPokemonGuessCorrect,
   LATEST_VERSION_GROUPS,
   loadCollection,
