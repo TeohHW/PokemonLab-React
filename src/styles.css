@@ -1,3 +1,11 @@
+@font-face {
+  font-family: "Pokemon GB";
+  src: url("/fonts/Pokemon-GB.woff") format("woff");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
 :root {
   --page-bg: #ffffff;
   --panel-bg: #f4f4f4;
@@ -440,7 +448,7 @@ button.brand-home-button:focus-visible {
   z-index: 41;
   display: grid;
   gap: 10px;
-  width: min(420px, 100%);
+  width: min(300px, 100%);
   border: var(--gb-frame-width) solid transparent;
   border-image: var(--gb-frame) var(--gb-frame-slice) round;
   padding: 14px 18px;
@@ -481,30 +489,35 @@ button.brand-home-button:focus-visible {
 .station-menu-list {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 8px;
+  gap: 2px;
 }
 
-.station-menu-option.nes-btn {
+.station-menu-option {
+  appearance: none;
   display: grid;
   grid-template-columns: 14px minmax(0, 1fr);
   gap: 8px;
   align-items: center;
   width: 100%;
-  min-height: 40px;
-  border: var(--gb-frame-compact-width) solid transparent;
-  border-image: var(--gb-frame-compact) var(--gb-frame-compact-slice) round;
-  padding: 3px 12px;
+  min-height: 32px;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 3px 8px;
   color: #212529;
-  background: rgb(255 250 255 / 88%);
-  background-clip: border-box;
-  box-shadow:
-    inset -4px -4px 0 #b7bac6,
-    inset 4px 4px 0 #ffffff;
-  line-height: 1.25;
+  background: transparent;
+  box-shadow: none;
+  font-family: "Pokemon GB", "Courier New", "Lucida Console", Monaco, ui-monospace, monospace;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
   text-align: left;
+  -webkit-font-smoothing: none;
+  cursor: pointer;
 }
 
-.station-menu-option.nes-btn::before {
+.station-menu-option::before {
   content: "";
   width: 0;
   height: 0;
@@ -512,24 +525,23 @@ button.brand-home-button:focus-visible {
   border-left: 9px solid transparent;
 }
 
-.station-menu-option.nes-btn:hover:not(:disabled),
-.station-menu-option.nes-btn:active:not(:disabled),
-.station-menu-option.nes-btn:focus-visible {
-  background: rgb(255 250 255 / 92%);
-  box-shadow:
-    inset -4px -4px 0 #b7bac6,
-    inset 4px 4px 0 #ffffff;
+.station-menu-option:hover:not(:disabled),
+.station-menu-option:active:not(:disabled),
+.station-menu-option:focus-visible {
+  background: transparent;
+  box-shadow: none;
+  outline: none;
   transform: none;
 }
 
 .station-menu-option.is-active {
   color: #050505;
-  background: rgb(255 250 255 / 92%);
+  background: transparent;
 }
 
 .station-menu-option.is-active::before,
-.station-menu-option.nes-btn:hover:not(:disabled)::before,
-.station-menu-option.nes-btn:focus-visible::before {
+.station-menu-option:hover:not(:disabled)::before,
+.station-menu-option:focus-visible::before {
   border-left-color: #212529;
 }
 
@@ -1809,11 +1821,12 @@ button.brand-home-button:focus-visible {
   padding: clamp(10px, 1.5vh, 16px) 22px;
   color: #242731;
   background: #f6fbff;
-  font-family: "Silkscreen", "Courier New", "Lucida Console", Monaco, ui-monospace, monospace;
-  font-size: clamp(1.1rem, 1.8vw, 1.55rem);
+  font-family: "Pokemon GB", "Courier New", "Lucida Console", Monaco, ui-monospace, monospace;
+  font-size: clamp(1.05rem, 1.55vw, 1.35rem);
   font-weight: 400;
-  line-height: 1.35;
-  letter-spacing: 0.035em;
+  line-height: 1.5;
+  letter-spacing: 0;
+  -webkit-font-smoothing: none;
   box-shadow: inset 0 0 0 4px #b7d9ed;
 }
 

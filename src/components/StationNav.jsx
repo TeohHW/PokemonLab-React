@@ -173,7 +173,7 @@ function StationNav({ activeStation, onNavigate }) {
                 <button
                   key={station.id}
                   type="button"
-                  className={`nes-btn station-menu-option ${
+                  className={`station-menu-option ${
                     station.id === activeStation ? 'is-active' : ''
                   }`}
                   onClick={() => handleNavigate(station.id)}
