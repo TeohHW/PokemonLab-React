@@ -1,4 +1,10 @@
 /* eslint-disable no-unused-vars */
+import pokedexLogo from '../../logos/pokedex.png';
+import quizLogo from '../../logos/quiz.png';
+import tcgLogo from '../../logos/tcg.png';
+import teamLogo from '../../logos/team.png';
+import trainerdexLogo from '../../logos/trainerdex.png';
+import whoLogo from '../../logos/who.png';
 import {
   ALL_POKEDEX_OPTION,
   buildBoosterPack,
@@ -102,6 +108,51 @@ import {
   writeCachedPokeApiResource
 } from '../stations/shared/stationShared';
 
+const HOME_STATIONS = [
+  {
+    id: 'pokedex',
+    icon: '#',
+    logo: pokedexLogo,
+    title: 'Pokedex',
+    copy: 'Search Pokemon by name or number using live PokeAPI data.',
+  },
+  {
+    id: 'tcg',
+    icon: 'TCG',
+    logo: tcgLogo,
+    title: 'Pokemon TCG Simulator',
+    copy: 'Open booster packs, reveal cards, and build your binder.',
+  },
+  {
+    id: 'who',
+    icon: '?',
+    logo: whoLogo,
+    title: "Who's That Pokemon?",
+    copy: 'Guess silhouetted Pokemon by region and climb the leaderboard.',
+  },
+  {
+    id: 'team',
+    icon: 'TEAM',
+    logo: teamLogo,
+    title: 'Pokemon Team Planner',
+    copy: 'Build a six-Pokemon team, pick moves, and inspect matchups.',
+  },
+  {
+    id: 'quiz',
+    icon: 'Q',
+    logo: quizLogo,
+    title: 'Pokemon Quiz',
+    copy: 'Test types, evolutions, stats, cries, and Pokedex knowledge.',
+  },
+  {
+    id: 'trainerdex',
+    icon: 'VS',
+    logo: trainerdexLogo,
+    title: 'TrainerDex',
+    copy: 'Browse Gym Leader, Kahuna, and Elite Four teams by region.',
+  },
+];
+
 function HomePage({ onChoose }) {
   return (
     <main className="home-screen">
@@ -112,96 +163,31 @@ function HomePage({ onChoose }) {
         <div className="home-brand">
           <span className="nes-pokeball home-pokeball" aria-hidden="true" />
           <div>
-            <p className="eyebrow">Pokemon Lab</p>
-            <h1>Choose Your Station</h1>
+            <h1>Pokemon Lab</h1>
           </div>
         </div>
 
         <div className="choice-grid" aria-label="Choose an app">
-          <button
-            type="button"
-            className="choice-card nes-btn is-error"
-            onClick={() => onChoose('pokedex')}
-          >
-            <span className="choice-icon" aria-hidden="true">
-              #
-            </span>
-            <span className="choice-title">Pokedex</span>
-            <span className="choice-copy">
-              Search Pokemon by name or number using live PokeAPI data.
-            </span>
-          </button>
-
-          <button
-            type="button"
-            className="choice-card nes-btn is-primary"
-            onClick={() => onChoose('tcg')}
-          >
-            <span className="choice-icon" aria-hidden="true">
-              TCG
-            </span>
-            <span className="choice-title">Pokemon TCG Simulator</span>
-            <span className="choice-copy">
-              Open booster packs, reveal cards, and build your binder.
-            </span>
-          </button>
-
-          <button
-            type="button"
-            className="choice-card nes-btn is-warning"
-            onClick={() => onChoose('who')}
-          >
-            <span className="choice-icon" aria-hidden="true">
-              ?
-            </span>
-            <span className="choice-title">Who's That Pokemon?</span>
-            <span className="choice-copy">
-              Guess silhouetted Pokemon by region and climb the leaderboard.
-            </span>
-          </button>
-
-          <button
-            type="button"
-            className="choice-card nes-btn is-success"
-            onClick={() => onChoose('team')}
-          >
-            <span className="choice-icon" aria-hidden="true">
-              TEAM
-            </span>
-            <span className="choice-title">Pokemon Team Planner</span>
-            <span className="choice-copy">
-              Build a six-Pokemon team, pick moves, and inspect matchups.
-            </span>
-          </button>
-
-          <button
-            type="button"
-            className="choice-card quiz-choice-card nes-btn"
-            onClick={() => onChoose('quiz')}
-          >
-            <span className="choice-icon" aria-hidden="true">
-              Q
-            </span>
-            <span className="choice-title">Pokemon Quiz</span>
-            <span className="choice-copy">
-              Test types, evolutions, stats, cries, and Pokedex knowledge.
-            </span>
-          </button>
-
-          <button
-            type="button"
-            className="choice-card trainerdex-choice-card nes-btn"
-            onClick={() => onChoose('trainerdex')}
-          >
-            <span className="choice-icon" aria-hidden="true">
-              VS
-            </span>
-            <span className="choice-title">TrainerDex</span>
-            <span className="choice-copy">
-              Browse Gym Leader, Kahuna, and Elite Four teams by region.
-            </span>
-          </button>
+          {HOME_STATIONS.map((station) => (
+            <button
+              key={station.id}
+              type="button"
+              className={`choice-card choice-card-${station.id} nes-btn`}
+              onClick={() => onChoose(station.id)}
+            >
+              <span className="choice-icon" aria-hidden="true">
+                <img src={station.logo} alt="" />
+              </span>
+              <span className="choice-content">
+                <span className="choice-title">{station.title}</span>
+                <span className="choice-copy">{station.copy}</span>
+              </span>
+              <span className="choice-dots" aria-hidden="true"><i /><i /><i /></span>
+            </button>
+          ))}
         </div>
+
+        <p className="choice-prompt">Choose a station.</p>
       </section>
     </main>
   );

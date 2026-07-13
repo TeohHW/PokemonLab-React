@@ -324,6 +324,12 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
       return;
     }
 
+    const validationError = getPokemonLookupValidationError(trimmedGuess);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     const guessedCorrectly = isPokemonGuessCorrect(trimmedGuess, currentPokemon);
     const nextScore = guessedCorrectly ? score + 1 : score;
 

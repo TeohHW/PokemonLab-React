@@ -418,11 +418,20 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
   const ownedActiveSetCards = activeSetIsReferenceOnly
     ? activeSetCards
     : activeSetCards.filter((card) => collection[card.id]);
+  const normalizedSetSearch = normalizeSearchText(deferredSearchTerm);
+  const compactSetSearch = compactSearchText(deferredSearchTerm);
+  const hasRawSetSearch = Boolean(deferredSearchTerm.trim());
+  const hasInvalidSetSearch = hasRawSetSearch && !normalizedSetSearch;
+  const isSetCardSearchTooShort = Boolean(normalizedSetSearch) && compactSetSearch.length < 2;
+  const normalizedBinderSearch = normalizeSearchText(binderSearchTerm);
+  const hasRawBinderSearch = Boolean(binderSearchTerm.trim());
+  const hasInvalidBinderSearch = hasRawBinderSearch && !normalizedBinderSearch;
   const visibleBinderCards = useMemo(() => {
-    if (!normalizeSearchText(binderSearchTerm)) return activeSetCards;
+    if (hasInvalidBinderSearch) return [];
+    if (!normalizedBinderSearch) return activeSetCards;
 
     return activeSetCards.filter((card) => cardMatchesSearch(card, binderSearchTerm));
-  }, [activeSetCards, binderSearchTerm]);
+  }, [activeSetCards, binderSearchTerm, hasInvalidBinderSearch, normalizedBinderSearch]);
   const allSetSearchCards = useMemo(() => {
     if (compactSearchText(deferredSearchTerm).length < 2) return [];
 
@@ -493,14 +502,14 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
         .filter(([, expansion]) => {
           const matchesSeries =
             selectedSeries === 'All' || expansion.seriesFilter === selectedSeries;
-          const normalizedSearch = normalizeSearchText(deferredSearchTerm);
-          const compactSearch = compactSearchText(deferredSearchTerm);
-          const canSearchCards = compactSearch.length >= 2;
+          const canSearchCards = compactSetSearch.length >= 2;
           const matchesSearch =
-            !normalizedSearch ||
-            expansion.searchText.includes(normalizedSearch) ||
-            expansion.compactSearchText.includes(compactSearch) ||
-            (canSearchCards && expansionHasCardMatch(expansion, deferredSearchTerm));
+            !hasRawSetSearch ||
+            (!hasInvalidSetSearch && (
+              expansion.searchText.includes(normalizedSetSearch) ||
+              expansion.compactSearchText.includes(compactSetSearch) ||
+              (canSearchCards && expansionHasCardMatch(expansion, deferredSearchTerm))
+            ));
 
           return matchesSeries && matchesSearch;
         })
@@ -520,7 +529,16 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
           const dateSort = firstDate.localeCompare(secondDate);
           return sortMode === 'release-newest' ? dateSort * -1 : dateSort;
         }),
-    [deferredSearchTerm, indexedReleasedExpansionEntries, selectedSeries, sortMode],
+    [
+      compactSetSearch,
+      deferredSearchTerm,
+      hasInvalidSetSearch,
+      hasRawSetSearch,
+      indexedReleasedExpansionEntries,
+      normalizedSetSearch,
+      selectedSeries,
+      sortMode,
+    ],
   );
 
   const chooseSet = (setId) => {
@@ -670,6 +688,15 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
               </span>
             </button>
           ))}
+          {!loading && hasInvalidSetSearch && (
+            <p className="pokedex-status" role="status">Enter letters or numbers to search sets and cards.</p>
+          )}
+          {!loading && !hasInvalidSetSearch && isSetCardSearchTooShort && (
+            <p className="pokedex-status" role="status">Enter at least 2 characters to search cards across sets.</p>
+          )}
+          {!loading && normalizedSetSearch && !isSetCardSearchTooShort && !visibleExpansions.length && !allSetSearchCards.length && (
+            <p className="pokedex-status" role="status">No sets or cards match this search.</p>
+          )}
         </div>
 
         <div className="button-group">
@@ -839,7 +866,11 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
             );
           })}
           {!visibleBinderCards.length && (
-            <p className="pokedex-status">No cards match this binder search.</p>
+            <p className="pokedex-status" role="status">
+              {hasInvalidBinderSearch
+                ? 'Enter letters or numbers to search this binder.'
+                : 'No cards match this binder search.'}
+            </p>
           )}
         </div>
       </section>
