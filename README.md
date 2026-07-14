@@ -24,9 +24,21 @@ Demo: https://pokemon-lab-react.vercel.app/
 
 ![TCG Simulator pack opening followed by the increased binder collection](docs/demos/tcg-pack-to-binder.gif)
 
-**TrainerDex — browse Brock's featured trainer cards and open Brock's Geodude**
+**Who's That Pokémon? — start a Kanto challenge, use a hint, and reveal the answer**
 
-![TrainerDex featured TCG cards followed by Brock's Geodude card detail](docs/demos/trainerdex-featured-tcg.gif)
+![Who's That Pokémon Kanto round followed by a hint and answer reveal](docs/demos/whos-that-pokemon-round.gif)
+
+**Team Planner — generate a six-Pokémon team and review its analysis**
+
+![Team Planner randomizing a full team followed by its matchup analysis](docs/demos/team-planner-random-team.gif)
+
+**Pokémon Quiz — start a mixed quiz and answer a question**
+
+![Pokémon Quiz question followed by the selected answer and result](docs/demos/pokemon-quiz-question.gif)
+
+**TrainerDex — review Brock's trainer team, then browse his featured cards**
+
+![TrainerDex showing Brock's team before his featured TCG cards and card detail](docs/demos/trainerdex-featured-tcg.gif)
 
 ## Features
 
