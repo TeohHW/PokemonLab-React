@@ -455,9 +455,7 @@ button.brand-home-button:focus-visible {
   color: #050505;
   background: rgb(255 250 255 / 94%);
   background-clip: border-box;
-  box-shadow:
-    inset 0 0 0 4px rgb(255 255 255 / 88%),
-    8px 8px 0 rgb(33 37 41 / 28%);
+  box-shadow: inset 0 0 0 4px rgb(255 255 255 / 88%);
   image-rendering: pixelated;
 }
 
@@ -1203,6 +1201,23 @@ button.brand-home-button:focus-visible {
   image-rendering: pixelated;
 }
 
+.control-panel,
+.binder-panel {
+  --tcg-panel-bg-inset-top: 3px;
+  --tcg-panel-bg-inset-right: 5px;
+  --tcg-panel-bg-inset-bottom: 3px;
+  --tcg-panel-bg-inset-left: 3px;
+  background-color: transparent;
+  background-image: linear-gradient(#f4f4f4 0 0);
+  background-repeat: no-repeat;
+  background-position: var(--tcg-panel-bg-inset-left) var(--tcg-panel-bg-inset-top);
+  background-size:
+    calc(100% - var(--tcg-panel-bg-inset-left) - var(--tcg-panel-bg-inset-right))
+    calc(100% - var(--tcg-panel-bg-inset-top) - var(--tcg-panel-bg-inset-bottom));
+  background-origin: border-box;
+  background-clip: border-box;
+}
+
 .binder-header {
   display: flex;
   gap: 16px;
@@ -1879,6 +1894,22 @@ button.brand-home-button:focus-visible {
     #ffffff;
 }
 
+.team-control-panel,
+.team-builder-panel,
+.team-analysis-card {
+  --team-panel-bg-inset-top: 3px;
+  --team-panel-bg-inset-right: 5px;
+  --team-panel-bg-inset-bottom: 3px;
+  --team-panel-bg-inset-left: 3px;
+  background-repeat: no-repeat;
+  background-position: var(--team-panel-bg-inset-left) var(--team-panel-bg-inset-top);
+  background-size:
+    calc(100% - var(--team-panel-bg-inset-left) - var(--team-panel-bg-inset-right))
+    calc(100% - var(--team-panel-bg-inset-top) - var(--team-panel-bg-inset-bottom));
+  background-origin: border-box;
+  background-clip: border-box;
+}
+
 .team-control-panel select,
 .team-control-panel input,
 .team-move-grid select {
@@ -2253,13 +2284,23 @@ button.brand-home-button:focus-visible {
 }
 
 .quiz-question-card {
+  --quiz-card-bg-inset-top: 3px;
+  --quiz-card-bg-inset-right: 5px;
+  --quiz-card-bg-inset-bottom: 3px;
+  --quiz-card-bg-inset-left: 3px;
   display: grid;
   gap: 18px;
   min-height: 620px;
   padding: 26px;
-  background:
-    linear-gradient(#ffffff 0 64%, #dff1ff 64% 100%),
-    #ffffff;
+  background-color: transparent;
+  background-image: linear-gradient(#f4faff 0 0);
+  background-repeat: no-repeat;
+  background-position: var(--quiz-card-bg-inset-left) var(--quiz-card-bg-inset-top);
+  background-size:
+    calc(100% - var(--quiz-card-bg-inset-left) - var(--quiz-card-bg-inset-right))
+    calc(100% - var(--quiz-card-bg-inset-top) - var(--quiz-card-bg-inset-bottom));
+  background-origin: border-box;
+  background-clip: border-box;
 }
 
 .quiz-question-card h2 {
@@ -2480,7 +2521,7 @@ button.brand-home-button:focus-visible {
   gap: 12px;
   border: 4px solid #212529;
   padding: 14px;
-  background: #e8f4ff;
+  background: rgb(255 255 255 / 48%);
 }
 
 .quiz-answer-button.nes-btn {
@@ -4329,8 +4370,18 @@ button.brand-home-button:focus-visible {
 }
 
 .who-page .app-header {
+  --who-header-bg-inset-top: 3px;
+  --who-header-bg-inset-right: 5px;
+  --who-header-bg-inset-bottom: 3px;
+  --who-header-bg-inset-left: 3px;
   background: linear-gradient(135deg, var(--who-yellow) 0 52%, var(--who-blue) 52% 100%);
-  background-clip: padding-box;
+  background-repeat: no-repeat;
+  background-position: var(--who-header-bg-inset-left) var(--who-header-bg-inset-top);
+  background-size:
+    calc(100% - var(--who-header-bg-inset-left) - var(--who-header-bg-inset-right))
+    calc(100% - var(--who-header-bg-inset-top) - var(--who-header-bg-inset-bottom));
+  background-origin: border-box;
+  background-clip: border-box;
 }
 
 .who-page .brand-mark h1 {
@@ -4361,12 +4412,11 @@ button.brand-home-button:focus-visible {
   gap: 16px;
   border: var(--gb-frame-width) solid transparent;
   border-image: var(--gb-frame) var(--gb-frame-slice) round;
-  padding: 24px;
+  padding: 25px;
   color: #050505;
   background:
     linear-gradient(#fff8d8, #ffffff 260px),
     #ffffff;
-  box-shadow: inset 0 0 0 4px #ffffff;
   image-rendering: pixelated;
 }
 
@@ -4493,6 +4543,21 @@ button.brand-home-button:focus-visible {
     #ffffff;
 }
 
+.who-setup-panel,
+.who-control-panel {
+  --who-panel-bg-inset-top: 3px;
+  --who-panel-bg-inset-right: 5px;
+  --who-panel-bg-inset-bottom: 3px;
+  --who-panel-bg-inset-left: 3px;
+  background-repeat: no-repeat;
+  background-position: var(--who-panel-bg-inset-left) var(--who-panel-bg-inset-top);
+  background-size:
+    calc(100% - var(--who-panel-bg-inset-left) - var(--who-panel-bg-inset-right))
+    calc(100% - var(--who-panel-bg-inset-top) - var(--who-panel-bg-inset-bottom));
+  background-origin: border-box;
+  background-clip: border-box;
+}
+
 .who-control-panel form,
 .who-score-panel,
 .who-leaderboard {
@@ -4592,8 +4657,30 @@ button.brand-home-button:focus-visible {
   background: #ffffff;
 }
 
+:is(
+  .team-planner-page,
+  .quiz-page,
+  .pokedex-page,
+  .trainerdex-page
+) .app-header,
+.tcg-header {
+  --station-header-bg-inset-top: 3px;
+  --station-header-bg-inset-right: 5px;
+  --station-header-bg-inset-bottom: 3px;
+  --station-header-bg-inset-left: 3px;
+  background-repeat: no-repeat;
+  background-position:
+    var(--station-header-bg-inset-left)
+    var(--station-header-bg-inset-top);
+  background-size:
+    calc(100% - var(--station-header-bg-inset-left) - var(--station-header-bg-inset-right))
+    calc(100% - var(--station-header-bg-inset-top) - var(--station-header-bg-inset-bottom));
+  background-origin: border-box;
+  background-clip: border-box;
+}
+
 .who-game-header.app-header {
-  margin-bottom: 10px;
+  margin-bottom: 11px;
   padding: 12px 16px;
 }
 
@@ -4604,12 +4691,16 @@ button.brand-home-button:focus-visible {
   align-content: start;
   align-items: start;
   justify-self: center;
-  width: min(1320px, 100%);
+  width: min(1360px, 100%);
   height: auto;
   min-height: 0;
 }
 
 .who-game-route .who-game-panel {
+  --who-game-bg-inset-top: 3px;
+  --who-game-bg-inset-right: 5px;
+  --who-game-bg-inset-bottom: 3px;
+  --who-game-bg-inset-left: 3px;
   justify-self: center;
   width: 100%;
   min-height: 0;
@@ -4617,18 +4708,16 @@ button.brand-home-button:focus-visible {
   border: var(--gb-frame-width) solid transparent;
   border-image: var(--gb-frame) var(--gb-frame-slice) round;
   padding: 0;
+  background-color: transparent;
+  background-image: var(--who-game-background);
+  background-repeat: no-repeat;
+  background-position: var(--who-game-bg-inset-left) var(--who-game-bg-inset-top);
+  background-size:
+    calc(100% - var(--who-game-bg-inset-left) - var(--who-game-bg-inset-right))
+    calc(100% - var(--who-game-bg-inset-top) - var(--who-game-bg-inset-bottom));
+  background-origin: border-box;
+  background-clip: border-box;
   box-shadow: inset 0 0 0 4px #ffffff;
-}
-
-.who-bg-image {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: fill;
-  object-position: center;
-  image-rendering: auto;
 }
 
 .who-empty-state,
@@ -5090,7 +5179,7 @@ button.who-pokemon-button:focus-visible:not(:disabled) {
   border: 0;
   padding: 34px 38px;
   color: #050505;
-  background: #ffffff;
+  background: transparent;
 }
 
 .clear-dialog::before,
@@ -5102,21 +5191,21 @@ button.who-pokemon-button:focus-visible:not(:disabled) {
 
 .clear-dialog::before {
   inset: 0;
+  z-index: 1;
   border: var(--gb-frame-width) solid transparent;
   border-image: var(--gb-frame) var(--gb-frame-slice) round;
   image-rendering: pixelated;
 }
 
 .clear-dialog::after {
-  inset: var(--gb-frame-width);
-  box-shadow:
-    inset -4px -4px 0 #adafbc,
-    inset 4px 4px 0 #ffffff;
+  inset: 3px 5px 3px 3px;
+  z-index: 0;
+  background: #ffffff;
 }
 
 .clear-dialog > * {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .clear-dialog h2 {

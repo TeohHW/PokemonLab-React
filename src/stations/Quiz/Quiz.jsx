@@ -119,6 +119,7 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
   const [loadingQuestion, setLoadingQuestion] = useState(false);
   const [error, setError] = useState('');
   const [isCryPlaying, setIsCryPlaying] = useState(false);
+  const [pendingLeaveAction, setPendingLeaveAction] = useState(null);
   const quizAudioRef = useRef(null);
   const autoContinueTimerRef = useRef(null);
 
@@ -296,6 +297,30 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
       });
   };
 
+  const requestLeaveQuiz = (navigationAction) => {
+    if (!currentQuestion && !loadingQuestion) {
+      navigationAction?.();
+      return;
+    }
+
+    clearTimeout(autoContinueTimerRef.current);
+    setPendingLeaveAction(() => navigationAction);
+  };
+
+  const cancelLeaveQuiz = () => {
+    setPendingLeaveAction(null);
+  };
+
+  const confirmLeaveQuiz = () => {
+    const navigationAction = pendingLeaveAction;
+    setPendingLeaveAction(null);
+    if (quizAudioRef.current) {
+      quizAudioRef.current.pause();
+      quizAudioRef.current = null;
+    }
+    navigationAction?.();
+  };
+
   const renderQuizVisual = () => {
     const visual = currentQuestion?.visual;
     if (!visual) {
@@ -401,7 +426,11 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
   return (
     <div className="app-container quiz-page">
       <header className="app-header">
-        <button type="button" className="brand-mark brand-home-button" onClick={onBack}>
+        <button
+          type="button"
+          className="brand-mark brand-home-button"
+          onClick={() => requestLeaveQuiz(onBack)}
+        >
           <span className="nes-pokeball brand-pokeball" aria-hidden="true" />
           <h1>Pokemon Quiz</h1>
         </button>
@@ -416,7 +445,10 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
               team: onOpenTeam,
               trainerdex: onOpenTrainerDex,
             };
-            handlers[station]?.();
+            const handler = handlers[station];
+            if (handler) {
+              requestLeaveQuiz(handler);
+            }
           }}
         />
       </header>
@@ -563,6 +595,42 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
           </section>
         </main>
       </section>
+
+      {pendingLeaveAction && (
+        <div
+          className="clear-dialog-overlay"
+          role="presentation"
+          onClick={cancelLeaveQuiz}
+        >
+          <div
+            className="clear-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="quiz-leave-dialog-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2 id="quiz-leave-dialog-title">Leave Quiz?</h2>
+            <p>Your current Pokemon Quiz session will end if you leave this screen.</p>
+            <div className="clear-dialog-actions">
+              <button
+                type="button"
+                className="nes-btn"
+                onClick={cancelLeaveQuiz}
+                autoFocus
+              >
+                Stay
+              </button>
+              <button
+                type="button"
+                className="nes-btn is-error"
+                onClick={confirmLeaveQuiz}
+              >
+                Leave
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

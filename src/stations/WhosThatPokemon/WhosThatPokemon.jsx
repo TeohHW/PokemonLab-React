@@ -702,7 +702,10 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
       </header>
 
       <section className="who-play-shell">
-        <main className="who-game-panel">
+        <main
+          className="who-game-panel"
+          style={{ "--who-game-background": `url(${whosThatPokemonBg})` }}
+        >
           <button
             type="button"
             className="who-menu-button"
@@ -717,13 +720,6 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
             <span aria-hidden="true" />
             <span aria-hidden="true" />
           </button>
-          <img
-            className="who-bg-image"
-            src={whosThatPokemonBg}
-            alt=""
-            aria-hidden="true"
-          />
-
           {roundState === 'loading' && (
             <div className="who-empty-state">
               <div className="pack-loader-ball" aria-hidden="true" />
