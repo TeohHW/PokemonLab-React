@@ -51,6 +51,7 @@ import {
   getPokemonIdFromPokemonUrl,
   getPokemonIdFromSpeciesUrl,
   getPokemonIdFromUrl,
+  getPokemonHomeArtworkUrl,
   getPokemonLookupValidationError,
   getPokemonOfficialArtworkUrl,
   getPokemonPool,
@@ -143,8 +144,8 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
     const controller = new AbortController();
     const pokedexIds =
       selectedDex === ALL_POKEDEX_OPTION.id
-        ? POKEDEX_OPTIONS.map((pokedex) => pokedex.id)
-        : [selectedDex];
+        ? POKEDEX_OPTIONS.flatMap((pokedex) => pokedex.pokedexIds || [pokedex.id])
+        : POKEDEX_OPTIONS.find((pokedex) => pokedex.id === selectedDex)?.pokedexIds || [selectedDex];
 
     Promise.all(
       pokedexIds.map((pokedexId) =>
@@ -156,7 +157,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
       ),
     )
       .then((data) => {
-        setPokemonList(buildPokedexEntries(data, selectedDex === ALL_POKEDEX_OPTION.id));
+        setPokemonList(buildPokedexEntries(data, selectedDex === ALL_POKEDEX_OPTION.id || pokedexIds.length > 1));
       })
       .catch((fetchError) => {
         if (fetchError.name !== 'AbortError') {
@@ -446,13 +447,15 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
       selectedDex === ALL_POKEDEX_OPTION.id && pokemonList.length
         ? Promise.resolve(pokemonList)
         : Promise.all(
-            POKEDEX_OPTIONS.map((pokedex) =>
-              fetchPokeApiJson(
-                `${POKEAPI_BASE_URL}/pokedex/${pokedex.id}`,
-                {},
-                'Unable to load all Pokedex entries.',
+            POKEDEX_OPTIONS
+              .flatMap((pokedex) => pokedex.pokedexIds || [pokedex.id])
+              .map((pokedexId) =>
+                fetchPokeApiJson(
+                  `${POKEAPI_BASE_URL}/pokedex/${pokedexId}`,
+                  {},
+                  'Unable to load all Pokedex entries.',
+                ),
               ),
-            ),
           ).then((data) => buildPokedexEntries(data, true));
 
     loadAllPokemon
@@ -567,6 +570,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
 
   const officialArtwork =
     selectedPokemon?.sprites?.other?.['official-artwork']?.front_default ||
+    selectedPokemon?.sprites?.other?.home?.front_default ||
     selectedPokemon?.sprites?.front_default;
   const moveVersionGroups = useMemo(
     () => getAvailableLevelUpMoveGroups(selectedPokemon),
@@ -708,6 +712,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                 <button
                   key={pokedex.id}
                   type="button"
+                  data-game-id={pokedex.id}
                   className={`pokedex-game-card nes-btn ${
                     selectedDex === pokedex.id ? 'is-primary is-selected' : ''
                   }`}
@@ -1041,6 +1046,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                         <CachedImage
                           src={getPokemonOfficialArtworkUrl(form.pokemonId)}
                           fallbackSrc={getImageFallbackChain(
+                            getPokemonHomeArtworkUrl(form.pokemonId),
                             getPokemonSpriteUrl(form.pokemonId),
                             selectedPokemon.sprites?.front_default,
                             officialArtwork,

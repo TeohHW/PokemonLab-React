@@ -1,8 +1,9 @@
-const makeMember = (name, level, moves, label) => ({
+const makeMember = (name, level, moves, label, apiName) => ({
   name,
   label,
   level,
   moves,
+  apiName,
 });
 
 const makeTrainer = ({
@@ -64,8 +65,8 @@ const dianthaPokemonLeagueTeam = [
 ];
 
 const makeTeam = (members) =>
-  members.map(([name, level, moveType = 'normal', label]) =>
-    makeMember(name, level, moves[moveType] || moves.normal, label));
+  members.map(([name, level, moveType = 'normal', label, apiName]) =>
+    makeMember(name, level, moves[moveType] || moves.normal, label, apiName));
 
 const sourceCheckedTrainerTeams = {
   'roark-sinnoh': makeTeam([
@@ -304,6 +305,201 @@ const unovaGameData = {
 
 const getUnovaGameData = (name) => unovaGameData[name.toLowerCase().replace(/[^a-z0-9]+/g, '-')] || {};
 
+const legendsZaTrainers = [
+  makeTrainer({
+    id: 'urbain-legends-za',
+    name: 'Urbain',
+    regionId: 'legends-za',
+    division: 'rival',
+    role: 'Team MZ Leader and Rival',
+    specialty: ['mixed'],
+    signature: 'Manectric',
+    summary: 'Urbain leads Team MZ from Hotel Z and uses the two first partners not chosen by the player alongside Mega Manectric.',
+    gameIds: ['legends-za'],
+    team: makeTeam([['Croconaw', 25, 'water'], ['Pignite', 25, 'fire'], ['Manectric', 26, 'electric', 'Mega Manectric', 'manectric-mega']]),
+  }),
+  makeTrainer({
+    id: 'lida-legends-za',
+    name: 'Lida',
+    regionId: 'legends-za',
+    division: 'special',
+    role: 'Team MZ Member',
+    specialty: ['water'],
+    signature: 'Staryu',
+    summary: 'Lida is a dancer and Team MZ member whose partner Staryu later evolves and gains the power to Mega Evolve.',
+    gameIds: ['legends-za'],
+    team: makeTeam([['Clauncher', 22, 'water'], ['Vanillite', 22, 'ice'], ['Staryu', 23, 'water']]),
+  }),
+  makeTrainer({
+    id: 'naveen-legends-za',
+    name: 'Naveen',
+    regionId: 'legends-za',
+    division: 'special',
+    role: 'Team MZ Member and Fashion Designer',
+    specialty: ['dark', 'bug'],
+    signature: 'Scraggy',
+    summary: 'Naveen is Team MZ\'s aspiring fashion designer and battles with a team led by his partner Scraggy.',
+    gameIds: ['legends-za'],
+    team: makeTeam([['Spinarak', 16, 'bug'], ['Sableye', 16, 'dark'], ['Scraggy', 17, 'fighting']]),
+  }),
+  makeTrainer({
+    id: 'vinnie-legends-za',
+    name: 'Vinnie',
+    regionId: 'legends-za',
+    division: 'royale',
+    role: 'Quasartico Secretary and Z-A Royale Opponent',
+    specialty: ['mixed'],
+    signature: 'Drampa',
+    summary: 'Vinnie is Jett\'s efficient secretary and the special promotion opponent whose ace is Mega Drampa.',
+    gameIds: ['legends-za'],
+    team: makeTeam([['Houndoom', 30, 'dark'], ['Sharpedo', 30, 'water'], ['Buneary', 30, 'normal'], ['Drampa', 32, 'dragon', 'Mega Drampa', 'drampa-mega']]),
+  }),
+  makeTrainer({
+    id: 'canari-legends-za',
+    name: 'Canari',
+    regionId: 'legends-za',
+    division: 'royale',
+    role: 'DYN4MO Streamer and Rank F Opponent',
+    specialty: ['electric'],
+    signature: 'Eelektross',
+    summary: 'Canari is Lumiose City\'s popular gamer and streamer, using an Electric team crowned by Mega Eelektross.',
+    gameIds: ['legends-za'],
+    team: makeTeam([['Heliolisk', 37, 'electric'], ['Ampharos', 38, 'electric'], ['Stunfisk', 38, 'electric'], ['Eelektross', 39, 'electric', 'Mega Eelektross', 'eelektross-mega']]),
+  }),
+  makeTrainer({
+    id: 'ivor-legends-za',
+    name: 'Ivor',
+    regionId: 'legends-za',
+    division: 'royale',
+    role: 'Fist of Justice Leader and Rank E Opponent',
+    specialty: ['fighting'],
+    signature: 'Falinks',
+    summary: 'Ivor leads the Fist of Justice and tests the player with a physical Fighting team and Mega Falinks.',
+    gameIds: ['legends-za'],
+    team: makeTeam([['Heracross', 45, 'fighting'], ['Medicham', 46, 'fighting'], ['Machamp', 46, 'fighting'], ['Falinks', 47, 'fighting', 'Mega Falinks', 'falinks-mega']]),
+  }),
+  makeTrainer({
+    id: 'gwynn-legends-za',
+    name: 'Gwynn',
+    regionId: 'legends-za',
+    division: 'special',
+    role: 'Fist of Justice Assistant',
+    specialty: ['ghost'],
+    signature: 'Chandelure',
+    summary: 'Gwynn is Ivor\'s assistant and a Ghost-type specialist whose partner is Mega Chandelure.',
+    gameIds: ['legends-za'],
+    team: makeTeam([['Banette', 43, 'ghost'], ['Gourgeist-small', 44, 'ghost', 'Gourgeist'], ['Chandelure', 45, 'ghost', 'Mega Chandelure', 'chandelure-mega']]),
+  }),
+  makeTrainer({
+    id: 'corbeau-legends-za',
+    name: 'Corbeau',
+    regionId: 'legends-za',
+    division: 'royale',
+    role: 'Rust Syndicate Boss and Rank D Opponent',
+    specialty: ['poison'],
+    signature: 'Scolipede',
+    summary: 'Corbeau leads the Rust Syndicate and uses a Poison-centered promotion team with Mega Scolipede.',
+    gameIds: ['legends-za'],
+    team: makeTeam([['Arbok', 50, 'poison'], ['Gyarados', 51, 'water'], ['Roserade', 51, 'poison'], ['Scolipede', 52, 'poison', 'Mega Scolipede', 'scolipede-mega']]),
+  }),
+  makeTrainer({
+    id: 'philippe-legends-za',
+    name: 'Philippe',
+    regionId: 'legends-za',
+    division: 'special',
+    role: 'Rust Syndicate Administrator',
+    specialty: ['steel'],
+    signature: 'Skarmory',
+    summary: 'Philippe is Corbeau\'s trusted administrator and fights with a durable Steel team led by Mega Skarmory.',
+    gameIds: ['legends-za'],
+    team: makeTeam([['Steelix', 46, 'steel'], ['Scizor', 46, 'bug'], ['Skarmory', 47, 'steel', 'Mega Skarmory', 'skarmory-mega']]),
+  }),
+  makeTrainer({
+    id: 'lebanne-legends-za',
+    name: 'Lebanne',
+    regionId: 'legends-za',
+    division: 'special',
+    role: 'Society of Battle Connoisseurs Right Hand',
+    specialty: ['dragon'],
+    signature: 'Dragalge',
+    summary: 'Lebanne is Jacinthe\'s fierce right hand and uses an aggressive Dragon team led by Mega Dragalge.',
+    gameIds: ['legends-za'],
+    team: makeTeam([['Noivern', 53, 'dragon'], ['Tyrantrum', 53, 'dragon'], ['Garchomp', 53, 'dragon'], ['Dragalge', 54, 'dragon', 'Mega Dragalge', 'dragalge-mega']]),
+  }),
+  makeTrainer({
+    id: 'jacinthe-legends-za',
+    name: 'Jacinthe',
+    regionId: 'legends-za',
+    division: 'royale',
+    role: 'SBC Leader and Rank C Opponent',
+    specialty: ['fairy'],
+    signature: 'Clefable',
+    summary: 'Jacinthe leads the Society of Battle Connoisseurs and fields an elegant Fairy team with Mega Clefable.',
+    gameIds: ['legends-za'],
+    team: makeTeam([['Carbink', 57, 'fairy'], ['Mawile', 58, 'fairy'], ['Gardevoir', 58, 'fairy'], ['Aurorus', 58, 'ice'], ['Clefable', 59, 'fairy', 'Mega Clefable', 'clefable-mega']]),
+  }),
+  makeTrainer({
+    id: 'tarragon-legends-za',
+    name: 'Tarragon',
+    regionId: 'legends-za',
+    division: 'special',
+    role: 'Racine Construction President',
+    specialty: ['ground'],
+    signature: 'Excadrill',
+    summary: 'Tarragon runs Racine Construction, promotes his granddaughter Canari, and battles with Mega Excadrill.',
+    gameIds: ['legends-za'],
+    team: makeTeam([['Hippowdon', 36, 'ground'], ['Diggersby', 36, 'ground'], ['Excadrill', 37, 'ground', 'Mega Excadrill', 'excadrill-mega']]),
+  }),
+  makeTrainer({
+    id: 'emma-legends-za',
+    name: 'Emma',
+    regionId: 'legends-za',
+    division: 'special',
+    role: 'Lumiose Detective',
+    specialty: ['mixed'],
+    signature: 'Malamar',
+    summary: 'Emma returns as Lumiose City\'s lead detective with a varied team of Mega-capable partners headed by Mega Malamar.',
+    gameIds: ['legends-za'],
+    team: makeTeam([['Ampharos', 57, 'electric'], ['Mawile', 57, 'steel'], ['Lucario', 57, 'fighting'], ['Lopunny', 57, 'normal'], ['Malamar', 58, 'dark', 'Mega Malamar', 'malamar-mega']]),
+  }),
+  makeTrainer({
+    id: 'griselle-legends-za',
+    name: 'Griselle',
+    regionId: 'legends-za',
+    division: 'royale',
+    role: 'Team Flare Nouveau Administrator',
+    specialty: ['fire'],
+    signature: 'Pyroar',
+    summary: 'Griselle is a former Team Flare member whose diverse firepower culminates in Mega Pyroar.',
+    gameIds: ['legends-za'],
+    team: makeTeam([['Talonflame', 59, 'fire'], ['Camerupt', 59, 'fire'], ['Aerodactyl', 60, 'rock'], ['Metagross', 60, 'steel'], ['Pyroar', 61, 'fire', 'Mega Pyroar', 'pyroar-mega']]),
+  }),
+  makeTrainer({
+    id: 'grisham-legends-za',
+    name: 'Grisham',
+    regionId: 'legends-za',
+    division: 'royale',
+    role: 'Team Flare Nouveau Leader and Rank B Opponent',
+    specialty: ['dark', 'fire'],
+    signature: 'Charizard',
+    summary: 'Grisham leads Team Flare Nouveau and stands between the player and Rank A with Mega Charizard X.',
+    gameIds: ['legends-za'],
+    team: makeTeam([['Pangoro', 61, 'dark'], ['Malamar', 61, 'dark'], ['Pyroar', 61, 'fire', undefined, 'pyroar-male'], ['Tyranitar', 62, 'dark'], ['Salamence', 62, 'dragon'], ['Charizard', 63, 'fire', 'Mega Charizard X', 'charizard-mega-x']]),
+  }),
+  makeTrainer({
+    id: 'korrina-legends-za',
+    name: 'Korrina',
+    regionId: 'legends-za',
+    division: 'special',
+    role: 'Mega Evolution Successor and Team MZ Member',
+    specialty: ['fighting', 'steel'],
+    signature: 'Lucario',
+    summary: 'Korrina returns in Mega Dimension as Team MZ\'s Mega Evolution expert and challenges the player with Mega Lucario Z.',
+    gameIds: ['legends-za'],
+    team: [makeMember('Lucario', 100, ['Extreme Speed', 'Hyper Beam', 'Focus Blast', 'Detect'], 'Mega Lucario Z', 'lucario-mega-z')],
+  }),
+];
+
 export const TRAINERDEX_OPTIONS = [
   { id: 'kanto', label: 'FireRed / LeafGreen', region: 'Kanto', art: ['FireRed.png', 'LeafGreen.png'], games: [{ id: 'firered-leafgreen', label: 'FireRed LeafGreen' }, { id: 'heartgold-soulsilver', label: 'HeartGold SoulSilver' }] },
   { id: 'johto', label: 'HeartGold / SoulSilver', region: 'Johto', art: ['HeartGold.jpg', 'SoulSilver.jpg'], games: [{ id: 'heartgold-soulsilver', label: 'HeartGold SoulSilver' }, { id: 'gold-silver', label: 'Gold Silver' }] },
@@ -314,9 +510,11 @@ export const TRAINERDEX_OPTIONS = [
   { id: 'alola', label: 'Sun / Moon', region: 'Alola', art: ['Sun.png', 'Moon.png'], games: [{ id: 'sun-moon', label: 'Sun Moon' }, { id: 'ultra-sun-ultra-moon', label: 'Ultra Sun Ultra Moon' }] },
   { id: 'galar', label: 'Sword / Shield', region: 'Galar', art: ['Sword.png', 'Shield.png'], games: [{ id: 'sword-shield', label: 'Sword Shield' }] },
   { id: 'paldea', label: 'Scarlet / Violet', region: 'Paldea', art: ['Scarlet.png', 'Violet.png'], games: [{ id: 'scarlet-violet', label: 'Scarlet Violet' }] },
+  { id: 'legends-za', label: 'Legends: Z-A', region: 'Lumiose City', art: ['Z-A.jpg'], games: [{ id: 'legends-za', label: 'Legends: Z-A' }] },
 ];
 
 export const TRAINER_GROUPS = [
+  { id: 'royale', label: 'Z-A Royale' },
   { id: 'gym', label: 'Gym Leaders' },
   { id: 'kahuna', label: 'Kahunas' },
   { id: 'elite', label: 'Elite Four' },
@@ -737,8 +935,9 @@ export const TRAINERDEX_TRAINERS = [
     const signature = division === 'gym' ? specialtyOrSignature : signatureMaybe;
     const id = `${name.toLowerCase()}-${regionId}`;
     const team = sourceCheckedTrainerTeams[id] || [makeMember(signature, 12 + index * 4, moves[specialty[0]] || moves.psychic), makeMember(['Surskit', 'Amaura', 'Machoke', 'Jumpluff', 'Magneton', 'Mr. Mime', 'Slowking', 'Cryogonal', 'Pyroar', 'Starmie', 'Probopass', 'Dragalge', 'Hawlucha'][index], 10 + index * 4, moves[specialty[0]] || moves.flying)];
-    return makeTrainer({ id, name, regionId, division, role, specialty, signature, summary: `${name} is a Kalos ${division === 'gym' ? 'Gym Leader' : 'League trainer'} using ${specialty.join(' / ')} pressure.`, team });
+    return makeTrainer({ id, name, regionId, division, role, specialty, signature, summary: `${name} is a Kalos ${division === 'gym' ? 'Gym Leader' : 'League trainer'} using ${specialty.join(' / ')} pressure.`, team, gameIds: ['x-y'] });
   }),
+  ...legendsZaTrainers,
   ...[
     ['Hala', 'alola', 'kahuna', 'Melemele Island Kahuna', ['fighting'], 'Crabrawler', [makeMember('Mankey', 14, moves.fighting), makeMember('Makuhita', 14, moves.fighting), makeMember('Crabrawler', 15, moves.fighting)]],
     ['Olivia', 'alola', 'kahuna', 'Akala Island Kahuna', ['rock'], 'Lycanroc', [makeMember('Nosepass', 26, moves.rock), makeMember('Boldore', 26, moves.rock), makeMember('Lycanroc-midday', 27, moves.rock, 'Lycanroc')]],

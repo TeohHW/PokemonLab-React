@@ -392,15 +392,6 @@ const trainerMatchesSearch = (trainer, searchValue = '') => {
   return searchableText.includes(normalizedSearch);
 };
 
-const hasSelectableGameVersionData = (regionId, games = []) =>
-  games.length > 1 &&
-  games.some((game) =>
-    TRAINERDEX_TRAINERS.some((trainer) => {
-      const gameData = trainer.regionId === regionId ? trainer.gameData?.[game.id] : null;
-      return Boolean(gameData?.team || gameData?.division || gameData?.role || trainer.gameIds?.includes(game.id));
-    }),
-  );
-
 function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, StationNav }) {
   const [selectedRegion, setSelectedRegion] = useState(TRAINERDEX_OPTIONS[0].id);
   const [selectedGame, setSelectedGame] = useState(getDefaultGameId(TRAINERDEX_OPTIONS[0].id));
@@ -457,7 +448,9 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
   );
   const activeRegion = TRAINERDEX_OPTIONS.find((region) => region.id === selectedRegion);
   const activeGame = activeRegion?.games?.find((game) => game.id === selectedGame) || activeRegion?.games?.[0];
-  const showGameVersionSelector = hasSelectableGameVersionData(selectedRegion, activeRegion?.games || []);
+  const featuredGameOptions = (activeRegion?.games || [])
+    .filter((game) => isTrainerAvailableForGame(selectedTrainerBase, game.id));
+  const showFeaturedGames = (activeRegion?.games?.length || 0) > 1 && featuredGameOptions.length > 0;
   const groupedTrainers = useMemo(
     () =>
       TRAINER_GROUPS.map((group) => ({
@@ -572,7 +565,7 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
 
     Promise.all(
       selectedTrainer.team.map((teamMember) =>
-        fetchPokemonByName(teamMember.name, { signal: controller.signal })
+        fetchPokemonByName(teamMember.apiName || teamMember.name, { signal: controller.signal })
           .then((pokemon) =>
             Promise.all(
               pokemon.types.map(({ type }) =>
@@ -664,6 +657,7 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
               <button
                 key={region.id}
                 type="button"
+                data-game-id={region.id}
                 className={`pokedex-game-card trainerdex-region-card nes-btn ${
                   selectedRegion === region.id ? 'is-selected' : ''
                 }`}
@@ -686,36 +680,6 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
               </button>
             ))}
           </div>
-
-          {showGameVersionSelector && (
-            <>
-              <label>Game Version</label>
-              <div className="move-version-grid trainerdex-game-version-grid" aria-label={`${activeRegion.region} game versions`}>
-                {activeRegion.games.map((game) => (
-                  <button
-                    key={game.id}
-                    type="button"
-                    className={`move-version-button trainerdex-game-version-button nes-btn ${
-                      selectedGame === game.id ? 'is-selected' : ''
-                    }`}
-                    onClick={() => {
-                      const nextTrainers = getRegionTrainersForGame(selectedRegion, game.id);
-                      setSelectedGame(game.id);
-                      setSelectedBattleStage('initial');
-                      setTrainerSearchTerm('');
-                      if (!nextTrainers.some((trainer) => trainer.id === selectedTrainerId)) {
-                        setSelectedTrainerId(nextTrainers[0]?.id);
-                      }
-                      setLoadingTeamData(true);
-                      setError('');
-                    }}
-                  >
-                    {game.label}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
 
           <label htmlFor="trainerdex-trainer-search">Search Trainers</label>
           <div className="search-with-clear trainerdex-search-row">
@@ -784,8 +748,41 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
               <img src={getTrainerArt(selectedTrainer.name)} alt={selectedTrainer.name} loading="lazy" />
             </div>
             <div className="trainerdex-summary">
-              <p className="card-detail-set">{activeGame?.label || activeRegion?.label}</p>
-              <h2>{selectedTrainer.name}</h2>
+              <div className="trainerdex-summary-heading">
+                <div>
+                  <p className="card-detail-set">{activeGame?.label || activeRegion?.label}</p>
+                  <h2>{selectedTrainer.name}</h2>
+                </div>
+                {showFeaturedGames && (
+                  <div className="trainerdex-featured-games">
+                    <span>Games featured in</span>
+                    <div className="move-version-grid trainerdex-game-version-grid" aria-label={`${selectedTrainer.name} games featured in`}>
+                      {featuredGameOptions.map((game) => (
+                        <button
+                          key={game.id}
+                          type="button"
+                          className={`move-version-button trainerdex-game-version-button nes-btn ${
+                            selectedGame === game.id ? 'is-selected' : ''
+                          }`}
+                          onClick={() => {
+                            const nextTrainers = getRegionTrainersForGame(selectedRegion, game.id);
+                            setSelectedGame(game.id);
+                            setSelectedBattleStage('initial');
+                            setTrainerSearchTerm('');
+                            if (!nextTrainers.some((trainer) => trainer.id === selectedTrainerId)) {
+                              setSelectedTrainerId(nextTrainers[0]?.id);
+                            }
+                            setLoadingTeamData(true);
+                            setError('');
+                          }}
+                        >
+                          {game.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
               <p className="trainerdex-entry-summary">
                 {getTrainerSummary(selectedTrainer, activeRegion)}
               </p>

@@ -214,9 +214,15 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
       return Promise.resolve(cachedEntries);
     }
 
-    return fetchPokeApiJson(`${POKEAPI_BASE_URL}/pokedex/${regionId}`, {}, 'Unable to load this Pokedex.')
+    const pokedexIds = POKEDEX_OPTIONS.find((region) => region.id === regionId)?.pokedexIds || [regionId];
+
+    return Promise.all(
+      pokedexIds.map((pokedexId) =>
+        fetchPokeApiJson(`${POKEAPI_BASE_URL}/pokedex/${pokedexId}`, {}, 'Unable to load this Pokedex.'),
+      ),
+    )
       .then((data) => {
-        const entries = buildPokedexEntries([data], false);
+        const entries = buildPokedexEntries(data, pokedexIds.length > 1);
         setEntriesByRegion((previousEntries) => ({
           ...previousEntries,
           [regionId]: entries,

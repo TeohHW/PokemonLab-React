@@ -42,6 +42,7 @@ import violetGameArt from '../../../pokedex/games/Violet.png';
 import whiteGameArt from '../../../pokedex/games/White.png';
 import xGameArt from '../../../pokedex/games/X.png';
 import yGameArt from '../../../pokedex/games/Y.png';
+import legendsZaGameArt from '../../../pokedex/games/Z-A.jpg';
 import platform3ds from '../../../pokedex/platform/3DS.png';
 import platformDs from '../../../pokedex/platform/DS.png';
 import platformGameBoyAdvance from '../../../pokedex/platform/GameBoyAdvance.png';
@@ -171,6 +172,18 @@ const POKEDEX_OPTIONS = [
     platforms: [{ name: 'Nintendo Switch', icon: platformSwitch }],
     starters: [906, 909, 912],
   },
+  {
+    id: 'lumiose-city',
+    label: 'Legends: Z-A',
+    region: 'Lumiose City',
+    art: [legendsZaGameArt],
+    pokedexIds: ['lumiose-city', 'hyperspace'],
+    releaseDate: '2025',
+    director: 'Shigeru Ohmori / Haruka Tochigi',
+    summary: 'You join Team MZ to protect Lumiose City, climb the Z-A Royale, investigate Rogue Mega Evolution, and continue into the Mega Dimension adventure in Hyperspace Lumiose.',
+    platforms: [{ name: 'Nintendo Switch', icon: platformSwitch }],
+    starters: [152, 498, 158],
+  },
 ];
 const ALL_POKEDEX_OPTION = {
   id: 'all',
@@ -211,6 +224,8 @@ const MOVE_CATEGORY_ICONS = {
   status: statusMoveIcon,
 };
 const LATEST_VERSION_GROUPS = [
+  'mega-dimension',
+  'legends-za',
   'scarlet-violet',
   'sword-shield',
   'sun-moon',
@@ -232,6 +247,7 @@ const POKEDEX_VERSION_GROUPS = {
   'extended-sinnoh': 'platinum',
   'updated-unova': 'black-2-white-2',
   'kalos-central': 'x-y',
+  'lumiose-city': 'legends-za',
   'updated-hoenn': 'omega-ruby-alpha-sapphire',
   'original-alola': 'sun-moon',
   galar: 'sword-shield',
@@ -377,6 +393,11 @@ const getPokemonSpriteUrl = (pokemonId) =>
 const getPokemonOfficialArtworkUrl = (pokemonId) =>
   pokemonId
     ? `${POKEAPI_SPRITES_CDN_URL}/pokemon/other/official-artwork/${pokemonId}.png`
+    : '';
+
+const getPokemonHomeArtworkUrl = (pokemonId) =>
+  pokemonId
+    ? `${POKEAPI_SPRITES_CDN_URL}/pokemon/other/home/${pokemonId}.png`
     : '';
 
 const getImageFallbackChain = (...images) =>
@@ -2150,6 +2171,7 @@ export {
   getPokemonIdFromUrl,
   getPokemonLookupValidationError,
   getPokemonOfficialArtworkUrl,
+  getPokemonHomeArtworkUrl,
   getPokemonPool,
   getPokemonQuizData,
   getPokemonSpriteUrl,

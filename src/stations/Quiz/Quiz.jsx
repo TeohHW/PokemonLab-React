@@ -152,8 +152,8 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
     const controller = new AbortController();
     const pokedexIds =
       selectedDex === ALL_POKEDEX_OPTION.id
-        ? POKEDEX_OPTIONS.map((pokedex) => pokedex.id)
-        : [selectedDex];
+        ? POKEDEX_OPTIONS.flatMap((pokedex) => pokedex.pokedexIds || [pokedex.id])
+        : POKEDEX_OPTIONS.find((pokedex) => pokedex.id === selectedDex)?.pokedexIds || [selectedDex];
 
     Promise.all(
       pokedexIds.map((pokedexId) =>
@@ -165,7 +165,7 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
       ),
     )
       .then((data) => {
-        setPokemonList(buildPokedexEntries(data, selectedDex === ALL_POKEDEX_OPTION.id));
+        setPokemonList(buildPokedexEntries(data, selectedDex === ALL_POKEDEX_OPTION.id || pokedexIds.length > 1));
       })
       .catch((fetchError) => {
         if (fetchError.name !== 'AbortError') {

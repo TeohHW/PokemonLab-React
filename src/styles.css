@@ -2644,6 +2644,7 @@ button.brand-home-button:focus-visible {
   padding: 12px;
   color: #212529;
   background-color: #ffffff;
+  background-image: var(--game-card-accent, none);
   text-align: left;
   white-space: normal;
 }
@@ -2669,6 +2670,55 @@ button.brand-home-button:focus-visible {
 .pokedex-game-card.nes-btn.is-selected:hover:not(:disabled) {
   color: #ffffff;
   background-color: var(--pokedex-red);
+  background-image: none;
+}
+
+.pokedex-game-card[data-game-id='all'] {
+  --game-card-accent: linear-gradient(135deg, rgb(239 68 68 / 8%), rgb(250 204 21 / 8%), rgb(34 197 94 / 8%), rgb(59 130 246 / 8%), rgb(168 85 247 / 8%));
+}
+
+.pokedex-game-card:is([data-game-id='kanto']) {
+  --game-card-accent: linear-gradient(135deg, rgb(239 68 68 / 14%) 0 50%, rgb(34 197 94 / 14%) 50%);
+}
+
+.pokedex-game-card:is([data-game-id='hoenn']) {
+  --game-card-accent: linear-gradient(135deg, rgb(220 38 38 / 13%) 0 34%, rgb(37 99 235 / 13%) 34% 67%, rgb(22 163 74 / 13%) 67%);
+}
+
+.pokedex-game-card:is([data-game-id='updated-johto'], [data-game-id='johto']) {
+  --game-card-accent: linear-gradient(135deg, rgb(234 179 8 / 15%) 0 50%, rgb(148 163 184 / 15%) 50%);
+}
+
+.pokedex-game-card:is([data-game-id='extended-sinnoh'], [data-game-id='sinnoh']) {
+  --game-card-accent: linear-gradient(135deg, rgb(59 130 246 / 12%) 0 34%, rgb(236 72 153 / 12%) 34% 67%, rgb(100 116 139 / 12%) 67%);
+}
+
+.pokedex-game-card:is([data-game-id='updated-unova'], [data-game-id='unova']) {
+  --game-card-accent: linear-gradient(135deg, rgb(15 23 42 / 12%) 0 50%, rgb(203 213 225 / 18%) 50%);
+}
+
+.pokedex-game-card:is([data-game-id='kalos-central'], [data-game-id='kalos']) {
+  --game-card-accent: linear-gradient(135deg, rgb(37 99 235 / 13%) 0 50%, rgb(239 68 68 / 13%) 50%);
+}
+
+.pokedex-game-card[data-game-id='updated-hoenn'] {
+  --game-card-accent: linear-gradient(135deg, rgb(220 38 38 / 13%) 0 50%, rgb(37 99 235 / 13%) 50%);
+}
+
+.pokedex-game-card:is([data-game-id='original-alola'], [data-game-id='alola']) {
+  --game-card-accent: linear-gradient(135deg, rgb(249 115 22 / 14%) 0 50%, rgb(124 58 237 / 13%) 50%);
+}
+
+.pokedex-game-card[data-game-id='galar'] {
+  --game-card-accent: linear-gradient(135deg, rgb(6 182 212 / 14%) 0 50%, rgb(236 72 153 / 14%) 50%);
+}
+
+.pokedex-game-card[data-game-id='paldea'] {
+  --game-card-accent: linear-gradient(135deg, rgb(185 28 28 / 13%) 0 50%, rgb(109 40 217 / 14%) 50%);
+}
+
+.pokedex-game-card:is([data-game-id='lumiose-city'], [data-game-id='legends-za']) {
+  --game-card-accent: linear-gradient(135deg, rgb(13 148 136 / 14%) 0 50%, rgb(132 204 22 / 14%) 50%);
 }
 
 .pokedex-game-card.nes-btn.is-selected::after {
@@ -3885,7 +3935,10 @@ button.brand-home-button:focus-visible {
 
 .trainerdex-region-grid {
   grid-template-columns: 1fr;
-  max-height: none;
+  max-height: 440px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .trainerdex-region-card.nes-btn {
@@ -3906,6 +3959,7 @@ button.brand-home-button:focus-visible {
 .trainerdex-trainer-button.nes-btn.is-selected:hover:not(:disabled) {
   color: #ffffff;
   background-color: var(--trainerdex-orange);
+  background-image: none;
 }
 
 .trainerdex-region-card.nes-btn.is-selected::after,
@@ -3917,7 +3971,7 @@ button.brand-home-button:focus-visible {
 
 .trainerdex-game-version-grid {
   max-height: none;
-  margin-bottom: 6px;
+  justify-content: flex-end;
 }
 
 .trainerdex-search-row {
@@ -4561,6 +4615,33 @@ button.brand-home-button:focus-visible {
   background:
     linear-gradient(#fff8d8, #ffffff 220px),
     #ffffff;
+}
+
+.trainerdex-summary-heading {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.trainerdex-summary-heading > div:first-child {
+  min-width: 0;
+}
+
+.trainerdex-featured-games {
+  display: grid;
+  flex: 0 1 320px;
+  gap: 7px;
+  justify-items: end;
+}
+
+.trainerdex-featured-games > span {
+  color: #555555;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-align: right;
+  text-transform: uppercase;
 }
 
 .who-setup-panel,
@@ -5565,6 +5646,23 @@ button.choice-card.nes-btn:active:not(:disabled)::after {
 }
 
 @media (max-width: 760px) {
+  .trainerdex-summary-heading {
+    flex-direction: column;
+  }
+
+  .trainerdex-featured-games {
+    width: 100%;
+    justify-items: start;
+  }
+
+  .trainerdex-game-version-grid {
+    justify-content: flex-start;
+  }
+
+  .trainerdex-featured-games > span {
+    text-align: left;
+  }
+
   .app-shell {
     grid-template-columns: 1fr;
     align-content: center;
