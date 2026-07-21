@@ -1579,17 +1579,21 @@ const getFeaturedTcgCards = (cards, pokemonNames) => {
 
   if (!normalizedPokemonNames.length) return [];
 
-  return cards.filter((card) => {
-    const normalizedCardName = normalizeSearchText(card.name);
-    const compactCardName = compactSearchText(card.name);
-    const cardTokens = normalizedCardName.split(' ').map((token) => compactSearchText(token));
+  return cards
+    .filter((card) => {
+      const normalizedCardName = normalizeSearchText(card.name);
+      const compactCardName = compactSearchText(card.name);
+      const cardTokens = normalizedCardName.split(' ').map((token) => compactSearchText(token));
 
-    return normalizedPokemonNames.some((normalizedPokemon) => (
-      compactCardName === normalizedPokemon ||
-      compactCardName.endsWith(normalizedPokemon) ||
-      cardTokens.includes(normalizedPokemon)
+      return normalizedPokemonNames.some((normalizedPokemon) => (
+        compactCardName === normalizedPokemon ||
+        compactCardName.endsWith(normalizedPokemon) ||
+        cardTokens.includes(normalizedPokemon)
+      ));
+    })
+    .sort((firstCard, secondCard) => (
+      parseReleaseDate(secondCard.releaseDate) - parseReleaseDate(firstCard.releaseDate)
     ));
-  });
 };
 
 const cardMatchesSearch = (card, searchValue = '') => {

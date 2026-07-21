@@ -164,6 +164,7 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
               setName: expansion.setName,
               setId: expansion.setId,
               setCategory: getExpansionCategory(expansion),
+              releaseDate: expansion.releaseDate,
             })),
           );
         setTcgCards(allCards);

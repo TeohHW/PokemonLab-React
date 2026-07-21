@@ -8,6 +8,7 @@ import {
   getPokemonSpriteUrl,
   handleCardImageError,
   hasFeaturedTcgCards,
+  parseReleaseDate,
   TcgCardDetailModal,
   TypeBadge,
 } from '../shared/stationShared';
@@ -242,6 +243,7 @@ const sortFeaturedCards = (trainerName, pokemonSearchNames = []) => (firstCard, 
   const secondScore = getCardPokemonMatchScore(secondCard, pokemonSearchNames, trainerName);
   return (
     secondScore - firstScore ||
+    parseReleaseDate(secondCard.releaseDate) - parseReleaseDate(firstCard.releaseDate) ||
     firstCard.name.localeCompare(secondCard.name) ||
     firstCard.setName.localeCompare(secondCard.setName)
   );
@@ -273,6 +275,7 @@ const getFeaturedTrainerTcgCards = (cards, trainer) => {
     .sort((firstCard, secondCard) => (
       getTrainerCardMatchScore(secondCard, trainer, trainerPokemonNames) -
         getTrainerCardMatchScore(firstCard, trainer, trainerPokemonNames) ||
+      parseReleaseDate(secondCard.releaseDate) - parseReleaseDate(firstCard.releaseDate) ||
       firstCard.name.localeCompare(secondCard.name) ||
       firstCard.setName.localeCompare(secondCard.setName)
     ))
@@ -544,6 +547,7 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
               setName: expansion.setName,
               setId: expansion.setId,
               setCategory: getExpansionCategory(expansion),
+              releaseDate: expansion.releaseDate,
             })),
           );
         setTcgCards(allCards);

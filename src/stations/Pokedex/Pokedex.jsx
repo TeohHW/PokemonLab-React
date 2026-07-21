@@ -238,6 +238,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
               setName: expansion.setName,
               setId: expansion.setId,
               setCategory: getExpansionCategory(expansion),
+              releaseDate: expansion.releaseDate,
             })),
           );
         setTcgCards(allCards);
