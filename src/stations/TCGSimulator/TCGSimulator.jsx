@@ -948,7 +948,10 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
           )}
         </div>
         <div className="binder-sort-heading">
-          <label htmlFor="binder-sort">Sort binder cards</label>
+          <div className="binder-sort-label-group">
+            <label htmlFor="binder-sort">Sort binder cards</label>
+            <span className="binder-art-default-note">Unowned cards are grayscale by default</span>
+          </div>
           <button
             type="button"
             className={`binder-art-toggle ${showUnownedBinderArt ? 'is-color' : ''}`}

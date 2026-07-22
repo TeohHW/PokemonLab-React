@@ -1265,6 +1265,22 @@ button.brand-home-button:focus-visible {
   margin-bottom: 0;
 }
 
+.binder-sort-label-group {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  align-items: baseline;
+}
+
+.binder-art-default-note {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-transform: none;
+}
+
 .binder-sort-controls {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
