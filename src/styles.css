@@ -1253,6 +1253,85 @@ button.brand-home-button:focus-visible {
   line-height: 1;
 }
 
+.binder-sort-heading {
+  display: flex;
+  width: 100%;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.binder-sort-heading label {
+  margin-bottom: 0;
+}
+
+.binder-sort-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.binder-sort-controls.has-rarity-toggle {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.binder-sort-controls select {
+  margin-bottom: 0;
+}
+
+.binder-rarity-order-button.nes-btn {
+  min-width: 230px;
+}
+
+.binder-art-toggle {
+  position: relative;
+  flex: 0 0 auto;
+  width: 54px;
+  min-height: 30px;
+  height: 30px;
+  margin-left: auto;
+  border: 2px solid #212529;
+  border-radius: 999px;
+  padding: 2px;
+  background: #777777;
+  box-shadow: 2px 2px 0 rgb(0 0 0 / 28%);
+}
+
+.binder-art-toggle:hover:not(:disabled) {
+  background: #666666;
+  transform: none;
+  box-shadow: 2px 2px 0 rgb(0 0 0 / 32%);
+}
+
+.binder-art-toggle:active:not(:disabled) {
+  background: #555555;
+  transform: none;
+  box-shadow: 1px 1px 0 rgb(0 0 0 / 32%);
+}
+
+.binder-art-toggle-thumb {
+  display: block;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #212529;
+  border-radius: 50%;
+  background: #f4f4f4;
+  box-shadow: 1px 1px 0 rgb(0 0 0 / 25%);
+  transform: translateX(0);
+  transition: transform 160ms ease;
+}
+
+.binder-art-toggle.is-color,
+.binder-art-toggle.is-color:hover:not(:disabled),
+.binder-art-toggle.is-color:active:not(:disabled) {
+  background: linear-gradient(90deg, #e76e55, #f7d51d 50%, #209cee);
+}
+
+.binder-art-toggle.is-color .binder-art-toggle-thumb {
+  transform: translateX(24px);
+}
+
 .progress-track {
   position: relative;
   height: 34px;
@@ -1345,6 +1424,7 @@ button.brand-home-button:focus-visible {
 }
 
 .binder-card.is-owned img,
+.binder-panel.show-unowned-card-art .binder-card img,
 .tcg-featured-section .binder-card img,
 .card-detail-image-wrap img {
   filter: none;
@@ -5745,6 +5825,15 @@ button.choice-card.nes-btn:active:not(:disabled)::after {
 
   .binder-progress {
     justify-self: start;
+  }
+
+  .binder-sort-controls.has-rarity-toggle {
+    grid-template-columns: 1fr;
+  }
+
+  .binder-rarity-order-button.nes-btn {
+    width: 100%;
+    min-width: 0;
   }
 
   .home-brand {

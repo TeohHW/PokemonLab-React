@@ -109,6 +109,57 @@ import {
   writeCachedPokeApiResource
 } from '../shared/stationShared';
 
+const cardNumberCollator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: 'base',
+});
+
+const compareCardNumbers = (firstCard, secondCard) =>
+  cardNumberCollator.compare(String(firstCard.number || ''), String(secondCard.number || ''));
+
+const CARD_RARITY_ORDER = new Map([
+  ['common', 0],
+  ['uncommon', 1],
+  ['rare', 2],
+  ['double rare', 3],
+  ['ultra rare', 4],
+  ['illustration rare', 5],
+  ['ace spec rare', 6],
+  ['special illustration rare', 7],
+  ['mega attack rare', 8],
+  ['mega_attack_rare', 8],
+  ['hyper rare', 9],
+  ['mega hyper rare', 10],
+]);
+
+const getRarityRank = (rarity) => {
+  const normalizedRarity = String(rarity || '').trim().toLowerCase();
+  const exactRank = CARD_RARITY_ORDER.get(normalizedRarity);
+  if (exactRank !== undefined) return exactRank;
+
+  if (normalizedRarity.includes('mega hyper')) return 10;
+  if (normalizedRarity.includes('hyper')) return 9;
+  if (normalizedRarity.includes('mega attack')) return 8;
+  if (normalizedRarity.includes('special illustration')) return 7;
+  if (normalizedRarity.includes('ace spec')) return 6;
+  if (normalizedRarity.includes('illustration')) return 5;
+  if (normalizedRarity.includes('ultra')) return 4;
+  if (normalizedRarity.includes('double')) return 3;
+  if (normalizedRarity.includes('rare')) return 2;
+  if (normalizedRarity.includes('uncommon')) return 1;
+  return 0;
+};
+
+const compareCardsByRarity = (firstCard, secondCard, rarityDirection) => {
+  const tierDifference = getRarityRank(firstCard.rarity) - getRarityRank(secondCard.rarity);
+  if (tierDifference) return rarityDirection === 'rarest' ? -tierDifference : tierDifference;
+
+  const rarityDifference = String(firstCard.rarity || 'Unknown').localeCompare(
+    String(secondCard.rarity || 'Unknown'),
+  );
+  return rarityDifference || compareCardNumbers(firstCard, secondCard);
+};
+
 function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQuiz, onOpenTrainerDex }) {
   const [allExpansions, setAllExpansions] = useState(null);
   const [selectedSet, setSelectedSet] = useState('base1');
@@ -116,6 +167,9 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
   const [searchTerm, setSearchTerm] = useState('');
   const deferredSearchTerm = useDeferredValue(searchTerm);
   const [binderSearchTerm, setBinderSearchTerm] = useState('');
+  const [binderSortMode, setBinderSortMode] = useState('number');
+  const [binderRarityDirection, setBinderRarityDirection] = useState('rarest');
+  const [showUnownedBinderArt, setShowUnownedBinderArt] = useState(false);
   const [sortMode, setSortMode] = useState('release-oldest');
   const [currentPack, setCurrentPack] = useState([]);
   const [currentPackSet, setCurrentPackSet] = useState(null);
@@ -428,10 +482,28 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
   const hasInvalidBinderSearch = hasRawBinderSearch && !normalizedBinderSearch;
   const visibleBinderCards = useMemo(() => {
     if (hasInvalidBinderSearch) return [];
-    if (!normalizedBinderSearch) return activeSetCards;
 
-    return activeSetCards.filter((card) => cardMatchesSearch(card, binderSearchTerm));
-  }, [activeSetCards, binderSearchTerm, hasInvalidBinderSearch, normalizedBinderSearch]);
+    const matchingCards = normalizedBinderSearch
+      ? activeSetCards.filter((card) => cardMatchesSearch(card, binderSearchTerm))
+      : activeSetCards;
+
+    return [...matchingCards].sort((firstCard, secondCard) => {
+      if (binderSortMode !== 'rarity') return compareCardNumbers(firstCard, secondCard);
+
+      return compareCardsByRarity(
+        firstCard,
+        secondCard,
+        binderRarityDirection,
+      );
+    });
+  }, [
+    activeSetCards,
+    binderRarityDirection,
+    binderSearchTerm,
+    binderSortMode,
+    hasInvalidBinderSearch,
+    normalizedBinderSearch,
+  ]);
   const allSetSearchCards = useMemo(() => {
     if (compactSearchText(deferredSearchTerm).length < 2) return [];
 
@@ -773,7 +845,11 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
         </section>
       )}
 
-      <section ref={binderPanelRef} className="binder-panel" aria-label="Collection binder">
+      <section
+        ref={binderPanelRef}
+        className={`binder-panel ${showUnownedBinderArt ? 'show-unowned-card-art' : ''}`}
+        aria-label="Collection binder"
+      >
         <div className="binder-header">
           <div>
             <h2>Binder</h2>
@@ -834,6 +910,48 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
             </button>
           )}
         </div>
+        <div className="binder-sort-heading">
+          <label htmlFor="binder-sort">Sort binder cards</label>
+          <button
+            type="button"
+            className={`binder-art-toggle ${showUnownedBinderArt ? 'is-color' : ''}`}
+            onClick={() => setShowUnownedBinderArt((showCardArt) => !showCardArt)}
+            aria-pressed={showUnownedBinderArt}
+            aria-label={`Unowned card artwork: ${showUnownedBinderArt ? 'color' : 'grayscale'}. Click to switch to ${
+              showUnownedBinderArt ? 'grayscale' : 'color'
+            }.`}
+            title={`Unowned cards: ${showUnownedBinderArt ? 'color' : 'grayscale'}`}
+          >
+            <span className="binder-art-toggle-thumb" aria-hidden="true" />
+          </button>
+        </div>
+        <div className={`binder-sort-controls ${binderSortMode === 'rarity' ? 'has-rarity-toggle' : ''}`}>
+          <select
+            id="binder-sort"
+            value={binderSortMode}
+            onChange={(event) => setBinderSortMode(event.target.value)}
+          >
+            <option value="number">Card number</option>
+            <option value="rarity">Rarity</option>
+          </select>
+          {binderSortMode === 'rarity' && (
+            <button
+              type="button"
+              className="binder-rarity-order-button nes-btn"
+              onClick={() =>
+                setBinderRarityDirection((currentDirection) =>
+                  currentDirection === 'rarest' ? 'common' : 'rarest',
+                )
+              }
+              aria-pressed={binderRarityDirection === 'common'}
+              aria-label={`Rarity order: ${
+                binderRarityDirection === 'rarest' ? 'most rare first' : 'most common first'
+              }. Click to reverse the order.`}
+            >
+              {binderRarityDirection === 'rarest' ? 'Most rare first ↓' : 'Most common first ↑'}
+            </button>
+          )}
+        </div>
         <div className="binder-grid">
           {visibleBinderCards.map((card) => {
             const ownedCard = collection[card.id];
@@ -860,7 +978,7 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
                 />
                 <div>
                   <h3>{card.name}</h3>
-                  <p>Owned x {ownedCard?.count || 0}</p>
+                  <p>{card.rarity || 'Unknown'} · Owned x {ownedCard?.count || 0}</p>
                 </div>
               </article>
             );
