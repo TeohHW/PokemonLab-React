@@ -119,17 +119,44 @@ const compareCardNumbers = (firstCard, secondCard) =>
 
 const CARD_RARITY_ORDER = new Map([
   ['common', 0],
-  ['uncommon', 1],
-  ['rare', 2],
-  ['double rare', 3],
-  ['ultra rare', 4],
-  ['illustration rare', 5],
-  ['ace spec rare', 6],
-  ['special illustration rare', 7],
-  ['mega attack rare', 8],
-  ['mega_attack_rare', 8],
-  ['hyper rare', 9],
-  ['mega hyper rare', 10],
+  ['uncommon', 100],
+  ['rare', 200],
+  ['promo', 250],
+  ['rare holo', 300],
+  ['double rare', 400],
+  ['rare holo v', 450],
+  ['rare holo ex', 450],
+  ['rare holo gx', 450],
+  ['rare break', 475],
+  ['rare prism star', 490],
+  ['rare holo vmax', 500],
+  ['rare holo vstar', 510],
+  ['rare prime', 520],
+  ['legend', 530],
+  ['rare holo lv.x', 540],
+  ['rare ace', 550],
+  ['amazing rare', 560],
+  ['radiant rare', 560],
+  ['trainer gallery rare holo', 570],
+  ['rare ultra', 600],
+  ['ultra rare', 600],
+  ['illustration rare', 650],
+  ['classic collection', 660],
+  ['ace spec rare', 700],
+  ['rare shiny', 700],
+  ['shiny rare', 700],
+  ['rare shiny gx', 750],
+  ['shiny ultra rare', 750],
+  ['special illustration rare', 800],
+  ['mega attack rare', 850],
+  ['mega_attack_rare', 850],
+  ['rare rainbow', 875],
+  ['rare secret', 900],
+  ['hyper rare', 900],
+  ['rare shining', 925],
+  ['black white rare', 940],
+  ['rare holo star', 950],
+  ['mega hyper rare', 1000],
 ]);
 
 const getRarityRank = (rarity) => {
@@ -137,16 +164,26 @@ const getRarityRank = (rarity) => {
   const exactRank = CARD_RARITY_ORDER.get(normalizedRarity);
   if (exactRank !== undefined) return exactRank;
 
-  if (normalizedRarity.includes('mega hyper')) return 10;
-  if (normalizedRarity.includes('hyper')) return 9;
-  if (normalizedRarity.includes('mega attack')) return 8;
-  if (normalizedRarity.includes('special illustration')) return 7;
-  if (normalizedRarity.includes('ace spec')) return 6;
-  if (normalizedRarity.includes('illustration')) return 5;
-  if (normalizedRarity.includes('ultra')) return 4;
-  if (normalizedRarity.includes('double')) return 3;
-  if (normalizedRarity.includes('rare')) return 2;
-  if (normalizedRarity.includes('uncommon')) return 1;
+  if (normalizedRarity.includes('mega hyper')) return 1000;
+  if (normalizedRarity.includes('holo star')) return 950;
+  if (normalizedRarity.includes('shining')) return 925;
+  if (normalizedRarity.includes('secret') || normalizedRarity.includes('hyper')) return 900;
+  if (normalizedRarity.includes('rainbow')) return 875;
+  if (normalizedRarity.includes('mega attack')) return 850;
+  if (normalizedRarity.includes('special illustration')) return 800;
+  if (normalizedRarity.includes('shiny ultra') || normalizedRarity.includes('shiny gx')) return 750;
+  if (normalizedRarity.includes('ace spec') || normalizedRarity.includes('shiny')) return 700;
+  if (normalizedRarity.includes('illustration')) return 650;
+  if (normalizedRarity.includes('ultra')) return 600;
+  if (normalizedRarity.includes('radiant') || normalizedRarity.includes('amazing')) return 560;
+  if (normalizedRarity.includes('lv.x')) return 540;
+  if (normalizedRarity.includes('vstar')) return 510;
+  if (normalizedRarity.includes('vmax')) return 500;
+  if (normalizedRarity.includes('break')) return 475;
+  if (normalizedRarity.includes('double')) return 400;
+  if (normalizedRarity.includes('holo')) return 300;
+  if (normalizedRarity.includes('rare')) return 200;
+  if (normalizedRarity.includes('uncommon')) return 100;
   return 0;
 };
 
