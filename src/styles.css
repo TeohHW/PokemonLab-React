@@ -3433,6 +3433,80 @@ button.brand-home-button:focus-visible {
   align-items: stretch;
 }
 
+.team-stat-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.team-stat-card-heading p {
+  margin: 5px 0 0;
+  color: #555555;
+  font-size: 0.62rem;
+  line-height: 1.5;
+}
+
+.team-nature-stat-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 3px solid #212529;
+  padding: 6px 8px;
+  background: #f7b801;
+  box-shadow: 3px 3px 0 #212529;
+  font-size: 0.54rem;
+  cursor: pointer;
+}
+
+.team-nature-stat-toggle input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.team-nature-stat-toggle > span:last-child {
+  display: grid;
+  gap: 2px;
+}
+
+.team-nature-stat-toggle strong {
+  color: #004f86;
+}
+
+.team-nature-stat-switch {
+  position: relative;
+  display: block;
+  width: 36px;
+  height: 20px;
+  border: 3px solid #212529;
+  background: #ffffff;
+}
+
+.team-nature-stat-switch > span {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  background: #f25f5c;
+}
+
+.team-nature-stat-toggle input:checked + .team-nature-stat-switch > span {
+  left: 18px;
+  background: #247836;
+}
+
+.team-nature-stat-toggle:has(input:focus-visible) {
+  outline: 3px solid #209cee;
+  outline-offset: 3px;
+}
+
 .team-move-profile-card {
   min-height: 0;
 }
@@ -7343,6 +7417,15 @@ button.choice-card.nes-btn:active:not(:disabled)::after {
 
   .team-nature-radio-copy > small {
     text-align: left;
+  }
+
+  .team-stat-card-heading {
+    flex-direction: column;
+  }
+
+  .team-nature-stat-toggle {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .team-member-heading > img {

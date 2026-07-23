@@ -959,6 +959,7 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
   const [lastRecommendationSwap, setLastRecommendationSwap] = useState(null);
   const [selectedSwapImpact, setSelectedSwapImpact] = useState(null);
   const [selectedBuildPicker, setSelectedBuildPicker] = useState(null);
+  const [useNatureAdjustedStats, setUseNatureAdjustedStats] = useState(true);
   const [loadingAbility, setLoadingAbility] = useState(false);
   const [error, setError] = useState('');
 
@@ -1863,9 +1864,18 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
     [teamMembers],
   );
   const strongAgainstTypes = teamCoverage.map((coverage) => coverage.type);
+  const analysisTeamMembers = useMemo(
+    () => useNatureAdjustedStats
+      ? teamMembers
+      : teamMembers.map((member) => ({
+        ...member,
+        stats: member.baseStats || member.stats,
+      })),
+    [teamMembers, useNatureAdjustedStats],
+  );
   const averageStats = useMemo(
-    () => getTeamAverageStats(teamMembers),
-    [teamMembers],
+    () => getTeamAverageStats(analysisTeamMembers),
+    [analysisTeamMembers],
   );
   const defensiveGaps = useMemo(
     () => teamMatchups
@@ -1933,8 +1943,8 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
   }, [battleFormat.battleStyle, missingCoreRoleIds, roleCoverage, teamMembers]);
   const teamSynergies = useMemo(() => {
     const synergies = [];
-    const trickRoomSetter = teamMembers.find((member) => member.selectedMoves.includes('trick-room'));
-    const slowPartners = teamMembers.filter((member) => member.id !== trickRoomSetter?.id && (member.stats?.speed || 0) <= 60);
+    const trickRoomSetter = analysisTeamMembers.find((member) => member.selectedMoves.includes('trick-room'));
+    const slowPartners = analysisTeamMembers.filter((member) => member.id !== trickRoomSetter?.id && (member.stats?.speed || 0) <= 60);
     if (trickRoomSetter && slowPartners.length) {
       synergies.push(`${formatPokemonName(trickRoomSetter.name)} enables Trick Room for ${slowPartners.slice(0, 2).map((member) => formatPokemonName(member.name)).join(' and ')}.`);
     }
@@ -1950,7 +1960,7 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
       synergies.push('Sand support has Rock, Ground, or Steel partners that can use it safely.');
     }
     return synergies;
-  }, [teamMembers]);
+  }, [analysisTeamMembers, teamMembers]);
   const targetGeneration = VERSION_GROUP_GENERATIONS[activeVersionGroup] || 9;
   const teamScore = useMemo(
     () => calculateTeamScore(teamMembers, metaPokemonPool),
@@ -2687,8 +2697,34 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
           <section className="team-analysis-grid">
             <div className="team-analysis-summary">
               <article className="team-analysis-card team-stat-card">
-                <h2>Nature-Adjusted Stats</h2>
-                <div className="team-stat-chart" aria-label="Team average nature-adjusted stats, shown on a scale from 0 to 150 or higher">
+                <div className="team-stat-card-heading">
+                  <div>
+                    <h2>{useNatureAdjustedStats ? 'Nature-Adjusted Stats' : 'Base Stats'}</h2>
+                    <p>
+                      {useNatureAdjustedStats
+                        ? 'Selected nature effects are included.'
+                        : 'Selected natures are kept, but their stat effects are ignored.'}
+                    </p>
+                  </div>
+                  <label className="team-nature-stat-toggle">
+                    <input
+                      type="checkbox"
+                      checked={useNatureAdjustedStats}
+                      onChange={(event) => setUseNatureAdjustedStats(event.target.checked)}
+                    />
+                    <span className="team-nature-stat-switch" aria-hidden="true">
+                      <span />
+                    </span>
+                    <span>
+                      Nature effects
+                      <strong>{useNatureAdjustedStats ? 'On' : 'Off'}</strong>
+                    </span>
+                  </label>
+                </div>
+                <div
+                  className="team-stat-chart"
+                  aria-label={`Team average ${useNatureAdjustedStats ? 'nature-adjusted' : 'base'} stats, shown on a scale from 0 to 150 or higher`}
+                >
                   <div className="team-stat-axis" aria-hidden="true">
                     <span>0</span>
                     <span>50</span>
