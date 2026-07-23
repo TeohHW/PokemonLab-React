@@ -12,13 +12,13 @@ Demo: https://pokemon-lab-react.vercel.app/
 | **Who's That Pokémon?** | **Team Planner** |
 | ![Who's That Pokémon silhouette challenge](docs/screenshots/whos-that-pokemon.png) | ![Team Planner with a six-Pokémon team](docs/screenshots/team-planner-v2.png) |
 | **Pokémon Quiz** | **TrainerDex** |
-| ![Pokémon Quiz comparison question](docs/screenshots/quiz.png) | ![TrainerDex showing Brock and his team analysis](docs/screenshots/trainer-dex.png) |
+| ![Pokémon Quiz comparison question](docs/screenshots/quiz.png) | ![TrainerDex trainer browser and team analysis](docs/screenshots/trainer-dex.png) |
 
 ### Video walkthroughs
 
 **Pokédex — search for Pikachu, browse Featured TCG Cards, and open a card**
 
-![Pokédex search followed by opening a featured Pikachu TCG card](docs/demos/pokedex-search-to-tcg-v2.gif)
+![Pokédex search followed by opening a featured Pikachu TCG card](docs/demos/pokedex-search-to-tcg-v3.gif)
 
 **TCG Simulator — open a Base Set pack and verify the binder increases from 0 to 9 unique cards**
 
@@ -26,7 +26,7 @@ Demo: https://pokemon-lab-react.vercel.app/
 
 **Who's That Pokémon? — start a Kanto challenge, use a hint, and reveal the answer**
 
-![Who's That Pokémon Kanto round followed by a hint and answer reveal](docs/demos/whos-that-pokemon-round-v2.gif)
+![Who's That Pokémon Kanto round followed by a hint and answer reveal](docs/demos/whos-that-pokemon-round-v3.gif)
 
 **Team Planner — generate a six-Pokémon team and review its team-building guidance**
 
@@ -36,9 +36,9 @@ Demo: https://pokemon-lab-react.vercel.app/
 
 ![Pokémon Quiz question followed by the selected answer and result](docs/demos/pokemon-quiz-question-v2.gif)
 
-**TrainerDex — review Brock's trainer team, then browse his featured cards**
+**TrainerDex — browse trainer profiles, review team analysis, and explore featured cards**
 
-![TrainerDex showing Brock's team before his featured TCG cards and card detail](docs/demos/trainerdex-featured-tcg-v2.gif)
+![TrainerDex trainer profile, team analysis, featured cards, and card detail](docs/demos/trainerdex-featured-tcg-v3.gif)
 
 ## Features
 
