@@ -10,7 +10,7 @@ Demo: https://pokemon-lab-react.vercel.app/
 | --- | --- |
 | ![Pokédex station showing Zamazenta's profile and stats](docs/screenshots/pokedex.png) | ![TCG Simulator expansion browser](docs/screenshots/tcg-simulator.png) |
 | **Who's That Pokémon?** | **Team Planner** |
-| ![Who's That Pokémon silhouette challenge](docs/screenshots/whos-that-pokemon.png) | ![Team Planner with a six-Pokémon team](docs/screenshots/team-planner.png) |
+| ![Who's That Pokémon silhouette challenge](docs/screenshots/whos-that-pokemon.png) | ![Team Planner with a six-Pokémon team](docs/screenshots/team-planner-v2.png) |
 | **Pokémon Quiz** | **TrainerDex** |
 | ![Pokémon Quiz comparison question](docs/screenshots/quiz.png) | ![TrainerDex showing Brock and his team analysis](docs/screenshots/trainer-dex.png) |
 
@@ -30,7 +30,7 @@ Demo: https://pokemon-lab-react.vercel.app/
 
 **Team Planner — generate a six-Pokémon team and review its team-building guidance**
 
-![Team Planner randomizing a full team followed by its team analysis](docs/demos/team-planner-random-team.gif)
+![Team Planner randomizing a full team followed by its team analysis](docs/demos/team-planner-random-team-v2.gif)
 
 **Pokémon Quiz — start a mixed quiz and answer a question**
 
