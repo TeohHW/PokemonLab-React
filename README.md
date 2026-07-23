@@ -53,16 +53,6 @@ See the [detailed station feature reference](docs/STATION_FEATURES.md) for compl
 
 Retro NES/Game Boy visual style with responsive layouts. PokéAPI responses and sprites are cached locally via IndexedDB to minimise repeat requests.
 
-### Team Planner
-
-- Browse and sort Pokémon from game-specific or National Pokédexes, then plan under Open, Singles Species Clause, or VGC-style restricted formats
-- Start manually, fill remaining slots from a curated 108-Pokémon cross-format competitive pool, choose random eligible Pokémon, or load supported World Champion rosters
-- Use PokéAPI game-specific learnsets alongside recorded tournament sets and generation-matched VGC or Smogon usage data for move and nature defaults; non-meta Pokémon use role, move, and base-stat fallbacks
-- Change supported forms, select regular or hidden abilities, customise four move slots, and choose a nature through a searchable compact radio list
-- See nature-adjusted team stats, physical/special/status move balance, role coverage, resistances, offensive strengths, and defensive or coverage gaps
-- Review format-aware next-pick suggestions, choose the Pokémon to replace, preview estimated team impact in an overlay, apply the swap, and undo the latest swap
-- Keep the experience casual-focused: the planner provides transparent guidance rather than battle simulation, item building, bring-four planning, or claims that one team is optimal in every format
-
 ## Development
 
 ```bash
