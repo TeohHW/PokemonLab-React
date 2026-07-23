@@ -28,9 +28,9 @@ Demo: https://pokemon-lab-react.vercel.app/
 
 ![Who's That Pokémon Kanto round followed by a hint and answer reveal](docs/demos/whos-that-pokemon-round.gif)
 
-**Team Planner — generate a six-Pokémon team and review its analysis**
+**Team Planner — generate a six-Pokémon team and review its team-building guidance**
 
-![Team Planner randomizing a full team followed by its matchup analysis](docs/demos/team-planner-random-team.gif)
+![Team Planner randomizing a full team followed by its team analysis](docs/demos/team-planner-random-team.gif)
 
 **Pokémon Quiz — start a mixed quiz and answer a question**
 
@@ -45,11 +45,21 @@ Demo: https://pokemon-lab-react.vercel.app/
 - **Pokédex** — browse by game/region, search, view stats, weaknesses, abilities, evolutions, forms, moves, cries, and generation sprites
 - **TCG Simulator** — open single, ten-pack, random, and God Pack pulls; track collection in a binder with set filters, search, and card detail views
 - **Trainer Dex** — browse Gym Leaders, Elite Four, Champions, Kahunas, and special trainers by region, with teams, type analysis, counters, and rematch info
-- **Team Planner** — build a six-Pokémon team, assign moves, and review type matchups, coverage, and team stats
+- **Team Planner** — build a casual six-Pokémon team manually or with meta-aware, random, and World Champion roster fills; configure forms, abilities, moves, and natures; and review format legality, team roles, nature-adjusted stats, move balance, type coverage, and suggested swaps
 - **Who's That Pokémon?** — silhouette guessing game with hints, scoring, and a saved leaderboard
 - **Pokémon Quiz** — mixed-category questions covering types, evolutions, generations, stats, cries, moves, and effectiveness
 
 Retro NES/Game Boy visual style with responsive layouts. PokéAPI responses and sprites are cached locally via IndexedDB to minimise repeat requests.
+
+### Team Planner
+
+- Browse and sort Pokémon from game-specific or National Pokédexes, then plan under Open, Singles Species Clause, or VGC-style restricted formats
+- Start manually, fill remaining slots from a curated 108-Pokémon cross-format competitive pool, choose random eligible Pokémon, or load supported World Champion rosters
+- Use PokéAPI game-specific learnsets alongside recorded tournament sets and generation-matched VGC or Smogon usage data for move and nature defaults; non-meta Pokémon use role, move, and base-stat fallbacks
+- Change supported forms, select regular or hidden abilities, customise four move slots, and choose a nature through a searchable compact radio list
+- See nature-adjusted team stats, physical/special/status move balance, role coverage, resistances, offensive strengths, and defensive or coverage gaps
+- Review format-aware next-pick suggestions, choose the Pokémon to replace, preview estimated team impact in an overlay, apply the swap, and undo the latest swap
+- Keep the experience casual-focused: the planner provides transparent guidance rather than battle simulation, item building, bring-four planning, or claims that one team is optimal in every format
 
 ## Development
 
