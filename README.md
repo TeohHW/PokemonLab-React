@@ -49,6 +49,8 @@ Demo: https://pokemon-lab-react.vercel.app/
 - **Who's That Pokémon?** — silhouette guessing game with hints, scoring, and a saved leaderboard
 - **Pokémon Quiz** — mixed-category questions covering types, evolutions, generations, stats, cries, moves, and effectiveness
 
+See the [detailed station feature reference](docs/STATION_FEATURES.md) for complete behavior, data sources, persistence, and current scope.
+
 Retro NES/Game Boy visual style with responsive layouts. PokéAPI responses and sprites are cached locally via IndexedDB to minimise repeat requests.
 
 ### Team Planner
