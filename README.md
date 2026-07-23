@@ -18,15 +18,15 @@ Demo: https://pokemon-lab-react.vercel.app/
 
 **Pokédex — search for Pikachu, browse Featured TCG Cards, and open a card**
 
-![Pokédex search followed by opening a featured Pikachu TCG card](docs/demos/pokedex-search-to-tcg.gif)
+![Pokédex search followed by opening a featured Pikachu TCG card](docs/demos/pokedex-search-to-tcg-v2.gif)
 
 **TCG Simulator — open a Base Set pack and verify the binder increases from 0 to 9 unique cards**
 
-![TCG Simulator pack opening followed by the increased binder collection](docs/demos/tcg-pack-to-binder.gif)
+![TCG Simulator pack opening followed by the increased binder collection](docs/demos/tcg-pack-to-binder-v2.gif)
 
 **Who's That Pokémon? — start a Kanto challenge, use a hint, and reveal the answer**
 
-![Who's That Pokémon Kanto round followed by a hint and answer reveal](docs/demos/whos-that-pokemon-round.gif)
+![Who's That Pokémon Kanto round followed by a hint and answer reveal](docs/demos/whos-that-pokemon-round-v2.gif)
 
 **Team Planner — generate a six-Pokémon team and review its team-building guidance**
 
@@ -34,11 +34,11 @@ Demo: https://pokemon-lab-react.vercel.app/
 
 **Pokémon Quiz — start a mixed quiz and answer a question**
 
-![Pokémon Quiz question followed by the selected answer and result](docs/demos/pokemon-quiz-question.gif)
+![Pokémon Quiz question followed by the selected answer and result](docs/demos/pokemon-quiz-question-v2.gif)
 
 **TrainerDex — review Brock's trainer team, then browse his featured cards**
 
-![TrainerDex showing Brock's team before his featured TCG cards and card detail](docs/demos/trainerdex-featured-tcg.gif)
+![TrainerDex showing Brock's team before his featured TCG cards and card detail](docs/demos/trainerdex-featured-tcg-v2.gif)
 
 ## Features
 
