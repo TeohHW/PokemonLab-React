@@ -43,6 +43,7 @@ const STAT_SORT_OPTIONS = [
   { id: 'special-defense', label: 'Sp. Def' },
   { id: 'speed', label: 'Speed' },
 ];
+const FEATURED_TRAINER_CARDS_PAGE_SIZE = 9;
 const trainerArtModules = import.meta.glob('../../../trainers/*.png', {
   eager: true,
   query: '?url',
@@ -278,8 +279,7 @@ const getFeaturedTrainerTcgCards = (cards, trainer) => {
       parseReleaseDate(secondCard.releaseDate) - parseReleaseDate(firstCard.releaseDate) ||
       firstCard.name.localeCompare(secondCard.name) ||
       firstCard.setName.localeCompare(secondCard.setName)
-    ))
-    .slice(0, 8);
+    ));
 };
 
 const getTeamPokemonTcgCards = (cards, trainer, teamMember) => {
@@ -406,6 +406,10 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
   const [loadingTeamData, setLoadingTeamData] = useState(true);
   const [selectedTcgCard, setSelectedTcgCard] = useState(null);
   const [selectedTeamTcgMember, setSelectedTeamTcgMember] = useState(null);
+  const [featuredTrainerCardsPageState, setFeaturedTrainerCardsPageState] = useState({
+    trainerKey: '',
+    page: 0,
+  });
   const [error, setError] = useState('');
 
   const regionTrainers = useMemo(
@@ -462,6 +466,23 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
   const featuredTrainerCards = useMemo(
     () => getFeaturedTrainerTcgCards(tcgCards, selectedTrainer),
     [tcgCards, selectedTrainer],
+  );
+  const featuredTrainerCardsPageKey = `${selectedTrainer.id}:${selectedGame}:${activeBattleStage}`;
+  const featuredTrainerCardsPageCount = Math.max(
+    1,
+    Math.ceil(featuredTrainerCards.length / FEATURED_TRAINER_CARDS_PAGE_SIZE),
+  );
+  const requestedFeaturedTrainerCardsPage =
+    featuredTrainerCardsPageState.trainerKey === featuredTrainerCardsPageKey
+      ? featuredTrainerCardsPageState.page
+      : 0;
+  const featuredTrainerCardsPage = Math.min(
+    requestedFeaturedTrainerCardsPage,
+    featuredTrainerCardsPageCount - 1,
+  );
+  const visibleFeaturedTrainerCards = featuredTrainerCards.slice(
+    featuredTrainerCardsPage * FEATURED_TRAINER_CARDS_PAGE_SIZE,
+    (featuredTrainerCardsPage + 1) * FEATURED_TRAINER_CARDS_PAGE_SIZE,
   );
   const selectedTeamTcgCards = useMemo(
     () => getTeamPokemonTcgCards(tcgCards, selectedTrainer, selectedTeamTcgMember),
@@ -922,7 +943,40 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
           </section>
 
           <section className="pokedex-section tcg-featured-section trainerdex-tcg-section">
-            <h3>Featured TCG Cards</h3>
+            <div className="trainerdex-tcg-heading">
+              <h3>Featured TCG Cards</h3>
+              {!loadingTcgCards && featuredTrainerCards.length > 0 && (
+                <nav className="trainerdex-tcg-pagination" aria-label="Trainer featured card pages">
+                  <button
+                    type="button"
+                    className="nes-btn"
+                    disabled={featuredTrainerCardsPage === 0}
+                    aria-label="Previous trainer featured card page"
+                    onClick={() => setFeaturedTrainerCardsPageState({
+                      trainerKey: featuredTrainerCardsPageKey,
+                      page: featuredTrainerCardsPage - 1,
+                    })}
+                  >
+                    Prev
+                  </button>
+                  <span aria-live="polite">
+                    Page {featuredTrainerCardsPage + 1} / {featuredTrainerCardsPageCount}
+                  </span>
+                  <button
+                    type="button"
+                    className="nes-btn"
+                    disabled={featuredTrainerCardsPage >= featuredTrainerCardsPageCount - 1}
+                    aria-label="Next trainer featured card page"
+                    onClick={() => setFeaturedTrainerCardsPageState({
+                      trainerKey: featuredTrainerCardsPageKey,
+                      page: featuredTrainerCardsPage + 1,
+                    })}
+                  >
+                    Next
+                  </button>
+                </nav>
+              )}
+            </div>
             {loadingTcgCards && <p className="pokedex-status">Loading TCG cards...</p>}
             {!loadingTcgCards && (
               <div className="trainerdex-featured-groups">
@@ -930,7 +984,7 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
                   <section className="trainerdex-featured-group">
                     <h4>Trainer Featured</h4>
                     <div className="tcg-featured-grid">
-                      {featuredTrainerCards.map(renderFeaturedCard)}
+                      {visibleFeaturedTrainerCards.map(renderFeaturedCard)}
                     </div>
                   </section>
                 )}

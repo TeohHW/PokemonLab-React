@@ -5879,6 +5879,30 @@ button.brand-home-button:focus-visible {
   border-top: 4px solid var(--trainerdex-teal-dark);
 }
 
+.trainerdex-tcg-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.trainerdex-tcg-pagination {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: auto;
+  color: #050505;
+  font-size: 0.7rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.trainerdex-tcg-pagination .nes-btn {
+  padding: 5px 8px;
+  font-size: 0.64rem;
+}
+
 .trainerdex-featured-groups {
   display: grid;
   gap: 18px;
