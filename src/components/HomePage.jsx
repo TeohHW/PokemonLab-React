@@ -1,9 +1,9 @@
 import pokedexLogo from '../../logos/pokedex.png';
-import quizLogo from '../../logos/quiz.png';
-import tcgLogo from '../../logos/tcg.png';
-import teamLogo from '../../logos/team.png';
+import quizLogo from '../../logos/pokemon_quiz.png';
+import tcgLogo from '../../logos/tcg_simulator.png';
+import teamLogo from '../../logos/team_planner.png';
 import trainerdexLogo from '../../logos/trainerdex.png';
-import whoLogo from '../../logos/who.png';
+import whoLogo from '../../logos/whos_that_pokemon.png';
 import { GitHubRepoLink } from '../stations/shared/stationShared';
 
 const HOME_STATIONS = [
