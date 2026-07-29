@@ -190,30 +190,6 @@ code {
   font-size: 0.95em;
 }
 
-.app-shell {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
-  gap: clamp(28px, 5vw, 72px);
-  align-items: center;
-  width: min(1120px, calc(100% - 40px));
-  min-height: 100vh;
-  margin: 0 auto;
-  padding: 48px 0;
-}
-
-.intro {
-  max-width: 680px;
-}
-
-.eyebrow {
-  margin: 0 0 14px;
-  color: var(--accent);
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0;
-  text-transform: uppercase;
-}
-
 h1,
 h2,
 p {
@@ -244,46 +220,6 @@ h2 {
   color: var(--heading);
   font-size: 1.15rem;
   line-height: 1.2;
-}
-
-.lede {
-  max-width: 580px;
-  margin-bottom: 0;
-  color: var(--muted);
-  font-size: 1.15rem;
-  line-height: 1.7;
-}
-
-.workspace-panel {
-  display: grid;
-  gap: 24px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: clamp(22px, 4vw, 34px);
-  background: var(--panel-bg);
-  box-shadow: 0 22px 70px var(--panel-shadow);
-}
-
-.workspace-panel p {
-  margin-bottom: 0;
-  color: var(--muted);
-  line-height: 1.7;
-}
-
-.feature-list {
-  display: grid;
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.feature-list li {
-  border-left: 4px solid var(--focus);
-  padding: 10px 0 10px 14px;
-  color: var(--text);
-  background: color-mix(in srgb, var(--focus) 18%, var(--panel-bg));
-  font-weight: 700;
 }
 
 .app-container {
@@ -880,12 +816,6 @@ button.brand-home-button:focus-visible {
   max-height: 66px;
   object-fit: contain;
   image-rendering: auto;
-}
-
-.pack-set-symbol {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
 }
 
 .pack-set-info span,
@@ -1722,13 +1652,6 @@ button.brand-home-button:focus-visible {
   width: 24px;
   height: 24px;
   fill: currentColor;
-}
-
-.nav-button.nes-btn {
-  min-height: 48px;
-  padding-inline: 16px;
-  color: #212529;
-  background-color: #ffffff;
 }
 
 .home-screen {
@@ -4844,10 +4767,6 @@ button.brand-home-button:focus-visible {
   background: #d685ad;
 }
 
-.pokedex-meta {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 .pokedex-section {
   display: grid;
   gap: 12px;
@@ -6015,10 +5934,29 @@ button.brand-home-button:focus-visible {
   line-height: 1.1;
 }
 
+.trainerdex-team-tcg-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.trainerdex-team-tcg-toolbar > p {
+  margin: 0;
+  color: #4a4a4a;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.trainerdex-team-tcg-toolbar .trainerdex-tcg-pagination {
+  margin-left: 0;
+}
+
 .trainerdex-team-tcg-grid {
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   justify-content: stretch;
-  max-height: calc(min(860px, 100vh - 72px) - 170px);
+  max-height: calc(min(860px, 100vh - 72px) - 220px);
   overflow: auto;
   padding: 0 10px 4px 0;
   scrollbar-color: #7a7a7a #f1f1f1;
@@ -6057,13 +5995,6 @@ button.brand-home-button:focus-visible {
     -2px 2px 0 var(--who-blue-dark),
     2px -2px 0 var(--who-blue-dark),
     -2px -2px 0 var(--who-blue-dark);
-}
-
-.who-layout {
-  display: grid;
-  grid-template-columns: minmax(320px, 0.42fr) minmax(520px, 0.58fr);
-  gap: 28px;
-  align-items: start;
 }
 
 .who-setup-layout {
@@ -6189,7 +6120,6 @@ button.brand-home-button:focus-visible {
   font-weight: 900;
 }
 
-.who-control-panel,
 .who-game-panel,
 .who-entry-modal {
   border: var(--gb-frame-width) solid transparent;
@@ -6198,15 +6128,6 @@ button.brand-home-button:focus-visible {
   background-clip: padding-box;
   box-shadow: inset 0 0 0 4px #ffffff;
   image-rendering: pixelated;
-}
-
-.who-control-panel {
-  display: grid;
-  gap: 18px;
-  padding: 22px;
-  background:
-    linear-gradient(#fff8d8, #ffffff 220px),
-    #ffffff;
 }
 
 .trainerdex-summary-heading {
@@ -6238,8 +6159,7 @@ button.brand-home-button:focus-visible {
   text-transform: uppercase;
 }
 
-.who-setup-panel,
-.who-control-panel {
+.who-setup-panel {
   --who-panel-bg-inset-top: 3px;
   --who-panel-bg-inset-right: 5px;
   --who-panel-bg-inset-bottom: 3px;
@@ -6253,7 +6173,6 @@ button.brand-home-button:focus-visible {
   background-clip: border-box;
 }
 
-.who-control-panel form,
 .who-score-panel,
 .who-leaderboard {
   display: grid;
@@ -6957,10 +6876,7 @@ button.who-pokemon-button:focus-visible:not(:disabled) {
 }
 
 .nes-btn:disabled,
-.nes-btn:disabled:hover,
-.nes-btn.is-disabled,
-.nes-btn.is-disabled:hover,
-.nes-btn.is-disabled:focus {
+.nes-btn:disabled:hover {
   color: #212529;
   cursor: not-allowed;
   background-color: #d3d3d3;
@@ -7274,7 +7190,6 @@ button.choice-card.nes-btn:active:not(:disabled)::after {
   .trainerdex-layout,
   .trainerdex-hero,
   .who-setup-layout,
-  .who-layout,
   .who-play-shell,
   .who-entry-main {
     grid-template-columns: 1fr;
@@ -7323,13 +7238,6 @@ button.choice-card.nes-btn:active:not(:disabled)::after {
 
   .trainerdex-featured-games > span {
     text-align: left;
-  }
-
-  .app-shell {
-    grid-template-columns: 1fr;
-    align-content: center;
-    width: min(100% - 32px, 560px);
-    padding: 36px 0;
   }
 
   .card-detail-modal {
@@ -7589,10 +7497,6 @@ button.choice-card.nes-btn:active:not(:disabled)::after {
 
   .pokedex-card-media {
     min-height: 260px;
-  }
-
-  .pokedex-meta {
-    grid-template-columns: 1fr;
   }
 
   .team-save-row {

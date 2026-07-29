@@ -44,6 +44,7 @@ const STAT_SORT_OPTIONS = [
   { id: 'speed', label: 'Speed' },
 ];
 const FEATURED_TRAINER_CARDS_PAGE_SIZE = 9;
+const TEAM_POKEMON_TCG_CARDS_PAGE_SIZE = 8;
 const trainerArtModules = import.meta.glob('../../../trainers/*.png', {
   eager: true,
   query: '?url',
@@ -287,8 +288,7 @@ const getTeamPokemonTcgCards = (cards, trainer, teamMember) => {
 
   return cards
     .filter((card) => getCardPokemonMatchScore(card, pokemonSearchNames, trainer?.name) > 0)
-    .sort(sortFeaturedCards(trainer?.name, pokemonSearchNames))
-    .slice(0, 24);
+    .sort(sortFeaturedCards(trainer?.name, pokemonSearchNames));
 };
 
 const getTrainerSummary = (trainer, region) => {
@@ -406,6 +406,7 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
   const [loadingTeamData, setLoadingTeamData] = useState(true);
   const [selectedTcgCard, setSelectedTcgCard] = useState(null);
   const [selectedTeamTcgMember, setSelectedTeamTcgMember] = useState(null);
+  const [selectedTeamTcgCardsPage, setSelectedTeamTcgCardsPage] = useState(0);
   const [featuredTrainerCardsPageState, setFeaturedTrainerCardsPageState] = useState({
     trainerKey: '',
     page: 0,
@@ -488,6 +489,22 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
     () => getTeamPokemonTcgCards(tcgCards, selectedTrainer, selectedTeamTcgMember),
     [tcgCards, selectedTrainer, selectedTeamTcgMember],
   );
+  const selectedTeamTcgCardsPageCount = Math.max(
+    1,
+    Math.ceil(selectedTeamTcgCards.length / TEAM_POKEMON_TCG_CARDS_PAGE_SIZE),
+  );
+  const activeSelectedTeamTcgCardsPage = Math.min(
+    selectedTeamTcgCardsPage,
+    selectedTeamTcgCardsPageCount - 1,
+  );
+  const visibleSelectedTeamTcgCards = selectedTeamTcgCards.slice(
+    activeSelectedTeamTcgCardsPage * TEAM_POKEMON_TCG_CARDS_PAGE_SIZE,
+    (activeSelectedTeamTcgCardsPage + 1) * TEAM_POKEMON_TCG_CARDS_PAGE_SIZE,
+  );
+  const openTeamPokemonTcgCards = (teamMember) => {
+    setSelectedTeamTcgMember(teamMember);
+    setSelectedTeamTcgCardsPage(0);
+  };
   const trainerTypes = useMemo(
     () => getTrainerTeamSpecialties(selectedTrainer, enrichedTeam),
     [selectedTrainer, enrichedTeam],
@@ -897,11 +914,11 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
                     role="button"
                     tabIndex={0}
                     aria-label={`Open ${teamMember.label || formatPokemonName(teamMember.name)} TCG cards`}
-                    onClick={() => setSelectedTeamTcgMember(teamMember)}
+                    onClick={() => openTeamPokemonTcgCards(teamMember)}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter' || event.key === ' ') {
                         event.preventDefault();
-                        setSelectedTeamTcgMember(teamMember);
+                        openTeamPokemonTcgCards(teamMember);
                       }
                     }}
                   >
@@ -1021,9 +1038,49 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
               </h2>
             </div>
             {selectedTeamTcgCards.length > 0 ? (
-              <div className="tcg-featured-grid trainerdex-team-tcg-grid">
-                {selectedTeamTcgCards.map(renderFeaturedCard)}
-              </div>
+              <>
+                <div className="trainerdex-team-tcg-toolbar">
+                  <p aria-live="polite">
+                    Showing{' '}
+                    {activeSelectedTeamTcgCardsPage * TEAM_POKEMON_TCG_CARDS_PAGE_SIZE + 1}
+                    {'–'}
+                    {Math.min(
+                      (activeSelectedTeamTcgCardsPage + 1) * TEAM_POKEMON_TCG_CARDS_PAGE_SIZE,
+                      selectedTeamTcgCards.length,
+                    )}
+                    {' '}of {selectedTeamTcgCards.length} cards
+                  </p>
+                  <nav className="trainerdex-tcg-pagination" aria-label="Pokemon TCG card pages">
+                    <button
+                      type="button"
+                      className="nes-btn"
+                      disabled={activeSelectedTeamTcgCardsPage === 0}
+                      aria-label="Previous Pokemon TCG card page"
+                      onClick={() => setSelectedTeamTcgCardsPage(activeSelectedTeamTcgCardsPage - 1)}
+                    >
+                      Prev
+                    </button>
+                    <span>
+                      Page {activeSelectedTeamTcgCardsPage + 1} / {selectedTeamTcgCardsPageCount}
+                    </span>
+                    <button
+                      type="button"
+                      className="nes-btn"
+                      disabled={activeSelectedTeamTcgCardsPage >= selectedTeamTcgCardsPageCount - 1}
+                      aria-label="Next Pokemon TCG card page"
+                      onClick={() => setSelectedTeamTcgCardsPage(activeSelectedTeamTcgCardsPage + 1)}
+                    >
+                      Next
+                    </button>
+                  </nav>
+                </div>
+                <div
+                  key={`${selectedTeamTcgMember.name}-${activeSelectedTeamTcgCardsPage}`}
+                  className="tcg-featured-grid trainerdex-team-tcg-grid"
+                >
+                  {visibleSelectedTeamTcgCards.map(renderFeaturedCard)}
+                </div>
+              </>
             ) : (
               <p className="pokedex-status">No local TCG cards found for this Pokemon.</p>
             )}

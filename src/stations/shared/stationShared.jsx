@@ -403,23 +403,6 @@ const getPokemonHomeArtworkUrl = (pokemonId) =>
 const getImageFallbackChain = (...images) =>
   images.flat().filter(Boolean).filter((image, index, allImages) => allImages.indexOf(image) === index);
 
-const handleImageFallbackError = (event) => {
-  const fallbackSrc = event.currentTarget.dataset.fallbackSrc;
-  const [nextFallback, ...remainingFallbacks] = fallbackSrc ? fallbackSrc.split('|').filter(Boolean) : [];
-
-  if (!nextFallback) {
-    event.currentTarget.removeAttribute('data-fallback-src');
-    return;
-  }
-
-  event.currentTarget.src = nextFallback;
-  if (remainingFallbacks.length) {
-    event.currentTarget.dataset.fallbackSrc = remainingFallbacks.join('|');
-  } else {
-    event.currentTarget.removeAttribute('data-fallback-src');
-  }
-};
-
 const pokeApiMemoryCache = new Map();
 let pokeApiCacheDbPromise = null;
 
@@ -2132,9 +2115,7 @@ export {
   CARD_FLIP_DELAY,
   CachedImage,
   cardMatchesSearch,
-  cleanPokeApiText,
   COLLECTION_STORAGE_KEY,
-  COMMON_ABILITY_DISTRACTORS,
   compactSearchText,
   createCardSearchIndex,
   EvolutionBranch,
@@ -2142,82 +2123,54 @@ export {
   fetchPokeApiJson,
   fetchPokemonByNameOrSpecies,
   fetchPokemonListMetadata,
-  findEvolutionNode,
-  formatEvolutionRequirement,
   formatGenerationName,
   formatLeaderboardDate,
   formatNoBreakSlashLabel,
   formatPokemonName,
   formatVersionGroupName,
-  GENERATION_ORDER,
   getAvailableLevelUpMoveGroups,
   getCardFaceImage,
   getCardFallbackImage,
   getEnglishApiFlavorText,
   getEnglishEffectText,
-  getEnglishEntry,
   getEnglishFlavorText,
   getEnglishShortEffectText,
-  getEvolutionNames,
   getExpansionCards,
   getExpansionCategory,
   getFeaturedTcgCards,
   getGenerationSprites,
   getImageFallbackChain,
   getLevelUpMovesForVersionGroup,
-  getPokeApiCacheDb,
   getPokemonIdFromPokemonUrl,
   getPokemonIdFromSpeciesUrl,
-  getPokemonIdFromUrl,
   getPokemonLookupValidationError,
   getPokemonOfficialArtworkUrl,
   getPokemonHomeArtworkUrl,
-  getPokemonPool,
-  getPokemonQuizData,
   getPokemonSpriteUrl,
-  getRegionForGeneration,
-  getSpriteVariants,
   getTeamAverageStats,
   getTeamVersionGroup,
   getTypeMultiplierMap,
   getTypeWeaknesses,
   GitHubRepoLink,
   handleCardImageError,
-  handleImageFallbackError,
   hasFeaturedTcgCards,
   hasPlayableCards,
   isReferenceOnlyExpansion,
   isCardBackPlaceholderImage,
   isPokemonGuessCorrect,
-  LATEST_VERSION_GROUPS,
   loadCollection,
-  loadEvolutionChain,
   loadWhoLeaderboard,
-  makeAbortError,
-  makeChoices,
-  maskPokemonNameInText,
   matchesPokemonSearch,
   MOVE_CATEGORY_ICONS,
   normalizePokemonLookup,
-  normalizePokemonName,
   normalizeSearchText,
   PACK_PREP_DELAY,
   parseReleaseDate,
   POKEAPI_BASE_URL,
-  POKEAPI_CACHE_DB_NAME,
-  POKEAPI_CACHE_DB_VERSION,
-  POKEAPI_CACHE_STORE_NAME,
-  pokeApiCacheDbPromise,
-  pokeApiMemoryCache,
   POKEDEX_METADATA_SORTS,
   POKEDEX_OPTIONS,
-  POKEDEX_VERSION_GROUPS,
-  POKEMON_LOOKUP_ALIASES,
-  POKEMON_SEARCH_VALIDATION_MESSAGE,
   QUIZ_CATEGORY_OPTIONS,
   randomItem,
-  readCachedPokeApiResource,
-  REPOSITORY_URL,
   saveWhoLeaderboard,
   shuffleItems,
   STAT_LABELS,
@@ -2229,8 +2182,5 @@ export {
   TEAM_POKEDEX_OPTIONS,
   TEN_PACK_FLIP_DELAY,
   TypeBadge,
-  TYPE_ICONS,
   TYPE_NAMES,
-  WHO_LEADERBOARD_STORAGE_KEY,
-  writeCachedPokeApiResource
 };
