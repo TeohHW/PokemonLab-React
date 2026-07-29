@@ -299,6 +299,7 @@ h2 {
 
 .app-header {
   display: flex;
+  flex-wrap: wrap;
   gap: 18px;
   align-items: center;
   justify-content: space-between;
@@ -619,11 +620,16 @@ button.brand-home-button:focus-visible {
 
 .series-filter {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 2px 8px;
+  overscroll-behavior-x: contain;
 }
 
 .series-button {
+  flex: 0 0 auto;
   min-height: 36px;
   border: 1px solid var(--border);
   padding: 0 14px;
@@ -1220,6 +1226,7 @@ button.brand-home-button:focus-visible {
 
 .binder-header {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   align-items: flex-start;
   justify-content: space-between;
@@ -2129,6 +2136,30 @@ button.brand-home-button:focus-visible {
   color: #050505;
   font-size: 0.68rem;
   font-weight: 900;
+}
+
+.team-save-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.team-save-row .nes-btn {
+  min-height: 42px;
+  padding: 6px 10px;
+  font-size: 0.68rem;
+}
+
+.team-save-row span {
+  color: #247836;
+  font-size: 0.62rem;
+  font-weight: 900;
+  line-height: 1.4;
+}
+
+.team-save-row span.is-error {
+  color: #9f1c12;
 }
 
 .team-world-champion-fill select {
@@ -3420,15 +3451,16 @@ button.brand-home-button:focus-visible {
 
 .team-analysis-summary {
   grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: minmax(520px, 2fr) minmax(250px, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   align-items: start;
 }
 
 .team-stat-card {
-  width: 100%;
-  min-width: 0;
+  flex: 2 1 520px;
+  width: auto;
+  min-width: min(100%, 520px);
   min-height: 0;
   align-items: stretch;
 }
@@ -3508,6 +3540,8 @@ button.brand-home-button:focus-visible {
 }
 
 .team-move-profile-card {
+  flex: 1 1 250px;
+  min-width: min(100%, 250px);
   min-height: 0;
 }
 
@@ -4595,7 +4629,7 @@ button.brand-home-button:focus-visible {
   --pokedex-panel-bg-inset-bottom: 3px;
   --pokedex-panel-bg-inset-left: 3px;
   display: grid;
-  grid-template-columns: minmax(300px, 0.9fr) minmax(420px, 1.1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
   gap: 30px;
   padding: 30px;
   background-color: transparent;
@@ -5115,14 +5149,17 @@ button.brand-home-button:focus-visible {
 
 .move-version-grid {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
   max-height: 132px;
-  overflow: auto;
-  padding: 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 2px 8px;
+  overscroll-behavior-x: contain;
 }
 
 .move-version-button.nes-btn {
+  flex: 0 0 auto;
   min-height: 34px;
   padding: 5px 10px;
   color: #212529;
@@ -5622,7 +5659,9 @@ button.brand-home-button:focus-visible {
 
 .trainerdex-dossier {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
+  min-width: 0;
   padding: 18px;
   background:
     linear-gradient(90deg, #ffffff 0 70%, var(--trainerdex-teal-soft) 70% 100%),
@@ -5630,8 +5669,8 @@ button.brand-home-button:focus-visible {
 }
 
 .trainerdex-hero {
-  display: grid;
-  grid-template-columns: minmax(220px, 0.36fr) minmax(0, 0.64fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 22px;
   align-items: stretch;
   padding: 18px;
@@ -5640,7 +5679,9 @@ button.brand-home-button:focus-visible {
 
 .trainerdex-art-panel {
   display: grid;
+  flex: 1 1 220px;
   place-items: end center;
+  min-width: 0;
   min-height: 390px;
   background:
     linear-gradient(180deg, var(--trainerdex-teal-soft), #ffffff 70%),
@@ -5656,8 +5697,10 @@ button.brand-home-button:focus-visible {
 
 .trainerdex-summary {
   display: grid;
+  flex: 1.8 1 360px;
   align-content: center;
   gap: 14px;
+  min-width: 0;
 }
 
 .trainerdex-summary h2 {
@@ -5748,6 +5791,7 @@ button.brand-home-button:focus-visible {
 .trainerdex-team-panel {
   display: grid;
   gap: 0;
+  min-width: 0;
   border: var(--gb-frame-width) solid transparent;
   border-image: var(--gb-frame) var(--gb-frame-slice) round;
   padding: 16px;
@@ -5759,7 +5803,7 @@ button.brand-home-button:focus-visible {
 
 .trainerdex-team-row {
   display: grid;
-  grid-template-columns: minmax(160px, 0.34fr) minmax(120px, 0.18fr) minmax(280px, 0.48fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   gap: 16px;
   align-items: center;
   padding: 14px 0;
@@ -5799,9 +5843,11 @@ button.brand-home-button:focus-visible {
 
 .trainerdex-team-title-row {
   display: flex;
+  flex: 1 1 260px;
   flex-wrap: wrap;
   gap: 10px 18px;
   align-items: baseline;
+  min-width: 0;
 }
 
 .trainerdex-section-heading h3 {
@@ -5810,13 +5856,21 @@ button.brand-home-button:focus-visible {
 
 .trainerdex-battle-stage-toggle {
   display: flex;
-  flex-wrap: wrap;
+  flex: 1 1 260px;
+  flex-wrap: nowrap;
   gap: 8px;
   justify-content: flex-end;
+  min-width: 0;
+  max-width: 100%;
   margin-left: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 2px 8px;
+  overscroll-behavior-x: contain;
 }
 
 .trainerdex-battle-stage-button.nes-btn {
+  flex: 0 0 auto;
   min-height: 34px;
   padding: 5px 10px;
   font-size: 0.7rem;
@@ -6157,6 +6211,7 @@ button.brand-home-button:focus-visible {
 
 .trainerdex-summary-heading {
   display: flex;
+  flex-wrap: wrap;
   gap: 18px;
   align-items: flex-start;
   justify-content: space-between;
@@ -6171,6 +6226,7 @@ button.brand-home-button:focus-visible {
   flex: 0 1 320px;
   gap: 7px;
   justify-items: end;
+  max-width: 100%;
 }
 
 .trainerdex-featured-games > span {
@@ -7143,6 +7199,67 @@ button.choice-card.nes-btn:active:not(:disabled)::after {
   }
 }
 
+@media (min-width: 901px) and (max-width: 1200px) {
+  .pokedex-layout {
+    grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr);
+  }
+
+  .pokedex-card {
+    grid-template-columns: 1fr;
+  }
+
+  .team-planner-layout {
+    grid-template-columns: minmax(300px, 0.36fr) minmax(0, 0.64fr);
+  }
+
+  .team-slot-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  }
+
+  .quiz-layout {
+    grid-template-columns: minmax(280px, 0.36fr) minmax(0, 0.64fr);
+  }
+
+  .quiz-answer-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  }
+
+  .trainerdex-layout {
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  }
+
+  .who-setup-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.34fr);
+  }
+
+  .who-play-shell {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  }
+
+  .pokedex-layout,
+  .team-planner-layout,
+  .quiz-layout,
+  .trainerdex-layout,
+  .who-setup-layout,
+  .who-play-shell {
+    gap: clamp(16px, 2vw, 24px);
+  }
+
+  .pokedex-search-panel,
+  .pokedex-card,
+  .team-control-panel,
+  .team-builder-panel,
+  .quiz-control-panel,
+  .quiz-stage-panel,
+  .trainerdex-sidebar,
+  .trainerdex-dossier,
+  .trainerdex-hero,
+  .who-setup-panel,
+  .who-guess-panel {
+    padding: clamp(16px, 2vw, 22px);
+  }
+}
+
 @media (max-width: 900px) {
   .choice-grid,
   .pokedex-layout,
@@ -7476,5 +7593,567 @@ button.choice-card.nes-btn:active:not(:disabled)::after {
 
   .pokedex-meta {
     grid-template-columns: 1fr;
+  }
+
+  .team-save-row {
+    grid-template-columns: 1fr;
+  }
+
+  .team-save-row .nes-btn {
+    width: 100%;
+  }
+
+  .tcg-page .control-panel,
+  .tcg-page .binder-panel,
+  .pokedex-page .pokedex-search-panel,
+  .pokedex-page .pokedex-card,
+  .pokedex-page .tcg-featured-section.is-full-width {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .tcg-page .series-filter {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 2px 2px 8px;
+    scroll-snap-type: x proximity;
+  }
+
+  .tcg-page .series-button {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .tcg-page .set-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(72vw, 240px);
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 8px;
+    scroll-snap-type: x proximity;
+  }
+
+  .tcg-page .set-card {
+    min-height: 228px;
+    padding: 12px;
+    scroll-snap-align: start;
+  }
+
+  .tcg-page .control-panel .button-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tcg-page .binder-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    max-height: 70vh;
+  }
+
+  .tcg-page .binder-card {
+    gap: 8px;
+  }
+
+  .tcg-page .binder-card h3 {
+    font-size: 0.78rem;
+  }
+
+  .tcg-page .binder-card p {
+    font-size: 0.72rem;
+  }
+
+  .pokedex-page .pokedex-game-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(82vw, 310px);
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 8px;
+    scroll-snap-type: x mandatory;
+  }
+
+  .pokedex-page .pokedex-game-card.nes-btn {
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 86px;
+    padding: 10px;
+    scroll-snap-align: start;
+  }
+
+  .pokedex-page .starter-sprite-row {
+    gap: 2px;
+    min-height: 58px;
+  }
+
+  .pokedex-page .starter-sprite-row img {
+    width: 54px;
+    height: 54px;
+  }
+
+  .pokedex-page .pokedex-search-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pokedex-page .pokedex-search-row input {
+    grid-column: 1 / -1;
+  }
+
+  .pokedex-page .pokemon-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    max-height: 55vh;
+  }
+
+  .pokedex-page .pokemon-list-item.nes-btn,
+  .pokedex-page .pokemon-list-item.nes-btn.is-without-number {
+    grid-template-columns: 42px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    gap: 2px 7px;
+    min-height: 70px;
+    padding: 6px;
+  }
+
+  .pokedex-page .pokemon-list-item span {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 0.58rem;
+  }
+
+  .pokedex-page .pokemon-list-item img {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: 42px;
+    height: 42px;
+  }
+
+  .pokedex-page .pokemon-list-item:not(.is-without-number) img {
+    grid-row: 2;
+  }
+
+  .pokedex-page .pokemon-list-item strong {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    font-size: 0.68rem;
+  }
+
+  .pokedex-page .pokedex-card-media {
+    min-height: 220px;
+  }
+
+  .pokedex-page .profile-list {
+    grid-template-columns: repeat(3, minmax(130px, 1fr));
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+
+  .pokedex-page .move-version-grid {
+    flex-wrap: nowrap;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 8px;
+  }
+
+  .pokedex-page .move-version-button.nes-btn {
+    flex: 0 0 auto;
+  }
+
+  .pokedex-page .alternate-form-grid,
+  .pokedex-page .tcg-featured-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(68vw, 230px);
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 8px;
+    scroll-snap-type: x proximity;
+  }
+
+  .pokedex-page .alternate-form-card,
+  .pokedex-page .tcg-featured-grid .binder-card {
+    scroll-snap-align: start;
+  }
+
+  .team-planner-page .team-control-panel,
+  .team-planner-page .team-builder-panel,
+  .team-planner-page .team-assistant-panel,
+  .team-planner-page .team-analysis-card,
+  .quiz-page .quiz-control-panel,
+  .quiz-page .quiz-stage-panel,
+  .quiz-page .quiz-question-card,
+  .trainerdex-page .trainerdex-sidebar,
+  .trainerdex-page .trainerdex-dossier,
+  .trainerdex-page .trainerdex-hero,
+  .who-page .who-setup-panel,
+  .who-page .who-guess-panel {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .team-planner-page .team-action-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .team-planner-page .team-pokemon-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    max-height: 55vh;
+  }
+
+  .team-planner-page .team-pokemon-list .pokemon-list-item.nes-btn {
+    grid-template-columns: 42px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    gap: 2px 7px;
+    min-height: 70px;
+    padding: 6px;
+  }
+
+  .team-planner-page .team-pokemon-list .pokemon-list-item span {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 0.58rem;
+  }
+
+  .team-planner-page .team-pokemon-list .pokemon-list-item img {
+    grid-column: 1;
+    grid-row: 2;
+    width: 42px;
+    height: 42px;
+  }
+
+  .team-planner-page .team-pokemon-list .pokemon-list-item strong {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    font-size: 0.68rem;
+  }
+
+  .team-planner-page .team-member-card.is-empty {
+    min-height: 68px;
+    padding: 8px;
+  }
+
+  .team-planner-page .team-member-card.is-empty span {
+    width: 42px;
+    height: 42px;
+    font-size: 1rem;
+  }
+
+  .team-planner-page .team-slot-grid:not(:has(.team-member-card:not(.is-empty))) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .team-planner-page .team-member-card:not(.is-empty) {
+    padding: 12px;
+  }
+
+  .team-planner-page .team-member-heading > img {
+    width: min(150px, 62vw);
+    height: min(150px, 62vw);
+  }
+
+  .team-planner-page .team-score-breakdown,
+  .team-planner-page .team-role-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .team-planner-page .team-recommendation-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(82vw, 320px);
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 2px 8px;
+    scroll-snap-type: x proximity;
+  }
+
+  .team-planner-page .team-recommendation-card {
+    scroll-snap-align: start;
+  }
+
+  .team-planner-page .team-recommendation-card .nes-btn {
+    min-height: 44px;
+  }
+
+  .team-planner-page .team-ability-overlay {
+    padding: 12px;
+  }
+
+  .team-planner-page .team-ability-dialog {
+    max-height: calc(100vh - 24px);
+    padding: 18px;
+  }
+
+  .team-planner-page .team-duplicate-actions .nes-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .quiz-page .quiz-score-card {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .quiz-page .quiz-score-card div {
+    padding: 7px;
+  }
+
+  .quiz-page .quiz-score-card dd {
+    font-size: 1rem;
+  }
+
+  .quiz-page .quiz-control-actions {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .quiz-page .quiz-question-card {
+    min-height: 0;
+  }
+
+  .quiz-page .quiz-visual-stage,
+  .quiz-page .quiz-empty-state,
+  .quiz-page .quiz-loading-state {
+    min-height: 220px;
+    padding: 12px;
+  }
+
+  .quiz-page .quiz-entry-card,
+  .quiz-page .quiz-move-card {
+    padding: 14px;
+  }
+
+  .quiz-page .quiz-answer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .quiz-page .quiz-answer-button.nes-btn {
+    min-height: 60px;
+    padding: 8px;
+    font-size: 0.72rem;
+  }
+
+  .quiz-page .quiz-versus-card {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  .quiz-page .quiz-versus-card img {
+    width: min(110px, 27vw);
+    height: min(110px, 27vw);
+  }
+
+  .quiz-page .quiz-versus-card strong {
+    font-size: 0.9rem;
+  }
+
+  .trainerdex-page .trainerdex-region-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(58vw, 210px);
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 8px;
+    scroll-snap-type: x mandatory;
+    scrollbar-gutter: auto;
+  }
+
+  .trainerdex-page .trainerdex-region-card.nes-btn {
+    min-height: 76px;
+    scroll-snap-align: start;
+  }
+
+  .trainerdex-page .trainerdex-trainer-list {
+    max-height: 52vh;
+  }
+
+  .trainerdex-page .trainerdex-trainer-button.nes-btn {
+    grid-template-columns: 68px minmax(0, 1fr);
+    min-height: 88px;
+    padding: 7px 9px;
+  }
+
+  .trainerdex-page .trainerdex-trainer-button img {
+    width: 64px;
+    height: 72px;
+  }
+
+  .trainerdex-page .trainerdex-art-panel {
+    min-height: 240px;
+  }
+
+  .trainerdex-page .trainerdex-art-panel img {
+    max-height: 250px;
+  }
+
+  .trainerdex-page .trainerdex-meta,
+  .trainerdex-page .trainerdex-stat-list,
+  .trainerdex-page .trainerdex-move-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .trainerdex-page .trainerdex-battle-stage-toggle,
+  .trainerdex-page .trainerdex-game-version-grid {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    padding: 2px 2px 8px;
+  }
+
+  .trainerdex-page .trainerdex-battle-stage-button.nes-btn,
+  .trainerdex-page .trainerdex-game-version-button.nes-btn {
+    flex: 0 0 auto;
+  }
+
+  .trainerdex-page .trainerdex-card-help {
+    white-space: normal;
+  }
+
+  .trainerdex-page .tcg-featured-grid,
+  .trainerdex-page .trainerdex-team-tcg-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(68vw, 230px);
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 2px 8px;
+    scroll-snap-type: x proximity;
+  }
+
+  .trainerdex-page .tcg-featured-grid .binder-card {
+    scroll-snap-align: start;
+  }
+
+  .trainerdex-page .trainerdex-team-tcg-modal {
+    width: calc(100vw - 32px);
+    max-height: calc(100vh - 32px);
+    padding: 16px;
+  }
+
+  .who-page .who-region-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(76vw, 270px);
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 2px 8px;
+    scroll-snap-type: x mandatory;
+  }
+
+  .who-page .who-region-card.nes-btn {
+    min-height: 164px;
+    padding: 10px;
+    scroll-snap-align: start;
+  }
+
+  .who-page .who-region-art {
+    min-height: 90px;
+  }
+
+  .who-page .who-region-pokemon-preview {
+    flex-basis: 58px;
+    width: 58px;
+    height: 58px;
+  }
+
+  .who-page .who-hint-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .who-page .who-leaderboard-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .who-page .who-leaderboard-row > :nth-child(3) {
+    grid-column: 2;
+  }
+
+  .who-page .who-leaderboard-row > :nth-child(4) {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+
+  .who-page .who-entry-overlay,
+  .who-page .who-menu-overlay {
+    padding: 12px;
+  }
+
+  .who-page .who-entry-modal {
+    max-height: calc(100vh - 24px);
+    padding: 14px;
+  }
+
+  .who-page .who-featured-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(68vw, 230px);
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 8px;
+    scroll-snap-type: x proximity;
+  }
+
+  .who-page .who-featured-grid .binder-card {
+    scroll-snap-align: start;
+  }
+
+  .tcg-page .pack-reveal-overlay {
+    padding: 8px;
+  }
+
+  .tcg-page .binder-art-toggle {
+    display: flex;
+    align-items: center;
+    width: 58px;
+    min-height: 44px;
+    height: 44px;
+  }
+
+  .pokedex-page .move-version-button.nes-btn,
+  .trainerdex-page .move-version-button.nes-btn {
+    min-height: 44px;
+  }
+
+  .tcg-page .pack-reveal-modal {
+    width: calc(100vw - 16px);
+    height: calc(100vh - 16px);
+    max-height: calc(100vh - 16px);
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .tcg-page .pack-reveal-header,
+  .tcg-page .pack-set-info {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .tcg-page .pack-set-info {
+    gap: 8px;
+    padding-right: 74px;
+  }
+
+  .tcg-page .pack-set-logo {
+    max-width: min(150px, 42vw);
+    max-height: 44px;
+  }
+
+  .tcg-page .pack-release-year {
+    grid-column: 2;
+  }
+
+  .tcg-page .pack-grid,
+  .tcg-page .pack-grid.is-scrollable {
+    --pack-card-width: min(160px, 42vw);
+    grid-template-columns: repeat(auto-fit, minmax(min(128px, 100%), var(--pack-card-width)));
+    gap: 10px;
+    padding: 8px 4px 70px;
   }
 }

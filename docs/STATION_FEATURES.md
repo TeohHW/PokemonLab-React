@@ -284,7 +284,7 @@ The preview initially approximates a candidate with STAB coverage and constant p
 
 ### Current scope
 
-The Team Planner does not currently include held items, EVs, IVs, Tera types, exact damage calculation, battle simulation, bring-four planning, team import/export, share codes, or persistent saved teams. The active team resets when the station is unmounted or the page reloads.
+The Team Planner does not currently include held items, EVs, IVs, Tera types, exact damage calculation, battle simulation, bring-four planning, team import/export, or share codes. A team can be saved to browser `localStorage` and restored after a page reload on the same browser profile.
 
 ## Pokemon Quiz
 
@@ -426,6 +426,6 @@ TrainerDex is a curated in-game trainer reference. It does not simulate trainer 
 | Who's That Pokemon leaderboard | Browser `localStorage` |
 | Active Pokedex selection and entry | Current React session only |
 | Active Who's That Pokemon round | Current React session only |
-| Active Team Planner team | Current React session only |
+| Saved Team Planner team | Browser `localStorage` |
 | Pokemon Quiz score and streak | Current React session only |
 | TrainerDex selection | Current React session only |

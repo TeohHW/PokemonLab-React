@@ -676,7 +676,7 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
   };
 
   return (
-    <div className="app-container">
+    <div className="app-container tcg-page">
       <header className="app-header tcg-header">
         <button type="button" className="brand-mark brand-home-button" onClick={onBack}>
           <span className="nes-pokeball brand-pokeball" aria-hidden="true" />

@@ -106,7 +106,32 @@ import {
 } from '../shared/stationShared';
 
 const TEAM_POKEMON_LIST_PAGE_SIZE = 24;
+const TEAM_PLANNER_STORAGE_KEY = 'pokemon-team-planner-saved-team';
 const COMPETITIVE_STATS_BASE_URL = 'https://data.pkmn.cc/stats';
+
+const loadSavedTeamPlanner = () => {
+  try {
+    const savedPlanner = localStorage.getItem(TEAM_PLANNER_STORAGE_KEY);
+    if (!savedPlanner) return null;
+
+    const parsedPlanner = JSON.parse(savedPlanner);
+    const hasValidMembers = Array.isArray(parsedPlanner?.teamMembers) && parsedPlanner.teamMembers.every(
+      (member) =>
+        member &&
+        typeof member.id === 'string' &&
+        typeof member.name === 'string' &&
+        Array.isArray(member.types) &&
+        Array.isArray(member.abilities) &&
+        Array.isArray(member.availableMoves) &&
+        Array.isArray(member.selectedMoves) &&
+        Array.isArray(member.formOptions),
+    );
+
+    return hasValidMembers ? parsedPlanner : null;
+  } catch {
+    return null;
+  }
+};
 const HISTORICAL_VGC_USAGE_FORMATS = [
   { id: 'gen4vgc2009', label: 'VGC 2009', year: 2009 },
   { id: 'gen5vgc2011', label: 'VGC 2011', year: 2011 },
@@ -939,15 +964,16 @@ const chooseGapAwareMetaCandidates = ({
 };
 
 function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenQuiz, onOpenTrainerDex }) {
-  const [selectedDex, setSelectedDex] = useState(ALL_POKEDEX_OPTION.id);
+  const [savedPlanner] = useState(loadSavedTeamPlanner);
+  const [selectedDex, setSelectedDex] = useState(savedPlanner?.selectedDex || ALL_POKEDEX_OPTION.id);
   const [pokemonList, setPokemonList] = useState([]);
   const [pokemonSearchTerm, setPokemonSearchTerm] = useState('');
   const [pokemonPage, setPokemonPage] = useState(1);
   const [pokemonSortMode, setPokemonSortMode] = useState('entry');
   const [pokemonMetadata, setPokemonMetadata] = useState({});
-  const [teamMembers, setTeamMembers] = useState([]);
-  const [selectedBattleFormat, setSelectedBattleFormat] = useState(BATTLE_FORMATS[0].id);
-  const [selectedChampionYear, setSelectedChampionYear] = useState(WORLD_CHAMPION_TEAMS[0].year);
+  const [teamMembers, setTeamMembers] = useState(savedPlanner?.teamMembers?.slice(0, 6) || []);
+  const [selectedBattleFormat, setSelectedBattleFormat] = useState(savedPlanner?.selectedBattleFormat || BATTLE_FORMATS[0].id);
+  const [selectedChampionYear, setSelectedChampionYear] = useState(savedPlanner?.selectedChampionYear || WORLD_CHAMPION_TEAMS[0].year);
   const [typeChart, setTypeChart] = useState({});
   const [loadingList, setLoadingList] = useState(true);
   const [loadingTeamMember, setLoadingTeamMember] = useState(false);
@@ -959,9 +985,23 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
   const [lastRecommendationSwap, setLastRecommendationSwap] = useState(null);
   const [selectedSwapImpact, setSelectedSwapImpact] = useState(null);
   const [selectedBuildPicker, setSelectedBuildPicker] = useState(null);
-  const [useNatureAdjustedStats, setUseNatureAdjustedStats] = useState(true);
+  const [useNatureAdjustedStats, setUseNatureAdjustedStats] = useState(savedPlanner?.useNatureAdjustedStats ?? true);
   const [loadingAbility, setLoadingAbility] = useState(false);
   const [error, setError] = useState('');
+  const [savedPlannerSignature, setSavedPlannerSignature] = useState(() =>
+    savedPlanner ? JSON.stringify(savedPlanner) : '',
+  );
+  const [saveError, setSaveError] = useState('');
+
+  const plannerSnapshot = useMemo(() => ({
+    teamMembers,
+    selectedDex,
+    selectedBattleFormat,
+    selectedChampionYear,
+    useNatureAdjustedStats,
+  }), [selectedBattleFormat, selectedChampionYear, selectedDex, teamMembers, useNatureAdjustedStats]);
+  const plannerSignature = useMemo(() => JSON.stringify(plannerSnapshot), [plannerSnapshot]);
+  const isPlannerSaved = Boolean(teamMembers.length && plannerSignature === savedPlannerSignature);
 
   const battleFormat = BATTLE_FORMATS.find((format) => format.id === selectedBattleFormat) || BATTLE_FORMATS[0];
 
@@ -1776,6 +1816,16 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
     setTeamMembers([]);
   };
 
+  const saveTeam = () => {
+    try {
+      localStorage.setItem(TEAM_PLANNER_STORAGE_KEY, plannerSignature);
+      setSavedPlannerSignature(plannerSignature);
+      setSaveError('');
+    } catch {
+      setSaveError('Unable to save this team in local storage.');
+    }
+  };
+
   const selectTeamAbility = (memberId, ability) => {
     setTeamMembers((previousMembers) => previousMembers.map((member) =>
       member.id === memberId
@@ -2158,6 +2208,21 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
           </select>
 
           <p className="team-count-badge">{teamMembers.length}/6 selected</p>
+          <div className="team-save-row">
+            <button
+              type="button"
+              className="nes-btn is-primary"
+              onClick={saveTeam}
+              disabled={!teamMembers.length || isPlannerSaved || loadingTeamMember}
+            >
+              {isPlannerSaved ? 'Team Saved' : 'Save Team'}
+            </button>
+            <span className={saveError ? 'is-error' : ''} role="status">
+              {saveError || (isPlannerSaved
+                ? 'This team will be restored after reload.'
+                : 'Save this team to restore it after reload.')}
+            </span>
+          </div>
           {loadingPokemonMetadata && (
             <p className="pokedex-status">Loading Pokemon sort data...</p>
           )}
