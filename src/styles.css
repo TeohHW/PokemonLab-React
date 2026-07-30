@@ -1190,26 +1190,6 @@ button.brand-home-button:focus-visible {
   line-height: 1;
 }
 
-.binder-sort-heading {
-  display: flex;
-  width: 100%;
-  gap: 12px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.binder-sort-heading label {
-  margin-bottom: 0;
-}
-
-.binder-sort-label-group {
-  display: flex;
-  min-width: 0;
-  flex-wrap: wrap;
-  gap: 6px 12px;
-  align-items: baseline;
-}
-
 .binder-art-default-note {
   color: var(--muted);
   font-size: 0.68rem;
@@ -1345,6 +1325,13 @@ button.brand-home-button:focus-visible {
 
 .all-set-results-grid {
   max-height: 620px;
+}
+
+.tcg-art-toggle-setting {
+  display: flex;
+  width: 100%;
+  gap: 12px;
+  align-items: center;
 }
 
 .binder-card {

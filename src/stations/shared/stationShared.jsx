@@ -1606,29 +1606,33 @@ const cardMatchesSearch = (card, searchValue = '') => {
 
   if (!normalizedSearch) return true;
 
-  if (card.searchText || card.compactSearchText) {
-    return (
-      card.searchText?.includes(normalizedSearch) ||
-      card.compactSearchText?.includes(compactSearch)
-    );
-  }
-
   const searchableFields = [
     card.name,
     card.evolvesFrom,
     ...(card.types || []),
     ...(card.subtypes || []),
+    card.setName,
+    card.series,
+    card.seriesFilter,
+    card.setCategory,
+    card.releaseYear,
   ];
+  const normalizedCardSearch = card.searchText || normalizeSearchText(searchableFields.join(' '));
+  const compactCardSearch = card.compactSearchText || compactSearchText(searchableFields.join(' '));
 
-  return searchableFields.some((field) => {
-    const normalizedField = normalizeSearchText(field);
-    const compactField = compactSearchText(field);
+  if (
+    normalizedCardSearch.includes(normalizedSearch) ||
+    compactCardSearch.includes(compactSearch)
+  ) {
+    return true;
+  }
 
-    return (
-      normalizedField.includes(normalizedSearch) ||
-      compactField.includes(compactSearch)
-    );
-  });
+  return normalizedSearch
+    .split(/\s+/)
+    .every((searchTerm) => (
+      normalizedCardSearch.includes(searchTerm) ||
+      compactCardSearch.includes(searchTerm)
+    ));
 };
 
 const createCardSearchIndex = (card) => {
@@ -1637,6 +1641,11 @@ const createCardSearchIndex = (card) => {
     card.evolvesFrom,
     ...(card.types || []),
     ...(card.subtypes || []),
+    card.setName,
+    card.series,
+    card.seriesFilter,
+    card.setCategory,
+    card.releaseYear,
   ].join(' ');
 
   return {

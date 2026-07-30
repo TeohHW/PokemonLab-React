@@ -125,7 +125,7 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
   const [binderSearchTerm, setBinderSearchTerm] = useState('');
   const [binderSortMode, setBinderSortMode] = useState('number');
   const [binderRarityDirection, setBinderRarityDirection] = useState('rarest');
-  const [showUnownedBinderArt, setShowUnownedBinderArt] = useState(false);
+  const [showUnownedCardArt, setShowUnownedCardArt] = useState(false);
   const [sortMode, setSortMode] = useState('release-oldest');
   const [currentPack, setCurrentPack] = useState([]);
   const [currentPackSet, setCurrentPackSet] = useState(null);
@@ -364,15 +364,26 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
   const indexedReleasedExpansionEntries = useMemo(
     () =>
       releasedExpansionEntries.map(([setId, expansion]) => {
-        const allCards = getExpansionCards(expansion).map((card) => ({
-          ...card,
-          setId,
-          ...createCardSearchIndex(card),
-        }));
         const setCategory = getExpansionCategory(expansion);
         const seriesFilter = isReferenceOnlyExpansion(expansion)
           ? 'Special / Limited'
           : expansion.series || 'Unknown';
+        const allCards = getExpansionCards(expansion).map((card) => {
+          const indexedCard = {
+            ...card,
+            setId,
+            setName: expansion.setName,
+            series: expansion.series,
+            seriesFilter,
+            setCategory,
+            releaseYear: expansion.releaseYear,
+          };
+
+          return {
+            ...indexedCard,
+            ...createCardSearchIndex(indexedCard),
+          };
+        });
         const expansionSearchText = normalizeSearchText([
           expansion.setName,
           expansion.series,
@@ -417,14 +428,21 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
           ...card,
           setId: selectedSet,
           setName: activeSet.setName,
+          series: activeSet.series,
+          seriesFilter: activeSetIsReferenceOnly
+            ? 'Special / Limited'
+            : activeSet.series || 'Unknown',
           setCategory: getExpansionCategory(activeSet),
-          ...createCardSearchIndex(card),
+          releaseYear: activeSet.releaseYear,
         });
       }
     });
 
-    return [...uniqueCards.values()];
-  }, [activeSet, selectedSet]);
+    return [...uniqueCards.values()].map((card) => ({
+      ...card,
+      ...createCardSearchIndex(card),
+    }));
+  }, [activeSet, activeSetIsReferenceOnly, selectedSet]);
   const ownedActiveSetCards = activeSetIsReferenceOnly
     ? activeSetCards
     : activeSetCards.filter((card) => collection[card.id]);
@@ -571,9 +589,12 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
 
   const chooseSet = (setId) => {
     const nextSet = allExpansions?.[setId];
+    const indexedNextSet = indexedReleasedExpansionEntries.find(
+      ([candidateSetId]) => candidateSetId === setId,
+    )?.[1];
     const canSearchCards = compactSearchText(searchTerm).length >= 2;
     const hasTopPokemonSearch =
-      canSearchCards && expansionHasCardMatch(nextSet, searchTerm);
+      canSearchCards && expansionHasCardMatch(indexedNextSet || nextSet, searchTerm);
 
     clearRevealTimers();
     setSelectedSet(setId);
@@ -653,7 +674,7 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
             type="text"
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Try Charizard, Base Set, or Fossil..."
+            placeholder="Try Charizard, Base Set, or Base Set Charizard..."
             disabled={loading}
           />
           {searchTerm && (
@@ -668,6 +689,22 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
               x
             </button>
           )}
+        </div>
+
+        <div className="tcg-art-toggle-setting">
+          <span className="binder-art-default-note">Unowned cards are grayscale by default</span>
+          <button
+            type="button"
+            className={`binder-art-toggle ${showUnownedCardArt ? 'is-color' : ''}`}
+            onClick={() => setShowUnownedCardArt((showCardArt) => !showCardArt)}
+            aria-pressed={showUnownedCardArt}
+            aria-label={`Unowned card artwork: ${showUnownedCardArt ? 'color' : 'grayscale'}. Click to switch to ${
+              showUnownedCardArt ? 'grayscale' : 'color'
+            }.`}
+            title={`Unowned cards: ${showUnownedCardArt ? 'color' : 'grayscale'}`}
+          >
+            <span className="binder-art-toggle-thumb" aria-hidden="true" />
+          </button>
         </div>
 
         <label htmlFor="set-sort">Sort sets</label>
@@ -760,7 +797,12 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
       </div>
 
       {allSetSearchCards.length > 0 && (
-        <section className="binder-panel all-set-results-panel" aria-label="All set search results">
+        <section
+          className={`binder-panel all-set-results-panel ${
+            showUnownedCardArt ? 'show-unowned-card-art' : ''
+          }`}
+          aria-label="All set search results"
+        >
           <div className="binder-header">
             <div>
               <h2>All Sets</h2>
@@ -803,7 +845,7 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
 
       <section
         ref={binderPanelRef}
-        className={`binder-panel ${showUnownedBinderArt ? 'show-unowned-card-art' : ''}`}
+        className={`binder-panel ${showUnownedCardArt ? 'show-unowned-card-art' : ''}`}
         aria-label="Collection binder"
       >
         <div className="binder-header">
@@ -866,24 +908,7 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
             </button>
           )}
         </div>
-        <div className="binder-sort-heading">
-          <div className="binder-sort-label-group">
-            <label htmlFor="binder-sort">Sort binder cards</label>
-            <span className="binder-art-default-note">Unowned cards are grayscale by default</span>
-          </div>
-          <button
-            type="button"
-            className={`binder-art-toggle ${showUnownedBinderArt ? 'is-color' : ''}`}
-            onClick={() => setShowUnownedBinderArt((showCardArt) => !showCardArt)}
-            aria-pressed={showUnownedBinderArt}
-            aria-label={`Unowned card artwork: ${showUnownedBinderArt ? 'color' : 'grayscale'}. Click to switch to ${
-              showUnownedBinderArt ? 'grayscale' : 'color'
-            }.`}
-            title={`Unowned cards: ${showUnownedBinderArt ? 'color' : 'grayscale'}`}
-          >
-            <span className="binder-art-toggle-thumb" aria-hidden="true" />
-          </button>
-        </div>
+        <label htmlFor="binder-sort">Sort binder cards</label>
         <div className={`binder-sort-controls ${binderSortMode === 'rarity' ? 'has-rarity-toggle' : ''}`}>
           <select
             id="binder-sort"
