@@ -51,10 +51,7 @@ Pokemon Lab is a collection of casual Pokemon reference and game stations. No ac
 - **Who's That Pokémon?** — play Easy, Normal, or Hard silhouette rounds in ten-round or Endless sessions with staged hints and a local leaderboard
 - **Pokémon Quiz** — play Easy, Normal, or Hard mixed-category quizzes in ten-question, twenty-question, or Endless sessions with local best-score tracking
 
-See:
-
-- [Detailed station feature reference](docs/STATION_FEATURES.md) for the current application behavior, data sources, persistence, and scope.
-- [Current change handoff and QA prompt](docs/CURRENT_CHANGE_HANDOFF.md) for a copy-ready comparison against the previous committed scope and the required regression matrix.
+See the [detailed station feature reference](docs/STATION_FEATURES.md) for the current application behavior, data sources, persistence, and scope.
 
 Retro NES/Game Boy visual style with responsive layouts. PokéAPI responses and sprites are cached locally via IndexedDB to minimise repeat requests.
 
@@ -73,7 +70,7 @@ npm run lint
 git diff --check
 ```
 
-There is currently no automated test script. Behavioral changes should be checked using the manual matrix in the [change handoff](docs/CURRENT_CHANGE_HANDOFF.md). The current build may report a non-blocking large-chunk warning, and lint may report Fast Refresh warnings for the shared station module.
+There is currently no automated test script. Behavioral changes require manual browser testing across the affected stations and responsive layouts. The current build may report a non-blocking large-chunk warning, and lint may report Fast Refresh warnings for the shared station module.
 
 ## About
 

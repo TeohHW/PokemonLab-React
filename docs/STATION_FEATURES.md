@@ -2,8 +2,6 @@
 
 This document is the detailed feature reference for the stations currently implemented in Pokemon Lab. It describes the behavior in the application itself; planned features are intentionally excluded.
 
-For review or handoff work, use the copy-ready [current change and QA prompt](CURRENT_CHANGE_HANDOFF.md). It defines the previous committed baseline, accepted scope, explicit exclusions, and regression matrix.
-
 ## Current application at a glance
 
 | Area | Current behavior |
