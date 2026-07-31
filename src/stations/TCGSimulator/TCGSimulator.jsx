@@ -16,6 +16,7 @@ import {
   getExpansionCards,
   getExpansionCategory,
   handleCardImageError,
+  handleCardImageLoad,
   hasFeaturedTcgCards,
   hasPlayableCards,
   isReferenceOnlyExpansion,
@@ -116,15 +117,38 @@ const compareCardsByRarity = (firstCard, secondCard, rarityDirection) => {
   return rarityDifference || compareCardNumbers(firstCard, secondCard);
 };
 
-function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQuiz, onOpenTrainerDex }) {
+const TCG_VIEW_STORAGE_KEY = 'pokemon-lab-tcg-view-v1';
+const TCG_PULL_HISTORY_KEY = 'pokemon-lab-tcg-pull-history-v1';
+
+const loadPullHistory = () => {
+  try {
+    return JSON.parse(localStorage.getItem(TCG_PULL_HISTORY_KEY)) || [];
+  } catch {
+    return [];
+  }
+};
+
+function TcgSimulator({
+  onBack,
+  onOpenPokedex,
+  onOpenWhos,
+  onOpenTeam,
+  onOpenQuiz,
+  onOpenTrainerDex,
+  routeParams = {},
+  onRouteChange,
+}) {
   const [allExpansions, setAllExpansions] = useState(null);
-  const [selectedSet, setSelectedSet] = useState('base1');
+  const [selectedSet, setSelectedSet] = useState(() => (
+    routeParams.set || localStorage.getItem(TCG_VIEW_STORAGE_KEY) || 'base1'
+  ));
   const [selectedSeries, setSelectedSeries] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const deferredSearchTerm = useDeferredValue(searchTerm);
   const [binderSearchTerm, setBinderSearchTerm] = useState('');
   const [binderSortMode, setBinderSortMode] = useState('number');
   const [binderRarityDirection, setBinderRarityDirection] = useState('rarest');
+  const [binderFilter, setBinderFilter] = useState('all');
   const [showUnownedCardArt, setShowUnownedCardArt] = useState(false);
   const [sortMode, setSortMode] = useState('release-oldest');
   const [currentPack, setCurrentPack] = useState([]);
@@ -136,7 +160,11 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
   const [selectedCard, setSelectedCard] = useState(null);
   const [showClearBinderDialog, setShowClearBinderDialog] = useState(null);
   const [collection, setCollection] = useState(loadCollection);
+  const [pullHistory, setPullHistory] = useState(loadPullHistory);
+  const [lastPullCardIds, setLastPullCardIds] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const revealTimersRef = useRef([]);
   const prepTimerRef = useRef(null);
   const revealDelayRef = useRef(CARD_FLIP_DELAY);
@@ -160,17 +188,25 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
   }, [collection]);
 
   useEffect(() => {
-    fetch('/expansions.json')
-      .then((res) => res.json())
+    const controller = new AbortController();
+    fetch('/expansions.json', { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) throw new Error('Unable to load the local card database.');
+        return res.json();
+      })
       .then((data) => {
         setAllExpansions(data);
+        setSelectedSet((currentSet) => (data[currentSet] ? currentSet : 'base1'));
         setLoading(false);
       })
       .catch((err) => {
-        console.error('Error loading expansions.json:', err);
-        setLoading(false);
+        if (err.name !== 'AbortError') {
+          setLoadError(err.message);
+          setLoading(false);
+        }
       });
-  }, []);
+    return () => controller.abort();
+  }, [loadAttempt]);
 
   const clearRevealTimers = () => {
     clearTimeout(prepTimerRef.current);
@@ -200,8 +236,37 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
         };
       }, prevCollection),
     );
+    setLastPullCardIds([...new Set(cards.map((card) => card.id))]);
+    setPullHistory((currentHistory) => {
+      const nextHistory = [
+        {
+          id: `${Date.now()}-${cards[0]?.setId || 'set'}`,
+          setId: cards[0]?.setId,
+          setName: cards[0]?.setName || 'Unknown set',
+          cardCount: cards.length,
+          newCount: cards.filter((card) => card.isNewPull).length,
+          rareNames: cards
+            .filter((card) => card.isRare)
+            .slice(0, 6)
+            .map((card) => card.name),
+          openedAt: Date.now(),
+        },
+        ...currentHistory,
+      ].slice(0, 10);
+      localStorage.setItem(TCG_PULL_HISTORY_KEY, JSON.stringify(nextHistory));
+      return nextHistory;
+    });
     setPackAdded(true);
   }, [packAdded]);
+
+  const revealAllCards = useCallback(() => {
+    clearRevealTimers();
+    const revealedPack = currentPack.map((card) => ({ ...card, flipped: true }));
+    setCurrentPack(revealedPack);
+    setIsPreparingPack(false);
+    setIsAutoRevealing(false);
+    addPackToBinder(revealedPack, true);
+  }, [addPackToBinder, currentPack]);
 
   const revealCards = (cards, delay = CARD_FLIP_DELAY) => {
     clearRevealTimers();
@@ -460,8 +525,16 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
     const matchingCards = normalizedBinderSearch
       ? activeSetCards.filter((card) => cardMatchesSearch(card, binderSearchTerm))
       : activeSetCards;
+    const filteredCards = matchingCards.filter((card) => {
+      const ownedCount = collection[card.id]?.count || 0;
+      if (binderFilter === 'owned') return ownedCount > 0 || activeSetIsReferenceOnly;
+      if (binderFilter === 'missing') return ownedCount === 0 && !activeSetIsReferenceOnly;
+      if (binderFilter === 'duplicates') return ownedCount > 1;
+      if (binderFilter === 'new') return lastPullCardIds.includes(card.id);
+      return true;
+    });
 
-    return [...matchingCards].sort((firstCard, secondCard) => {
+    return [...filteredCards].sort((firstCard, secondCard) => {
       if (binderSortMode !== 'rarity') return compareCardNumbers(firstCard, secondCard);
 
       return compareCardsByRarity(
@@ -472,10 +545,14 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
     });
   }, [
     activeSetCards,
+    activeSetIsReferenceOnly,
+    binderFilter,
     binderRarityDirection,
     binderSearchTerm,
     binderSortMode,
+    collection,
     hasInvalidBinderSearch,
+    lastPullCardIds,
     normalizedBinderSearch,
   ]);
   const allSetSearchCards = useMemo(() => {
@@ -598,6 +675,8 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
 
     clearRevealTimers();
     setSelectedSet(setId);
+    localStorage.setItem(TCG_VIEW_STORAGE_KEY, setId);
+    onRouteChange?.({ set: setId }, { replace: true });
     if (normalizeSearchText(searchTerm)) {
       setBinderSearchTerm(hasTopPokemonSearch ? searchTerm : '');
     }
@@ -607,6 +686,7 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
     setIsPreparingPack(false);
     setIsAutoRevealing(false);
     setSelectedCard(null);
+    setBinderFilter('all');
 
     if (hasTopPokemonSearch) {
       window.setTimeout(() => {
@@ -639,6 +719,22 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
       </header>
 
       <div className="control-panel">
+        {loadError && (
+          <div className="status-with-action" role="alert">
+            <p className="pokedex-error">{loadError}</p>
+            <button
+              type="button"
+              className="nes-btn"
+              onClick={() => {
+                setLoadError('');
+                setLoading(true);
+                setLoadAttempt((attempt) => attempt + 1);
+              }}
+            >
+              Retry
+            </button>
+          </div>
+        )}
         <div className="series-filter" aria-label="Filter by series">
           {seriesOptions.map((series) => (
             <button
@@ -764,7 +860,11 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
           )}
         </div>
 
-        <div className="button-group">
+        <div className="button-group tcg-selected-set-actions">
+          <p className="tcg-selected-set-label">
+            <span>Selected set</span>
+            <strong>{activeSet?.setName || 'Loading...'}</strong>
+          </p>
           <button
             onClick={openPack}
             disabled={loading || !selectedSetIsPlayable}
@@ -816,6 +916,8 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
               <article
                 key={`${card.setId}-${card.id}`}
                 className={`binder-card ${card.isOwnedInBinder ? 'is-owned' : ''}`}
+                data-card-art-entry
+                hidden={!getCardFaceImage(card)}
                 role="button"
                 tabIndex={0}
                 onClick={() => openSearchResultCard(card)}
@@ -831,6 +933,7 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
                   data-fallback-src={getCardFallbackImage(card)}
                   alt={card.name}
                   loading="lazy"
+                  onLoad={handleCardImageLoad}
                   onError={handleCardImageError}
                 />
                 <div>
@@ -908,6 +1011,26 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
             </button>
           )}
         </div>
+        <div className="binder-filter-row" aria-label="Filter binder by ownership">
+          {[
+            ['all', 'All'],
+            ['owned', 'Owned'],
+            ['missing', 'Missing'],
+            ['duplicates', 'Duplicates'],
+            ['new', 'Latest Pull'],
+          ].map(([filterId, label]) => (
+            <button
+              key={filterId}
+              type="button"
+              className={`series-button ${binderFilter === filterId ? 'is-active' : ''}`}
+              onClick={() => setBinderFilter(filterId)}
+              disabled={filterId === 'new' && !lastPullCardIds.length}
+              aria-pressed={binderFilter === filterId}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <label htmlFor="binder-sort">Sort binder cards</label>
         <div className={`binder-sort-controls ${binderSortMode === 'rarity' ? 'has-rarity-toggle' : ''}`}>
           <select
@@ -943,6 +1066,8 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
               <article
                 key={card.id}
                 className={`binder-card ${ownedCard || activeSetIsReferenceOnly ? 'is-owned' : ''}`}
+                data-card-art-entry
+                hidden={!getCardFaceImage(card)}
                 role="button"
                 tabIndex={0}
                 onClick={() => openBinderCard(card)}
@@ -958,6 +1083,7 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
                   data-fallback-src={getCardFallbackImage(card)}
                   alt={card.name}
                   loading="lazy"
+                  onLoad={handleCardImageLoad}
                   onError={handleCardImageError}
                 />
                 <div>
@@ -976,6 +1102,30 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
           )}
         </div>
       </section>
+
+      {pullHistory.length > 0 && (
+        <section className="binder-panel pull-history-panel" aria-labelledby="pull-history-title">
+          <details className="disclosure-panel">
+            <summary id="pull-history-title">Recent Pulls ({pullHistory.length})</summary>
+            <ol className="pull-history-list">
+              {pullHistory.map((pull) => (
+                <li key={pull.id}>
+                  <div>
+                    <strong>{pull.setName}</strong>
+                    <span>
+                      {pull.cardCount} cards · {pull.newCount} new
+                    </span>
+                  </div>
+                  <p>{pull.rareNames.length ? pull.rareNames.join(', ') : 'No rare cards recorded'}</p>
+                  <time dateTime={new Date(pull.openedAt).toISOString()}>
+                    {new Date(pull.openedAt).toLocaleString()}
+                  </time>
+                </li>
+              ))}
+            </ol>
+          </details>
+        </section>
+      )}
 
       {showClearBinderDialog && (
         <div
@@ -1055,7 +1205,18 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
                   <div
                     key={card.packId}
                     className={`card-container ${card.flipped ? 'is-flipped' : ''}`}
+                    data-card-art-entry
+                    hidden={!getCardFaceImage(card)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={card.flipped ? `Open ${card.name}` : 'Reveal card'}
                     onClick={() => flipCard(card.packId)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        flipCard(card.packId);
+                      }
+                    }}
                   >
                     <div className="card-inner">
                       <div className="card-front">
@@ -1063,6 +1224,7 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
                           src={getCardFaceImage(card)}
                           data-fallback-src={getCardFallbackImage(card)}
                           alt={card.name}
+                          onLoad={handleCardImageLoad}
                           onError={handleCardImageError}
                         />
                         {card.isRare && <div className="holo-overlay" aria-hidden="true" />}
@@ -1082,6 +1244,14 @@ function TcgSimulator({ onBack, onOpenPokedex, onOpenWhos, onOpenTeam, onOpenQui
             )}
 
             <div className="pack-actions pack-reveal-actions">
+              <button
+                type="button"
+                className="pack-skip-button nes-btn is-primary"
+                onClick={revealAllCards}
+                disabled={packAdded && currentPack.every((card) => card.flipped)}
+              >
+                {isPreparingPack || isAutoRevealing ? 'Skip Animation' : 'Reveal All'}
+              </button>
               <button
                 type="button"
                 className="btn btn-primary nes-btn is-success"

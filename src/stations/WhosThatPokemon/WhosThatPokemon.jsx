@@ -19,6 +19,7 @@ import {
   getPokemonOfficialArtworkUrl,
   getPokemonSpriteUrl,
   handleCardImageError,
+  handleCardImageLoad,
   hasFeaturedTcgCards,
   isPokemonGuessCorrect,
   loadWhoLeaderboard,
@@ -48,6 +49,13 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
   const [result, setResult] = useState(null);
   const [showHintChoices, setShowHintChoices] = useState(false);
   const [hintChoices, setHintChoices] = useState([]);
+  const [difficulty, setDifficulty] = useState('normal');
+  const [roundLimit, setRoundLimit] = useState('10');
+  const [hintStage, setHintStage] = useState(0);
+  const [revealedHints, setRevealedHints] = useState([]);
+  const [roundHintPenalty, setRoundHintPenalty] = useState(0);
+  const [hintLoading, setHintLoading] = useState(false);
+  const [sessionComplete, setSessionComplete] = useState(false);
   const [score, setScore] = useState(0);
   const [roundCount, setRoundCount] = useState(0);
   const [leaderboard, setLeaderboard] = useState(loadWhoLeaderboard);
@@ -188,8 +196,11 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
 
     setRoundState('loading');
     setResult(null);
-    setShowHintChoices(false);
+    setShowHintChoices(difficulty === 'easy');
     setHintChoices([]);
+    setHintStage(0);
+    setRevealedHints([]);
+    setRoundHintPenalty(0);
     setGuess('');
     setCurrentPokemon(null);
     setCurrentRegion(nextRegion);
@@ -216,7 +227,7 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
         setRoundState('setup');
         setError(fetchError.message);
       });
-  }, [loadRegionEntries, selectedRegionId]);
+  }, [difficulty, loadRegionEntries, selectedRegionId]);
 
   const startGame = (event) => {
     event.preventDefault();
@@ -234,6 +245,7 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
     setRoundCount(0);
     setError('');
     setResult(null);
+    setSessionComplete(false);
     setShowEntryOverlay(false);
     setShowNameDialog(false);
     startNextRound();
@@ -258,12 +270,14 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
     }
 
     const guessedCorrectly = isPokemonGuessCorrect(trimmedGuess, currentPokemon);
-    const nextScore = guessedCorrectly ? score + 1 : score;
+    const pointsEarned = guessedCorrectly ? Math.max(0.25, 1 - roundHintPenalty) : 0;
+    const nextScore = guessedCorrectly ? score + pointsEarned : score;
+    const nextRoundCount = roundCount + 1;
 
     setResult(guessedCorrectly ? 'correct' : 'wrong');
     setRoundState('revealed');
     setShowHintChoices(false);
-    setRoundCount((previousCount) => previousCount + 1);
+    setRoundCount(nextRoundCount);
     setError('');
 
     if (guessedCorrectly) {
@@ -271,6 +285,51 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
     }
 
     recordLeaderboardScore(nextScore);
+    if (roundLimit !== 'endless' && nextRoundCount >= Number(roundLimit)) {
+      setSessionComplete(true);
+    }
+  };
+
+  const requestNextHint = () => {
+    if (!currentPokemon || difficulty !== 'normal' || hintStage >= 3 || hintLoading) return;
+
+    const nextStage = hintStage + 1;
+    setHintStage(nextStage);
+    setRoundHintPenalty((penalty) => Math.min(0.75, penalty + 0.25));
+
+    if (nextStage === 1) {
+      setRevealedHints((hints) => [...hints, `Region: ${currentRegion?.region || 'Unknown'}`]);
+      return;
+    }
+    if (nextStage === 2) {
+      setRevealedHints((hints) => [
+        ...hints,
+        `Type: ${currentPokemon.types.map(({ type }) => formatPokemonName(type.name)).join(' / ')}`,
+      ]);
+      return;
+    }
+
+    setHintLoading(true);
+    fetchPokeApiJson(
+      currentPokemon.species.url,
+      {},
+      'Unable to load a Pokedex clue.',
+    )
+      .then((species) => {
+        const clue = getEnglishFlavorText(species) || 'No Pokedex clue is available.';
+        const names = [currentPokemon.name, currentPokemon.species?.name]
+          .filter(Boolean)
+          .map((name) => formatPokemonName(name));
+        const maskedClue = names.reduce(
+          (text, name) => text.replace(new RegExp(name, 'gi'), '???'),
+          clue,
+        );
+        setRevealedHints((hints) => [...hints, `Pokedex clue: ${maskedClue}`]);
+      })
+      .catch((fetchError) => {
+        setError(fetchError.message);
+      })
+      .finally(() => setHintLoading(false));
   };
 
   const submitGuess = (event) => {
@@ -295,6 +354,7 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
   useEffect(() => {
     if (
       roundState !== 'revealed' ||
+      sessionComplete ||
       showEntryOverlay ||
       showGameMenu ||
       selectedTcgCard ||
@@ -324,6 +384,7 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
     showEntryOverlay,
     showGameMenu,
     showResetLeaderboardDialog,
+    sessionComplete,
     startNextRound,
   ]);
 
@@ -337,6 +398,10 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
     setResult(null);
     setShowHintChoices(false);
     setHintChoices([]);
+    setHintStage(0);
+    setRevealedHints([]);
+    setRoundHintPenalty(0);
+    setSessionComplete(false);
     setScore(0);
     setRoundCount(0);
     setError('');
@@ -357,6 +422,10 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
     setResult(null);
     setShowHintChoices(false);
     setHintChoices([]);
+    setHintStage(0);
+    setRevealedHints([]);
+    setRoundHintPenalty(0);
+    setSessionComplete(false);
     setScore(0);
     setRoundCount(0);
     setError('');
@@ -400,7 +469,8 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
     currentPokemon?.sprites?.other?.['official-artwork']?.front_default ||
     currentPokemon?.sprites?.front_default;
   const featuredCards = useMemo(
-    () => getFeaturedTcgCards(tcgCards, [currentPokemon?.name, currentPokemon?.species?.name]),
+    () => getFeaturedTcgCards(tcgCards, [currentPokemon?.name, currentPokemon?.species?.name])
+      .filter((card) => Boolean(getCardFaceImage(card))),
     [tcgCards, currentPokemon],
   );
   const answerName = currentPokemon ? formatPokemonName(currentPokemon.species?.name || currentPokemon.name) : '';
@@ -454,6 +524,35 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
                 Start Game
               </button>
             </div>
+
+            <div className="who-challenge-options">
+              <label htmlFor="who-difficulty">
+                Difficulty
+                <select
+                  id="who-difficulty"
+                  value={difficulty}
+                  onChange={(event) => setDifficulty(event.target.value)}
+                >
+                  <option value="easy">Easy · answer choices</option>
+                  <option value="normal">Normal · staged hints</option>
+                  <option value="hard">Hard · silhouette only</option>
+                </select>
+              </label>
+              <label htmlFor="who-round-limit">
+                Session
+                <select
+                  id="who-round-limit"
+                  value={roundLimit}
+                  onChange={(event) => setRoundLimit(event.target.value)}
+                >
+                  <option value="10">10 rounds</option>
+                  <option value="endless">Endless</option>
+                </select>
+              </label>
+            </div>
+            <p className="quiz-local-note">
+              No sign-in required. Your name is only used for this device's leaderboard.
+            </p>
 
             <label>Region</label>
             <div className="who-region-grid" aria-label="Region selection">
@@ -687,7 +786,9 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
             <div className="who-guess-heading">
               <div>
                 <p className="card-detail-set">
-                  {currentRegion?.region || 'Region'} Pokemon
+                  {(difficulty === 'easy' || hintStage >= 1 || roundState === 'revealed')
+                    ? `${currentRegion?.region || 'Region'} Pokemon`
+                    : 'Mystery Region'}
                 </p>
                 <h2>
                   {roundState === 'revealed'
@@ -728,15 +829,28 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
                   <button
                     type="button"
                     className="nes-btn is-warning"
-                    onClick={() => setShowHintChoices((isShowing) => !isShowing)}
-                    disabled={!hintChoices.length}
+                    onClick={requestNextHint}
+                    disabled={difficulty !== 'normal' || hintStage >= 3 || hintLoading}
                   >
-                    Help
+                    {difficulty === 'hard'
+                      ? 'No Hints'
+                      : difficulty === 'easy'
+                        ? 'Choices Shown'
+                      : hintLoading
+                        ? 'Loading...'
+                        : hintStage >= 3
+                          ? 'All Hints Used'
+                          : `Hint ${hintStage + 1}`}
                   </button>
                   <button type="submit" className="nes-btn is-success">
                     Guess
                   </button>
                 </div>
+                {revealedHints.length > 0 && (
+                  <ol className="who-staged-hints" aria-label="Revealed hints">
+                    {revealedHints.map((hint) => <li key={hint}>{hint}</li>)}
+                  </ol>
+                )}
                 {showHintChoices && (
                   <div className="who-hint-grid" aria-label="Pokemon name choices">
                     {hintChoices.map((choice) => (
@@ -758,9 +872,24 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
             )}
 
             {roundState === 'revealed' && (
-              <button type="button" className="nes-btn is-primary" onClick={startNextRound}>
-                Next Pokemon
-              </button>
+              sessionComplete ? (
+                <section className="who-session-summary" aria-labelledby="who-session-summary-title">
+                  <h3 id="who-session-summary-title">Session Complete</h3>
+                  <strong>{score} points from {roundCount} rounds</strong>
+                  <div>
+                    <button type="button" className="nes-btn is-success" onClick={resetGame}>
+                      New Player
+                    </button>
+                    <button type="button" className="nes-btn" onClick={changeRegion}>
+                      Change Settings
+                    </button>
+                  </div>
+                </section>
+              ) : (
+                <button type="button" className="nes-btn is-primary" onClick={startNextRound}>
+                  Next Pokemon
+                </button>
+              )
             )}
           </form>
         )}
@@ -986,6 +1115,7 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
                     <article
                       key={`${card.setId}-${card.id}`}
                       className="binder-card is-owned"
+                      data-card-art-entry
                       role="button"
                       tabIndex={0}
                       onClick={() => setSelectedTcgCard(card)}
@@ -1001,6 +1131,7 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
                         data-fallback-src={getCardFallbackImage(card)}
                         alt={card.name}
                         loading="lazy"
+                        onLoad={handleCardImageLoad}
                         onError={handleCardImageError}
                       />
                       <div>
@@ -1019,7 +1150,7 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
         </div>
       )}
 
-      {selectedTcgCard && (
+      {selectedTcgCard && getCardFaceImage(selectedTcgCard) && (
         <div
           className="card-detail-overlay"
           role="dialog"
@@ -1064,6 +1195,7 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
                 src={getCardFaceImage(selectedTcgCard)}
                 data-fallback-src={getCardFallbackImage(selectedTcgCard)}
                 alt={selectedTcgCard.name}
+                onLoad={handleCardImageLoad}
                 onError={handleCardImageError}
               />
               {selectedTcgCard.isRare && <div className="holo-overlay" aria-hidden="true" />}

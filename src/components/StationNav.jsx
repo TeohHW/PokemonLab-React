@@ -3,9 +3,11 @@ import {
   GitHubRepoLink,
   STATION_NAV_OPTIONS,
 } from '../stations/shared/stationShared';
+import { useAppState } from '../utils/appState';
 
 function StationNav({ activeStation, onNavigate }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { appState, updatePreference } = useAppState();
   const activeStationLabel =
     STATION_NAV_OPTIONS.find((station) => station.id === activeStation)?.label || 'Station';
 
@@ -40,7 +42,6 @@ function StationNav({ activeStation, onNavigate }) {
       >
         Menu
       </button>
-      <GitHubRepoLink />
       {isMenuOpen && (
         <div className="station-menu-overlay" role="presentation">
           <button
@@ -83,6 +84,36 @@ function StationNav({ activeStation, onNavigate }) {
                   {station.id === activeStation && <strong>Now</strong>}
                 </button>
               ))}
+            </div>
+            <div className="station-menu-preferences">
+              <div className="station-menu-motion-setting">
+                <label className="station-menu-toggle">
+                  <input
+                    type="checkbox"
+                    checked={appState.preferences.reducedMotion}
+                    onChange={(event) => updatePreference('reducedMotion', event.target.checked)}
+                    aria-describedby="animation-setting-help"
+                  />
+                  <span className="station-menu-toggle-track" aria-hidden="true" />
+                  <span className="station-menu-toggle-copy">
+                    <strong>Limit animations</strong>
+                    <small>
+                      {appState.preferences.reducedMotion ? 'Reduced motion' : 'Full motion'}
+                    </small>
+                  </span>
+                </label>
+                <span
+                  className="station-menu-motion-help"
+                  tabIndex="0"
+                  aria-label="About the Limit animations setting"
+                >
+                  ?
+                  <span id="animation-setting-help" role="tooltip">
+                    Shortens interface animations and transitions. Content and game timing stay the same.
+                  </span>
+                </span>
+              </div>
+              <GitHubRepoLink />
             </div>
           </div>
         </div>

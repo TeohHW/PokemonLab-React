@@ -12,6 +12,28 @@ import {
   TYPE_NAMES,
 } from '../shared/stationShared';
 
+const QUIZ_BEST_STORAGE_KEY = 'pokemon-lab-quiz-best-v1';
+
+const loadQuizBest = () => {
+  try {
+    return JSON.parse(localStorage.getItem(QUIZ_BEST_STORAGE_KEY)) || { score: 0, streak: 0 };
+  } catch {
+    return { score: 0, streak: 0 };
+  }
+};
+
+const applyQuizDifficulty = (question, difficulty) => {
+  const choiceCount = difficulty === 'easy' ? 2 : difficulty === 'normal' ? 3 : 4;
+  if (question.choices.length <= choiceCount) return question;
+
+  const distractors = question.choices.filter((choice) => choice !== question.answer);
+  return {
+    ...question,
+    choices: [question.answer, ...distractors.slice(0, choiceCount - 1)]
+      .sort(() => Math.random() - 0.5),
+  };
+};
+
 function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTeam, onOpenTrainerDex }) {
   const [selectedDex, setSelectedDex] = useState(ALL_POKEDEX_OPTION.id);
   const [selectedCategory, setSelectedCategory] = useState('mixed');
@@ -23,11 +45,17 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
   const [roundCount, setRoundCount] = useState(0);
   const [streak, setStreak] = useState(0);
   const [autoContinue, setAutoContinue] = useState(false);
+  const [difficulty, setDifficulty] = useState('normal');
+  const [sessionLength, setSessionLength] = useState('10');
+  const [sessionComplete, setSessionComplete] = useState(false);
+  const [categoryResults, setCategoryResults] = useState({});
+  const [personalBest, setPersonalBest] = useState(loadQuizBest);
   const [loadingList, setLoadingList] = useState(true);
   const [loadingQuestion, setLoadingQuestion] = useState(false);
   const [error, setError] = useState('');
   const [isCryPlaying, setIsCryPlaying] = useState(false);
   const [pendingLeaveAction, setPendingLeaveAction] = useState(null);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const quizAudioRef = useRef(null);
   const autoContinueTimerRef = useRef(null);
 
@@ -108,10 +136,12 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
     setSelectedAnswer('');
     setCurrentQuestion(null);
     setIsCryPlaying(false);
+    setSessionComplete(false);
+    setCategoryResults({});
   };
 
   const startNextQuestion = useCallback(() => {
-    if (loadingList || !pokemonList.length || !Object.keys(typeChart).length) {
+    if (sessionComplete || loadingList || !pokemonList.length || !Object.keys(typeChart).length) {
       return;
     }
 
@@ -140,13 +170,13 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
 
     tryBuildQuestion()
       .then((question) => {
-        setCurrentQuestion(question);
+        setCurrentQuestion(applyQuizDifficulty(question, difficulty));
       })
       .catch((fetchError) => {
         setError(fetchError.message);
       })
       .finally(() => setLoadingQuestion(false));
-  }, [loadingList, pokemonList, selectedCategory, selectedDex, typeChart]);
+  }, [difficulty, loadingList, pokemonList, selectedCategory, selectedDex, sessionComplete, typeChart]);
 
   const answerQuestion = (answer) => {
     if (!currentQuestion || selectedAnswer) {
@@ -154,24 +184,53 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
     }
 
     setSelectedAnswer(answer);
-    setRoundCount((previousCount) => previousCount + 1);
+    const nextRoundCount = roundCount + 1;
+    const isCorrect = answer === currentQuestion.answer;
+    const nextScore = score + (isCorrect ? 1 : 0);
+    const nextStreak = isCorrect ? streak + 1 : 0;
+    const hasFinishedSession =
+      sessionLength !== 'endless' && nextRoundCount >= Number(sessionLength);
+    setRoundCount(nextRoundCount);
+    setCategoryResults((currentResults) => {
+      const category = currentQuestion.category || selectedCategory;
+      const currentCategory = currentResults[category] || { correct: 0, total: 0 };
+      return {
+        ...currentResults,
+        [category]: {
+          correct: currentCategory.correct + (isCorrect ? 1 : 0),
+          total: currentCategory.total + 1,
+        },
+      };
+    });
 
-    if (answer === currentQuestion.answer) {
+    if (isCorrect) {
       setScore((previousScore) => previousScore + 1);
       setStreak((previousStreak) => previousStreak + 1);
-      if (autoContinue) {
+      if (autoContinue && !hasFinishedSession) {
         autoContinueTimerRef.current = setTimeout(() => {
           startNextQuestion();
         }, 1200);
       }
-      return;
+    } else {
+      setStreak(0);
+      if (autoContinue && !hasFinishedSession) {
+        autoContinueTimerRef.current = setTimeout(() => {
+          startNextQuestion();
+        }, 1600);
+      }
     }
 
-    setStreak(0);
-    if (autoContinue) {
-      autoContinueTimerRef.current = setTimeout(() => {
-        startNextQuestion();
-      }, 1600);
+    const nextBest = {
+      score: Math.max(personalBest.score, nextScore),
+      streak: Math.max(personalBest.streak, nextStreak),
+    };
+    if (nextBest.score !== personalBest.score || nextBest.streak !== personalBest.streak) {
+      setPersonalBest(nextBest);
+      localStorage.setItem(QUIZ_BEST_STORAGE_KEY, JSON.stringify(nextBest));
+    }
+    if (hasFinishedSession) {
+      clearTimeout(autoContinueTimerRef.current);
+      setSessionComplete(true);
     }
   };
 
@@ -330,6 +389,7 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
   const activeDex = TEAM_POKEDEX_OPTIONS.find((pokedex) => pokedex.id === selectedDex);
   const answeredCorrectly = selectedAnswer && selectedAnswer === currentQuestion?.answer;
   const answeredIncorrectly = selectedAnswer && selectedAnswer !== currentQuestion?.answer;
+  const sessionAccuracy = roundCount ? Math.round((score / roundCount) * 100) : 0;
 
   return (
     <div className="app-container quiz-page">
@@ -361,8 +421,21 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
         />
       </header>
 
+      <button
+        type="button"
+        className="mobile-filter-toggle nes-btn"
+        aria-controls="quiz-controls"
+        aria-expanded={mobileFiltersOpen}
+        onClick={() => setMobileFiltersOpen((isOpen) => !isOpen)}
+      >
+        {mobileFiltersOpen ? 'Hide Quiz Settings' : 'Show Quiz Settings'}
+      </button>
+
       <section className="quiz-layout">
-        <aside className="quiz-control-panel">
+        <aside
+          id="quiz-controls"
+          className={`quiz-control-panel ${mobileFiltersOpen ? '' : 'is-mobile-collapsed'}`}
+        >
           <label htmlFor="quiz-pokedex-select">Quiz Pool</label>
           <select
             id="quiz-pokedex-select"
@@ -370,11 +443,7 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
             onChange={(event) => {
               setSelectedDex(event.target.value);
               setLoadingList(true);
-              setCurrentQuestion(null);
-              setSelectedAnswer('');
-              setScore(0);
-              setRoundCount(0);
-              setStreak(0);
+              resetQuiz();
             }}
           >
             {TEAM_POKEDEX_OPTIONS.map((pokedex) => (
@@ -390,8 +459,7 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
             value={selectedCategory}
             onChange={(event) => {
               setSelectedCategory(event.target.value);
-              setCurrentQuestion(null);
-              setSelectedAnswer('');
+              resetQuiz();
             }}
           >
             {QUIZ_CATEGORY_OPTIONS.map((category) => (
@@ -400,6 +468,39 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
               </option>
             ))}
           </select>
+
+          <div className="quiz-setup-grid">
+            <label htmlFor="quiz-difficulty-select">
+              Difficulty
+              <select
+                id="quiz-difficulty-select"
+                value={difficulty}
+                onChange={(event) => {
+                  setDifficulty(event.target.value);
+                  resetQuiz();
+                }}
+              >
+                <option value="easy">Easy · 2 choices</option>
+                <option value="normal">Normal · 3 choices</option>
+                <option value="hard">Hard · 4 choices</option>
+              </select>
+            </label>
+            <label htmlFor="quiz-length-select">
+              Session
+              <select
+                id="quiz-length-select"
+                value={sessionLength}
+                onChange={(event) => {
+                  setSessionLength(event.target.value);
+                  resetQuiz();
+                }}
+              >
+                <option value="10">10 questions</option>
+                <option value="20">20 questions</option>
+                <option value="endless">Endless</option>
+              </select>
+            </label>
+          </div>
 
           <dl className="quiz-score-card">
             <div>
@@ -415,6 +516,9 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
               <dd>{streak}</dd>
             </div>
           </dl>
+          <p className="quiz-personal-best">
+            Personal best: {personalBest.score} correct · {personalBest.streak} streak
+          </p>
 
           <label className="quiz-toggle">
             <input
@@ -429,10 +533,10 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
             <button
               type="button"
               className="nes-btn is-success"
-              onClick={startNextQuestion}
+              onClick={sessionComplete ? resetQuiz : startNextQuestion}
               disabled={loadingList || loadingQuestion || !pokemonList.length || !Object.keys(typeChart).length}
             >
-              {currentQuestion ? 'Next Question' : 'Start Quiz'}
+              {sessionComplete ? 'New Quiz' : currentQuestion ? 'Next Question' : 'Start Quiz'}
             </button>
             <button type="button" className="nes-btn" onClick={resetQuiz} disabled={!roundCount && !currentQuestion}>
               Reset
@@ -442,6 +546,7 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
           <p className="quiz-pool-note">
             {loadingList ? 'Loading quiz pool...' : `${activeDex?.label || 'Quiz'}: ${pokemonList.length} Pokemon`}
           </p>
+          <p className="quiz-local-note">No sign-in required. Scores stay on this device.</p>
           {error && <p className="pokedex-error">{error}</p>}
         </aside>
 
@@ -459,7 +564,27 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
               </div>
             )}
 
-            {!loadingQuestion && currentQuestion && (
+            {!loadingQuestion && sessionComplete && (
+              <section className="quiz-session-summary" aria-labelledby="quiz-summary-title">
+                <span className="nes-pokeball" aria-hidden="true" />
+                <h2 id="quiz-summary-title">Session Complete</h2>
+                <strong>{score} / {roundCount}</strong>
+                <p>{sessionAccuracy}% accuracy · Best streak {personalBest.streak}</p>
+                <dl>
+                  {Object.entries(categoryResults).map(([category, result]) => (
+                    <div key={category}>
+                      <dt>{category}</dt>
+                      <dd>{result.correct} / {result.total}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <button type="button" className="nes-btn is-success" onClick={resetQuiz}>
+                  Play Again
+                </button>
+              </section>
+            )}
+
+            {!loadingQuestion && currentQuestion && !sessionComplete && (
               <>
                 <div className="quiz-visual-stage">
                   {renderQuizVisual()}
@@ -493,7 +618,7 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
               </>
             )}
 
-            {!loadingQuestion && !currentQuestion && (
+            {!loadingQuestion && !currentQuestion && !sessionComplete && (
               <div className="quiz-empty-state">
                 <span className="nes-pokeball" aria-hidden="true" />
                 <h2>Ready Check</h2>

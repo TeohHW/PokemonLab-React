@@ -2,7 +2,25 @@
 
 This document is the detailed feature reference for the stations currently implemented in Pokemon Lab. It describes the behavior in the application itself; planned features are intentionally excluded.
 
+For review or handoff work, use the copy-ready [current change and QA prompt](CURRENT_CHANGE_HANDOFF.md). It defines the previous committed baseline, accepted scope, explicit exclusions, and regression matrix.
+
+## Current application at a glance
+
+| Area | Current behavior |
+| --- | --- |
+| Access | Every station and casual game works without an account |
+| Navigation | Hash routes, browser Back/Forward, bookmarkable supported selections, and Home Continue |
+| Local continuity | Four recent Home shortcuts plus remembered Pokedex, TCG, TrainerDex, quiz-best, team, collection, and leaderboard state |
+| Accessibility | Keyboard-operable controls, contained modal focus, Escape closing, focus restoration, and reduced-animation support |
+| Responsive UI | Desktop, tablet, and mobile layouts with collapsible long control panels |
+| Visual direction | Shared retro NES/Game Boy presentation with readable proportional fonts for long body copy |
+| Excluded behavior | No favorites, account requirement, daily challenge, team sharing/import, battle simulator, or competitive stat editors |
+
 ## Shared application experience
+
+Station and selected-item state is represented in hash-based routes, enabling browser Back/Forward navigation and bookmarkable Pokedex, TCG set, and TrainerDex views. The Home screen offers a Continue action for the last visited station plus shortcuts for recently viewed Pokemon, trainers, and cards. No account or sign-in is required.
+
+Dialogs contain keyboard focus, close with Escape, and restore focus to their trigger. The `Limit animations` preference can be enabled from the station menu and includes explanatory help. Long secondary sections use progressive disclosure, and station controls collapse behind a dedicated toggle on smaller screens.
 
 All stations use the same responsive, retro NES/Game Boy-inspired interface and can be opened from the shared station menu. The menu links Home, Pokedex, TCG Simulator, Who's That Pokemon, Team Planner, Pokemon Quiz, and TrainerDex without requiring a full page reload.
 
@@ -11,6 +29,8 @@ Pokemon and type information is loaded from PokeAPI. The shared PokeAPI client k
 Interactive cards and overlays include keyboard-operable controls, labelled form inputs, loading and error states, and modal dialog semantics where appropriate. Layouts collapse for tablets and mobile screens.
 
 ## Pokedex
+
+Recent usability additions include type-ahead search suggestions, previous/next profile navigation, side-by-side Pokemon comparison, retry actions, loading skeletons, and restoration of the most recently selected Pokedex and Pokemon.
 
 The Pokedex is a game-aware Pokemon browser and reference station.
 
@@ -83,6 +103,8 @@ The move table is specifically a level-up move reference. It is not a complete T
 
 ## Pokemon TCG Simulator
 
+Recent usability additions include Reveal All / Skip Animation, binder filters for owned, missing, duplicate, and newly pulled cards, a short local pull history, a sticky selected-set action bar, and restoration of the most recently selected set.
+
 The TCG Simulator combines an expansion browser, animated booster opening, cross-set card search, and a persistent collection binder.
 
 ### Expansion catalog
@@ -114,6 +136,7 @@ The reveal experience includes:
 - Set logo and release year
 - A holo treatment on rare slots
 - A `New` marker for cards not previously owned
+- A Reveal All / Skip Animation action
 - Direct access to another pack without closing the overlay
 - Opening an already-revealed card in the full detail view
 
@@ -128,11 +151,14 @@ Cards are added to the binder after the complete reveal. Duplicate pulls increas
 - Search the active binder.
 - Sort cards by collector number or rarity.
 - Reverse rarity sorting between rarest-first and most-common-first.
+- Filter the binder by all, owned, missing, duplicate, or latest-pull cards.
 - Open owned or unowned cards in the shared detail viewer.
 - Clear only the active set's binder.
 - Clear every binder after a confirmation dialog.
 
 Collection data is saved to browser `localStorage`, so pulls remain available after reloading the application on the same browser profile. It is not synchronized between browsers or devices.
+
+The ten most recent pulls are also kept locally with their set, card count, newly owned count, rare-card names, and timestamp.
 
 ### Card details
 
@@ -145,6 +171,8 @@ The shared card overlay can display:
 - A holo overlay for rare pack pulls
 
 ## Who's That Pokemon?
+
+No account is required. Easy mode shows answer choices, Normal mode offers three progressively revealing hints with a score tradeoff, and Hard mode keeps the silhouette unaided. Players can choose a 10-round session with a final summary or Endless play.
 
 Who's That Pokemon is an open-ended silhouette guessing game with regional challenge pools and a saved local leaderboard.
 
@@ -162,8 +190,8 @@ Who's That Pokemon is an open-ended silhouette guessing game with regional chall
 - Present its official artwork as a silhouette.
 - Accept a free-text Pokemon name guess.
 - Normalize supported Pokemon names and forms when checking the answer.
-- Offer an optional four-answer help panel containing the answer and three regional distractors.
-- Award one point for a correct guess; an incorrect guess ends the round without adding a point.
+- Show answer choices automatically on Easy or up to three progressively revealing hints on Normal.
+- Award one point for an unassisted correct guess. Each Normal hint reduces the available reward by 0.25, to a minimum of 0.25; an incorrect guess awards no points.
 - Track the current score and number of completed rounds.
 - Reveal the Pokemon after either result.
 - Start the next round with a button or the Enter key.
@@ -196,6 +224,8 @@ Featured cards open in the same detailed card viewer used by the Pokedex and TCG
 Leaderboard entries are stored in browser `localStorage`. The active round itself is not restored after a reload.
 
 ## Team Planner
+
+The planner can create, rename, load, update, and delete up to 12 locally saved teams. Dedicated Build and Analysis tabs keep roster editing separate from coverage guidance, while each member's detailed build controls are collapsed by default for faster full-team scanning.
 
 The Team Planner is a casual six-Pokemon composition tool with game-aware builds, format profiles, source-backed recommendations, and live team analysis.
 
@@ -284,9 +314,11 @@ The preview initially approximates a candidate with STAB coverage and constant p
 
 ### Current scope
 
-The Team Planner does not currently include held items, EVs, IVs, Tera types, exact damage calculation, battle simulation, bring-four planning, team import/export, or share codes. A team can be saved to browser `localStorage` and restored after a page reload on the same browser profile.
+The Team Planner does not currently include held items, EVs, IVs, Tera types, exact damage calculation, battle simulation, bring-four planning, team import/export, or share codes. Up to 12 named teams can be saved to browser `localStorage` and restored on the same browser profile.
 
 ## Pokemon Quiz
+
+No account is required. Easy, Normal, and Hard modes show two, three, or four answer choices, while 10-question, 20-question, and Endless sessions offer different play lengths. Finite sessions finish with accuracy and category results, and the best score and streak are stored on the current device.
 
 Pokemon Quiz is an unlimited multiple-choice quiz generator backed by the selected Pokedex and live Pokemon/type data.
 
@@ -302,7 +334,7 @@ Pokemon Quiz is an unlimited multiple-choice quiz generator backed by the select
 
 Answers are disabled after one selection. The correct choice is identified, and an incorrect result displays the correct answer.
 
-Quiz scores are session-only and are not stored in a leaderboard.
+The best score and streak are stored locally. There is no account-based or public leaderboard.
 
 ### Question categories
 
@@ -337,6 +369,8 @@ Questions can use:
 Each question is generated from the selected pool, and distractors are drawn from Pokemon, types, abilities, generations, regions, or stats appropriate to that question.
 
 ## TrainerDex
+
+Recent usability additions include previous/next trainer navigation, retry actions, loading skeletons, and restoration of the last viewed region, game, battle stage, and trainer.
 
 TrainerDex is a browsable dossier of notable in-game trainers, their game-specific teams, matchup analysis, and related TCG cards.
 
@@ -422,10 +456,12 @@ TrainerDex is a curated in-game trainer reference. It does not simulate trainer 
 | Data | Persistence |
 | --- | --- |
 | PokeAPI response cache | IndexedDB, with an additional in-memory cache |
+| Last station, recently viewed items, and reduced-motion preference | Browser `localStorage` |
 | TCG binder collection and duplicate counts | Browser `localStorage` |
+| TCG pull history and last selected set | Browser `localStorage` |
 | Who's That Pokemon leaderboard | Browser `localStorage` |
-| Active Pokedex selection and entry | Current React session only |
+| Active Pokedex selection and entry | Browser `localStorage` |
 | Active Who's That Pokemon round | Current React session only |
-| Saved Team Planner team | Browser `localStorage` |
-| Pokemon Quiz score and streak | Current React session only |
-| TrainerDex selection | Current React session only |
+| Up to 12 named Team Planner teams | Browser `localStorage` |
+| Pokemon Quiz best score and streak | Browser `localStorage` |
+| TrainerDex selection | Browser `localStorage` |

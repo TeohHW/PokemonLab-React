@@ -5,6 +5,7 @@ import teamLogo from '../../logos/team_planner.png';
 import trainerdexLogo from '../../logos/trainerdex.png';
 import whoLogo from '../../logos/whos_that_pokemon.png';
 import { GitHubRepoLink } from '../stations/shared/stationShared';
+import { useAppState } from '../utils/appState';
 
 const HOME_STATIONS = [
   {
@@ -52,6 +53,14 @@ const HOME_STATIONS = [
 ];
 
 function HomePage({ onChoose }) {
+  const { appState } = useAppState();
+  const lastStation = HOME_STATIONS.find((station) => station.id === appState.lastStation);
+  const recentItems = [
+    ...appState.recent.pokemon.map((item) => ({ ...item, kind: 'Pokemon', station: 'pokedex', params: { pokemon: item.id } })),
+    ...appState.recent.trainers.map((item) => ({ ...item, kind: 'Trainer', station: 'trainerdex', params: { trainer: item.id } })),
+    ...appState.recent.cards.map((item) => ({ ...item, kind: 'Card', station: 'tcg', params: { set: item.setId || '' } })),
+  ].sort((a, b) => b.viewedAt - a.viewedAt).slice(0, 4);
+
   return (
     <main className="home-screen">
       <div className="home-repo-link">
@@ -64,6 +73,25 @@ function HomePage({ onChoose }) {
             <h1>Pokemon Lab</h1>
           </div>
         </div>
+
+        {lastStation && (
+          <section className="home-continue-panel" aria-labelledby="continue-title">
+            <div>
+              <p className="home-section-kicker">Continue</p>
+              <h2 id="continue-title">{lastStation.title}</h2>
+            </div>
+            <button
+              type="button"
+              className="nes-btn is-success"
+              onClick={() => onChoose(
+                appState.lastRoute?.station || lastStation.id,
+                appState.lastRoute?.params || {},
+              )}
+            >
+              Resume
+            </button>
+          </section>
+        )}
 
         <div className="choice-grid" aria-label="Choose an app">
           {HOME_STATIONS.map((station) => (
@@ -84,6 +112,28 @@ function HomePage({ onChoose }) {
             </button>
           ))}
         </div>
+
+        {recentItems.length > 0 && (
+          <div className="home-library-grid">
+            <section className="home-library-panel" aria-labelledby="recent-title">
+              <h2 id="recent-title">Recently Viewed</h2>
+              <div className="home-library-list">
+                {recentItems.map((item) => (
+                  <button
+                    key={`${item.kind}-${item.id}`}
+                    type="button"
+                    className={`home-library-item home-library-item-${item.station} nes-btn`}
+                    onClick={() => onChoose(item.station, item.params)}
+                  >
+                    <span className="home-library-item-kind">{item.kind}</span>
+                    <strong>{item.label}</strong>
+                    <span className="home-library-item-arrow" aria-hidden="true">&gt;</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          </div>
+        )}
 
         <p className="choice-prompt">Choose a station.</p>
       </section>

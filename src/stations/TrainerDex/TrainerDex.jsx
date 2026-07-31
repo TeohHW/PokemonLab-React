@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CachedImage,
   getCardFaceImage,
@@ -8,11 +8,13 @@ import {
   getPokemonSpriteUrl,
   handleCardImageError,
   hasFeaturedTcgCards,
+  isCardBackPlaceholderImage,
   parseReleaseDate,
   TcgCardDetailModal,
   TypeBadge,
 } from '../shared/stationShared';
 import { TRAINERDEX_OPTIONS, TRAINERDEX_TRAINERS, TRAINER_GROUPS } from './trainerDexData';
+import { addRecentItem } from '../../utils/appState';
 
 const POKEAPI_BASE_URL = 'https://pokeapi.co/api/v2';
 const TYPE_NAMES = [
@@ -45,6 +47,7 @@ const STAT_SORT_OPTIONS = [
 ];
 const FEATURED_TRAINER_CARDS_PAGE_SIZE = 9;
 const TEAM_POKEMON_TCG_CARDS_PAGE_SIZE = 8;
+const TRAINERDEX_VIEW_STORAGE_KEY = 'pokemon-lab-trainerdex-view-v1';
 const trainerArtModules = import.meta.glob('../../../trainers/*.png', {
   eager: true,
   query: '?url',
@@ -333,6 +336,14 @@ const getTrainerDefaultGameId = (trainer) => {
   );
 };
 
+const loadTrainerDexView = () => {
+  try {
+    return JSON.parse(localStorage.getItem(TRAINERDEX_VIEW_STORAGE_KEY)) || {};
+  } catch {
+    return {};
+  }
+};
+
 const isTrainerAvailableForGame = (trainer, gameId) =>
   !trainer.gameIds?.length || trainer.gameIds.includes(gameId) || Boolean(trainer.gameData?.[gameId]);
 
@@ -392,19 +403,40 @@ const trainerMatchesSearch = (trainer, searchValue = '') => {
   return searchableText.includes(normalizedSearch);
 };
 
-function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, StationNav }) {
-  const [selectedRegion, setSelectedRegion] = useState(TRAINERDEX_OPTIONS[0].id);
-  const [selectedGame, setSelectedGame] = useState(getDefaultGameId(TRAINERDEX_OPTIONS[0].id));
-  const [selectedBattleStage, setSelectedBattleStage] = useState('initial');
+function TrainerDexPage({
+  onBack,
+  onOpenPokedex,
+  onOpenTcg,
+  onOpenWhos,
+  onOpenTeam,
+  onOpenQuiz,
+  StationNav,
+  routeParams = {},
+  onRouteChange,
+}) {
+  const savedView = useMemo(() => loadTrainerDexView(), []);
+  const initialTrainer = TRAINERDEX_TRAINERS.find(
+    (trainer) => trainer.id === (routeParams.trainer || savedView.trainer),
+  ) || TRAINERDEX_TRAINERS.find((trainer) => trainer.regionId === TRAINERDEX_OPTIONS[0].id);
+  const initialRegion = initialTrainer?.regionId || TRAINERDEX_OPTIONS[0].id;
+  const initialGame = routeParams.trainer
+    ? getTrainerDefaultGameId(initialTrainer)
+    : savedView.game || getTrainerDefaultGameId(initialTrainer);
+  const [selectedRegion, setSelectedRegion] = useState(initialRegion);
+  const [selectedGame, setSelectedGame] = useState(initialGame);
+  const [selectedBattleStage, setSelectedBattleStage] = useState(
+    routeParams.trainer ? 'initial' : savedView.stage || 'initial',
+  );
   const [trainerSearchTerm, setTrainerSearchTerm] = useState('');
   const [selectedTrainerId, setSelectedTrainerId] = useState(
-    TRAINERDEX_TRAINERS.find((trainer) => trainer.regionId === TRAINERDEX_OPTIONS[0].id)?.id,
+    initialTrainer?.id,
   );
   const [tcgCards, setTcgCards] = useState([]);
   const [loadingTcgCards, setLoadingTcgCards] = useState(true);
   const [enrichedTeam, setEnrichedTeam] = useState([]);
   const [loadingTeamData, setLoadingTeamData] = useState(true);
   const [selectedTcgCard, setSelectedTcgCard] = useState(null);
+  const [unavailableTcgCardArtIds, setUnavailableTcgCardArtIds] = useState({});
   const [selectedTeamTcgMember, setSelectedTeamTcgMember] = useState(null);
   const [selectedTeamTcgCardsPage, setSelectedTeamTcgCardsPage] = useState(0);
   const [featuredTrainerCardsPageState, setFeaturedTrainerCardsPageState] = useState({
@@ -412,6 +444,9 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
     page: 0,
   });
   const [error, setError] = useState('');
+  const [dataLoadAttempt, setDataLoadAttempt] = useState(0);
+  const [teamLoadAttempt, setTeamLoadAttempt] = useState(0);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const regionTrainers = useMemo(
     () => getRegionTrainersForGame(selectedRegion, selectedGame),
@@ -451,6 +486,27 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
     () => resolveTrainerForGame(selectedTrainerBase, selectedGame, activeBattleStage),
     [selectedTrainerBase, selectedGame, activeBattleStage],
   );
+  const selectedTrainerIndex = regionTrainers.findIndex(
+    (trainer) => trainer.id === selectedTrainer.id,
+  );
+  const previousTrainer = selectedTrainerIndex > 0 ? regionTrainers[selectedTrainerIndex - 1] : null;
+  const nextTrainer =
+    selectedTrainerIndex >= 0 && selectedTrainerIndex < regionTrainers.length - 1
+      ? regionTrainers[selectedTrainerIndex + 1]
+      : null;
+  useEffect(() => {
+    addRecentItem('trainers', {
+      id: selectedTrainer.id,
+      label: selectedTrainer.name,
+      regionId: selectedTrainer.regionId,
+    });
+    localStorage.setItem(TRAINERDEX_VIEW_STORAGE_KEY, JSON.stringify({
+      trainer: selectedTrainer.id,
+      game: selectedGame,
+      stage: activeBattleStage,
+    }));
+    onRouteChange?.({ trainer: selectedTrainer.id }, { replace: true });
+  }, [activeBattleStage, onRouteChange, selectedGame, selectedTrainer.id, selectedTrainer.name, selectedTrainer.regionId]);
   const activeRegion = TRAINERDEX_OPTIONS.find((region) => region.id === selectedRegion);
   const activeGame = activeRegion?.games?.find((game) => game.id === selectedGame) || activeRegion?.games?.[0];
   const featuredGameOptions = (activeRegion?.games || [])
@@ -465,8 +521,11 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
     [visibleTrainers],
   );
   const featuredTrainerCards = useMemo(
-    () => getFeaturedTrainerTcgCards(tcgCards, selectedTrainer),
-    [tcgCards, selectedTrainer],
+    () => getFeaturedTrainerTcgCards(tcgCards, selectedTrainer)
+      .filter((card) => (
+        getCardFaceImage(card) && !unavailableTcgCardArtIds[card.id]
+      )),
+    [tcgCards, selectedTrainer, unavailableTcgCardArtIds],
   );
   const featuredTrainerCardsPageKey = `${selectedTrainer.id}:${selectedGame}:${activeBattleStage}`;
   const featuredTrainerCardsPageCount = Math.max(
@@ -486,8 +545,11 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
     (featuredTrainerCardsPage + 1) * FEATURED_TRAINER_CARDS_PAGE_SIZE,
   );
   const selectedTeamTcgCards = useMemo(
-    () => getTeamPokemonTcgCards(tcgCards, selectedTrainer, selectedTeamTcgMember),
-    [tcgCards, selectedTrainer, selectedTeamTcgMember],
+    () => getTeamPokemonTcgCards(tcgCards, selectedTrainer, selectedTeamTcgMember)
+      .filter((card) => (
+        getCardFaceImage(card) && !unavailableTcgCardArtIds[card.id]
+      )),
+    [tcgCards, selectedTrainer, selectedTeamTcgMember, unavailableTcgCardArtIds],
   );
   const selectedTeamTcgCardsPageCount = Math.max(
     1,
@@ -505,6 +567,29 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
     setSelectedTeamTcgMember(teamMember);
     setSelectedTeamTcgCardsPage(0);
   };
+  const handleFeaturedCardImageError = useCallback((event, cardId) => {
+    const hasAnotherFaceImage = Boolean(
+      event.currentTarget.dataset.fallbackSrc?.split('|').some(Boolean),
+    );
+
+    if (hasAnotherFaceImage) {
+      handleCardImageError(event);
+      return;
+    }
+
+    setUnavailableTcgCardArtIds((currentIds) => (
+      currentIds[cardId] ? currentIds : { ...currentIds, [cardId]: true }
+    ));
+  }, []);
+  const handleFeaturedCardImageLoad = useCallback((event, cardId) => {
+    if (!isCardBackPlaceholderImage(event.currentTarget)) {
+      return;
+    }
+
+    setUnavailableTcgCardArtIds((currentIds) => (
+      currentIds[cardId] ? currentIds : { ...currentIds, [cardId]: true }
+    ));
+  }, []);
   const trainerTypes = useMemo(
     () => getTrainerTeamSpecialties(selectedTrainer, enrichedTeam),
     [selectedTrainer, enrichedTeam],
@@ -524,6 +609,8 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
     }
 
     const nextTrainer = visibleTrainers[0];
+    // Keep a global search result selected when the previous regional selection is filtered out.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedRegion(nextTrainer.regionId);
     setSelectedGame(nextTrainer.resolvedGameId || getTrainerDefaultGameId(nextTrainer));
     setSelectedBattleStage('initial');
@@ -535,6 +622,7 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
     <article
       key={`${card.setId}-${card.id}`}
       className="binder-card is-owned"
+      data-card-art-entry
       role="button"
       tabIndex={0}
       onClick={() => setSelectedTcgCard(card)}
@@ -550,7 +638,8 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
         data-fallback-src={getCardFallbackImage(card)}
         alt={card.name}
         loading="lazy"
-        onError={handleCardImageError}
+        onLoad={(event) => handleFeaturedCardImageLoad(event, card.id)}
+        onError={(event) => handleFeaturedCardImageError(event, card.id)}
       />
       <div>
         <h3>{card.name}</h3>
@@ -595,7 +684,7 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
       });
 
     return () => controller.abort();
-  }, []);
+  }, [dataLoadAttempt]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -662,7 +751,7 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
       isCurrentRequest = false;
       controller.abort();
     };
-  }, [selectedTrainer]);
+  }, [selectedTrainer, teamLoadAttempt]);
 
   return (
     <div className="app-container trainerdex-page">
@@ -687,8 +776,21 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
         />
       </header>
 
+      <button
+        type="button"
+        className="mobile-filter-toggle nes-btn"
+        aria-controls="trainerdex-filters"
+        aria-expanded={mobileFiltersOpen}
+        onClick={() => setMobileFiltersOpen((isOpen) => !isOpen)}
+      >
+        {mobileFiltersOpen ? 'Hide Trainer Filters' : 'Show Trainer Filters'}
+      </button>
+
       <section className="trainerdex-layout">
-        <aside className="trainerdex-sidebar">
+        <aside
+          id="trainerdex-filters"
+          className={`trainerdex-sidebar ${mobileFiltersOpen ? '' : 'is-mobile-collapsed'}`}
+        >
           <label>Game / Region</label>
           <div className="pokedex-game-grid trainerdex-region-grid" aria-label="TrainerDex region">
             {TRAINERDEX_OPTIONS.map((region) => (
@@ -780,7 +882,24 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
         </aside>
 
         <main className="trainerdex-dossier">
-          {error && <p className="pokedex-error">{error}</p>}
+          {error && (
+            <div className="status-with-action">
+              <p className="pokedex-error" role="alert">{error}</p>
+              <button
+                type="button"
+                className="nes-btn"
+                onClick={() => {
+                  setError('');
+                  setLoadingTcgCards(true);
+                  setLoadingTeamData(true);
+                  setDataLoadAttempt((attempt) => attempt + 1);
+                  setTeamLoadAttempt((attempt) => attempt + 1);
+                }}
+              >
+                Retry
+              </button>
+            </div>
+          )}
           <section className="trainerdex-hero">
             <div className="trainerdex-art-panel">
               <img src={getTrainerArt(selectedTrainer.name)} alt={selectedTrainer.name} loading="lazy" />
@@ -790,6 +909,36 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
                 <div>
                   <p className="card-detail-set">{activeGame?.label || activeRegion?.label}</p>
                   <h2>{selectedTrainer.name}</h2>
+                </div>
+              </div>
+              <div className="trainerdex-profile-toolbar">
+                <div className="profile-navigation trainerdex-profile-navigation" aria-label="Browse adjacent trainers">
+                  <button
+                    type="button"
+                    className="nes-btn"
+                    disabled={!previousTrainer}
+                    onClick={() => {
+                      if (!previousTrainer) return;
+                      setSelectedTrainerId(previousTrainer.id);
+                      setSelectedBattleStage('initial');
+                      setLoadingTeamData(true);
+                    }}
+                  >
+                    ← {previousTrainer?.name || 'Previous'}
+                  </button>
+                  <button
+                    type="button"
+                    className="nes-btn"
+                    disabled={!nextTrainer}
+                    onClick={() => {
+                      if (!nextTrainer) return;
+                      setSelectedTrainerId(nextTrainer.id);
+                      setSelectedBattleStage('initial');
+                      setLoadingTeamData(true);
+                    }}
+                  >
+                    {nextTrainer?.name || 'Next'} →
+                  </button>
                 </div>
                 {showFeaturedGames && (
                   <div className="trainerdex-featured-games">
@@ -902,7 +1051,13 @@ function TrainerDexPage({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenTe
                 </div>
               )}
             </div>
-            {loadingTeamData && <p className="pokedex-status">Loading team analysis...</p>}
+            {loadingTeamData && (
+              <div className="loading-skeleton row-skeleton" role="status">
+                <span />
+                <span />
+                <p>Loading team analysis...</p>
+              </div>
+            )}
             <div className="trainerdex-team-panel">
               {selectedTrainer.team.map((teamMember, teamMemberIndex) => {
                 const candidateMember = enrichedTeam[teamMemberIndex];

@@ -20,6 +20,7 @@ import waterTypeIcon from '../../../pokedex/types/water.png';
 import physicalMoveIcon from '../../../pokedex/moves/move-physical.png';
 import specialMoveIcon from '../../../pokedex/moves/move-special.png';
 import statusMoveIcon from '../../../pokedex/moves/move-status.png';
+import { addRecentItem } from '../../utils/appState';
 import alphaSapphireGameArt from '../../../pokedex/games/AlphaSapphire.png';
 import blackGameArt from '../../../pokedex/games/Black.png';
 import diamondGameArt from '../../../pokedex/games/Diamond.jpg';
@@ -1701,12 +1702,33 @@ const getCardImageCandidates = (card = {}) => {
   return candidates;
 };
 
-const getCardFaceImage = (card) => getCardImageCandidates(card)[0] || CARD_BACK_IMAGE;
+const getCardFaceImage = (card) => getCardImageCandidates(card)[0];
 
 const getCardFallbackImage = (card) => getCardImageCandidates(card).slice(1).join('|');
 
 const isCardBackPlaceholderImage = (image) =>
   image?.naturalWidth === 640 && image?.naturalHeight === 892;
+
+const hideUnavailableCardArtwork = (image) => {
+  image.hidden = true;
+  image.removeAttribute('src');
+  image.removeAttribute('data-fallback-src');
+
+  const cardEntry = image.closest('[data-card-art-entry]');
+  if (cardEntry) {
+    cardEntry.hidden = true;
+    return;
+  }
+
+  const dialog = image.closest('[role="dialog"]');
+  dialog?.querySelector('.modal-close')?.click();
+};
+
+const handleCardImageLoad = (event) => {
+  if (isCardBackPlaceholderImage(event.currentTarget)) {
+    hideUnavailableCardArtwork(event.currentTarget);
+  }
+};
 
 const handleCardImageError = (event) => {
   const fallbackSrc = event.currentTarget.dataset.fallbackSrc;
@@ -1722,7 +1744,7 @@ const handleCardImageError = (event) => {
     return;
   }
 
-  event.currentTarget.src = CARD_BACK_IMAGE;
+  hideUnavailableCardArtwork(event.currentTarget);
 };
 
 const getCardTextEntries = (card = {}) => {
@@ -1740,7 +1762,22 @@ function TcgCardDetailModal({
   onClose,
   imageClassName = '',
 }) {
-  if (!card) return null;
+  const cardRecentId = card
+    ? `${card.setId || card.setName || 'unknown'}:${card.id}`
+    : '';
+
+  useEffect(() => {
+    if (!card) return;
+    addRecentItem('cards', {
+      id: cardRecentId,
+      cardId: card.id,
+      label: card.name,
+      setId: card.setId,
+      setName: card.setName,
+    });
+  }, [card, cardRecentId]);
+
+  if (!card || !getCardFaceImage(card)) return null;
 
   const textEntries = getCardTextEntries(card);
   const typeLabel = card.types?.join(', ');
@@ -1792,6 +1829,7 @@ function TcgCardDetailModal({
             src={getCardFaceImage(card)}
             data-fallback-src={getCardFallbackImage(card)}
             alt={card.name}
+            onLoad={handleCardImageLoad}
             onError={handleCardImageError}
           />
           {card.isRare && <div className="holo-overlay" aria-hidden="true" />}
@@ -2162,6 +2200,7 @@ export {
   getTypeWeaknesses,
   GitHubRepoLink,
   handleCardImageError,
+  handleCardImageLoad,
   hasFeaturedTcgCards,
   hasPlayableCards,
   isReferenceOnlyExpansion,

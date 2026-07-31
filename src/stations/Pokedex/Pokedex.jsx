@@ -5,7 +5,6 @@ import {
   ALL_POKEDEX_OPTION,
   buildEvolutionTree,
   buildPokedexEntries,
-  CARD_BACK_IMAGE,
   CachedImage,
   EvolutionBranch,
   fetchPokeApiJson,
@@ -35,6 +34,7 @@ import {
   getPokemonSpriteUrl,
   getTypeWeaknesses,
   handleCardImageError,
+  handleCardImageLoad,
   hasFeaturedTcgCards,
   isCardBackPlaceholderImage,
   matchesPokemonSearch,
@@ -48,13 +48,81 @@ import {
   STAT_SORT_OPTIONS,
   TypeBadge,
 } from '../shared/stationShared';
+import { addRecentItem } from '../../utils/appState';
 
 const POKEMON_LIST_PAGE_SIZE = 24;
+const POKEDEX_VIEW_STORAGE_KEY = 'pokemon-lab-pokedex-view-v1';
 
-function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, onOpenTrainerDex }) {
+const loadPokedexView = () => {
+  try {
+    return JSON.parse(localStorage.getItem(POKEDEX_VIEW_STORAGE_KEY)) || {};
+  } catch {
+    return {};
+  }
+};
+
+const isValidPokedexId = (pokedexId) => (
+  pokedexId === ALL_POKEDEX_OPTION.id
+  || POKEDEX_OPTIONS.some((pokedex) => pokedex.id === pokedexId)
+);
+
+const splitDetailTextIntoParagraphs = (text, preferredLength = 260) => {
+  const normalizedText = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!normalizedText) return [];
+
+  return normalizedText
+    .split(/(?<=[.!?])\s+/)
+    .reduce((paragraphs, sentence) => {
+      const previousParagraph = paragraphs.at(-1);
+      if (!previousParagraph || `${previousParagraph} ${sentence}`.length > preferredLength) {
+        paragraphs.push(sentence);
+      } else {
+        paragraphs[paragraphs.length - 1] = `${previousParagraph} ${sentence}`;
+      }
+      return paragraphs;
+    }, []);
+};
+
+const getConciseAbilityEffect = (effectEntries) => (
+  getEnglishShortEffectText(effectEntries)
+  || splitDetailTextIntoParagraphs(getEnglishEffectText(effectEntries), 220)[0]
+  || ''
+);
+
+function DetailParagraphs({ text, fallback }) {
+  const paragraphs = splitDetailTextIntoParagraphs(text || fallback);
+
+  return (
+    <div className="pokedex-info-copy">
+      {paragraphs.map((paragraph, index) => (
+        <p key={`${index}-${paragraph.slice(0, 24)}`}>{paragraph}</p>
+      ))}
+    </div>
+  );
+}
+
+function PokedexPage({
+  onBack,
+  onOpenTcg,
+  onOpenWhos,
+  onOpenTeam,
+  onOpenQuiz,
+  onOpenTrainerDex,
+  routeParams = {},
+  onRouteChange,
+}) {
+  const savedView = useMemo(() => loadPokedexView(), []);
+  const requestedDex = routeParams.dex || savedView.selectedDex;
+  const initialDex = isValidPokedexId(requestedDex)
+    ? requestedDex
+    : ALL_POKEDEX_OPTION.id;
   const [pokemonList, setPokemonList] = useState([]);
-  const [selectedDex, setSelectedDex] = useState(ALL_POKEDEX_OPTION.id);
+  const [selectedDex, setSelectedDex] = useState(initialDex);
   const [selectedPokemon, setSelectedPokemon] = useState(null);
+  const [comparisonSearch, setComparisonSearch] = useState('');
+  const [comparisonPokemon, setComparisonPokemon] = useState(null);
+  const [comparisonLoading, setComparisonLoading] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
   const [selectedTcgCard, setSelectedTcgCard] = useState(null);
   const [selectedSpriteSet, setSelectedSpriteSet] = useState(null);
   const [selectedPokedexDetail, setSelectedPokedexDetail] = useState(null);
@@ -75,7 +143,10 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
   const [loadingList, setLoadingList] = useState(true);
   const [loadingPokemon, setLoadingPokemon] = useState(false);
   const [error, setError] = useState('');
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const cryAudioRef = useRef(null);
+  const initialPokemonRef = useRef(routeParams.pokemon || savedView.pokemon || '');
 
   useEffect(() => {
     const controller = new AbortController();
@@ -108,7 +179,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
       });
 
     return () => controller.abort();
-  }, [selectedDex]);
+  }, [loadAttempt, selectedDex]);
 
   useEffect(() => {
     if (!POKEDEX_METADATA_SORTS.has(pokemonSortMode) || !pokemonList.length) {
@@ -287,6 +358,48 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
       })
       .finally(() => setLoadingPokemon(false));
   }, []);
+
+  useEffect(() => {
+    if (initialPokemonRef.current) {
+      searchPokemon(initialPokemonRef.current);
+      initialPokemonRef.current = '';
+    }
+  }, [searchPokemon]);
+
+  useEffect(() => {
+    if (!selectedPokemon) return;
+
+    const pokemonName = selectedPokemon.species?.name || selectedPokemon.name;
+    const pokemonLabel = formatPokemonName(selectedPokemon.name);
+    addRecentItem('pokemon', {
+      id: pokemonName,
+      label: pokemonLabel,
+      pokemonId: selectedPokemon.id,
+    });
+    localStorage.setItem(POKEDEX_VIEW_STORAGE_KEY, JSON.stringify({
+      selectedDex,
+      pokemon: pokemonName,
+    }));
+    onRouteChange?.({ dex: selectedDex, pokemon: pokemonName }, { replace: true });
+  }, [onRouteChange, selectedDex, selectedPokemon]);
+
+  const compareWithPokemon = useCallback(() => {
+    const validationError = getPokemonLookupValidationError(comparisonSearch);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setComparisonLoading(true);
+    setError('');
+    fetchPokemonByNameOrSpecies(normalizePokemonLookup(comparisonSearch))
+      .then((pokemon) => {
+        setComparisonPokemon(pokemon);
+        setComparisonSearch(pokemon.species?.name || pokemon.name);
+      })
+      .catch((fetchError) => setError(fetchError.message))
+      .finally(() => setComparisonLoading(false));
+  }, [comparisonSearch]);
 
   const playPokemonCry = useCallback(() => {
     const cryUrl = selectedPokemon?.cries?.latest || selectedPokemon?.cries?.legacy;
@@ -480,6 +593,31 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
   const clampedPokemonPage = Math.min(pokemonPage, pokemonPageCount);
   const pokemonPageStart = (clampedPokemonPage - 1) * POKEMON_LIST_PAGE_SIZE;
   const pagedPokemon = visiblePokemon.slice(pokemonPageStart, pokemonPageStart + POKEMON_LIST_PAGE_SIZE);
+  const selectedPokemonName = selectedPokemon?.species?.name || selectedPokemon?.name;
+  const selectedListIndex = pokemonList.findIndex((pokemon) => pokemon.name === selectedPokemonName);
+  const previousPokemon = selectedListIndex > 0 ? pokemonList[selectedListIndex - 1] : null;
+  const nextPokemon =
+    selectedListIndex >= 0 && selectedListIndex < pokemonList.length - 1
+      ? pokemonList[selectedListIndex + 1]
+      : null;
+  const pokemonSuggestions = useMemo(
+    () => (
+      searchTerm.trim().length >= 2
+        ? pokemonList.filter((pokemon) => matchesPokemonSearch(pokemon, searchTerm)).slice(0, 8)
+        : []
+    ),
+    [pokemonList, searchTerm],
+  );
+  const comparisonSuggestions = useMemo(
+    () => (
+      comparisonSearch.trim().length >= 2
+        ? pokemonList
+            .filter((pokemon) => matchesPokemonSearch(pokemon, comparisonSearch))
+            .slice(0, 8)
+        : []
+    ),
+    [comparisonSearch, pokemonList],
+  );
 
   const pokedexSortOptions = useMemo(
     () => [
@@ -569,7 +707,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
   const featuredCards = useMemo(
     () =>
       getFeaturedTcgCards(tcgCards, [selectedPokemon?.name, selectedPokemon?.species?.name])
-        .filter((card) => getCardFaceImage(card) !== CARD_BACK_IMAGE)
+        .filter((card) => Boolean(getCardFaceImage(card)))
         .filter((card) => !unavailableTcgCardArtIds[card.id]),
     [tcgCards, selectedPokemon, unavailableTcgCardArtIds],
   );
@@ -596,12 +734,25 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
       currentIds[cardId] ? currentIds : { ...currentIds, [cardId]: true }
     ));
   }, []);
+  const openFeaturedCard = useCallback((card) => {
+    addRecentItem('cards', {
+      id: `${card.setId || card.setName || 'unknown'}:${card.id}`,
+      cardId: card.id,
+      label: card.name,
+      setId: card.setId,
+      setName: card.setName,
+    });
+    setSelectedTcgCard(card);
+  }, []);
   useEffect(() => {
+    // Reset image failures when the profile changes; this synchronizes derived UI cache state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUnavailableGenerationSpriteIds({});
     setUnavailableSpriteVariantIds({});
   }, [selectedPokemon?.id]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUnavailableSpriteVariantIds({});
   }, [selectedSpriteSet?.id]);
   const getStarterName = useCallback(
@@ -634,9 +785,20 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
         />
       </header>
 
+      <button
+        type="button"
+        className="mobile-filter-toggle nes-btn"
+        aria-controls="pokedex-filters"
+        aria-expanded={mobileFiltersOpen}
+        onClick={() => setMobileFiltersOpen((isOpen) => !isOpen)}
+      >
+        {mobileFiltersOpen ? 'Hide Search & Filters' : 'Show Search & Filters'}
+      </button>
+
       <section className="pokedex-layout">
         <form
-          className="pokedex-search-panel"
+          id="pokedex-filters"
+          className={`pokedex-search-panel ${mobileFiltersOpen ? '' : 'is-mobile-collapsed'}`}
           onSubmit={(event) => {
             event.preventDefault();
             searchPokemon(searchTerm);
@@ -655,6 +817,10 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                   }`}
                   onClick={() => {
                     setSelectedDex(pokedex.id);
+                    onRouteChange?.({ dex: pokedex.id }, { replace: true });
+                    localStorage.setItem(POKEDEX_VIEW_STORAGE_KEY, JSON.stringify({
+                      selectedDex: pokedex.id,
+                    }));
                     setPokemonSortMode((currentSortMode) =>
                       currentSortMode === 'generation' && pokedex.id !== ALL_POKEDEX_OPTION.id
                         ? 'entry'
@@ -672,6 +838,8 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                     setSelectedSpriteSet(null);
                     setSelectedPokedexDetail(null);
                     setSelectedMoveGroup('');
+                    setShowComparison(false);
+                    setComparisonPokemon(null);
                     setLoadingList(true);
                   }}
                   disabled={loadingList && selectedDex === pokedex.id}
@@ -697,16 +865,39 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
 
           <label htmlFor="pokemon-search">Search Pokemon</label>
           <div className="pokedex-search-row">
-            <input
-              id="pokemon-search"
-              type="search"
-              value={searchTerm}
-              onChange={(event) => {
-                setSearchTerm(event.target.value);
-                setPokemonPage(1);
-              }}
-              placeholder="Name or number..."
-            />
+            <div className="search-with-clear pokedex-lookup-field">
+              <input
+                id="pokemon-search"
+                type="search"
+                list="pokemon-search-suggestions"
+                value={searchTerm}
+                onChange={(event) => {
+                  setSearchTerm(event.target.value);
+                  setPokemonPage(1);
+                }}
+                placeholder="Name or number..."
+              />
+              <button
+                type="button"
+                className="search-clear-button pokedex-inline-clear"
+                onClick={() => {
+                  setSearchTerm('');
+                  setPokemonPage(1);
+                }}
+                disabled={!searchTerm}
+                aria-label="Clear Pokemon search text"
+                title="Clear search text"
+              >
+                X
+              </button>
+            </div>
+            <datalist id="pokemon-search-suggestions">
+              {pokemonSuggestions.map((pokemon) => (
+                <option key={pokemon.name} value={pokemon.name}>
+                  #{pokemon.entryNumber} {formatPokemonName(pokemon.name)}
+                </option>
+              ))}
+            </datalist>
             <button type="submit" className="nes-btn is-success" disabled={loadingPokemon}>
               Search
             </button>
@@ -761,7 +952,26 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
             <p className="pokedex-status">Loading Pokemon sort data...</p>
           )}
 
-          {error && <p className="pokedex-error">{error}</p>}
+          {error && (
+            <div className="status-with-action">
+              <p className="pokedex-error" role="alert">{error}</p>
+              <button
+                type="button"
+                className="nes-btn"
+                onClick={() => {
+                  setError('');
+                  if (!pokemonList.length) {
+                    setLoadingList(true);
+                    setLoadAttempt((attempt) => attempt + 1);
+                  } else if (searchTerm) {
+                    searchPokemon(searchTerm);
+                  }
+                }}
+              >
+                Retry
+              </button>
+            </div>
+          )}
 
           {!loadingList && visiblePokemon.length > 0 && (
             <div className="pokemon-list-pager" aria-label="Pokemon quick pick pages">
@@ -819,44 +1029,53 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
 
           {selectedPokemon && (
             <section className="pokedex-section generation-sprites-section is-left-column">
-              <h3>Generation Sprites</h3>
-              <div className="generation-sprite-grid">
-                {visibleGenerationSprites.map((sprite) => (
-                  <article
-                    key={sprite.id}
-                    className="generation-sprite-card"
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setSelectedSpriteSet(sprite)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        setSelectedSpriteSet(sprite);
-                      }
-                    }}
-                  >
-                    <CachedImage
-                      src={sprite.image}
-                      alt={`${selectedPokemon.name} ${sprite.game} sprite`}
-                      onUnavailable={() => {
-                        setUnavailableGenerationSpriteIds((previousIds) => ({
-                          ...previousIds,
-                          [sprite.id]: true,
-                        }));
+              <details className="disclosure-panel">
+                <summary>Generation Sprites ({visibleGenerationSprites.length})</summary>
+                <div className="generation-sprite-grid">
+                  {visibleGenerationSprites.map((sprite) => (
+                    <article
+                      key={sprite.id}
+                      className="generation-sprite-card"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelectedSpriteSet(sprite)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          setSelectedSpriteSet(sprite);
+                        }
                       }}
-                    />
-                    <strong>{sprite.generation}</strong>
-                    <span>{sprite.game}</span>
-                  </article>
-                ))}
-              </div>
+                    >
+                      <CachedImage
+                        src={sprite.image}
+                        alt={`${selectedPokemon.name} ${sprite.game} sprite`}
+                        onUnavailable={() => {
+                          setUnavailableGenerationSpriteIds((previousIds) => ({
+                            ...previousIds,
+                            [sprite.id]: true,
+                          }));
+                        }}
+                      />
+                      <strong>{sprite.generation}</strong>
+                      <span>{sprite.game}</span>
+                    </article>
+                  ))}
+                </div>
+              </details>
             </section>
           )}
 
         </form>
 
         <article className="pokedex-card">
-          {loadingPokemon && <p className="pokedex-status">Scanning...</p>}
+          {loadingPokemon && (
+            <div className="loading-skeleton profile-skeleton" role="status" aria-label="Loading Pokemon profile">
+              <span />
+              <span />
+              <span />
+              <p>Scanning Pokemon...</p>
+            </div>
+          )}
           {!loadingPokemon && selectedPokemon && (
             <>
               <div className="pokedex-card-media">
@@ -890,6 +1109,103 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                     <TypeBadge key={type.name} type={type.name} />
                   ))}
                 </div>
+                <div
+                  className="profile-navigation pokedex-profile-navigation"
+                  aria-label="Browse or compare Pokemon"
+                >
+                  <button
+                    type="button"
+                    className="profile-nav-button is-previous nes-btn"
+                    disabled={!previousPokemon}
+                    onClick={() => previousPokemon && searchPokemon(previousPokemon.name)}
+                  >
+                    <span>← Previous</span>
+                    <strong>
+                      {previousPokemon ? formatPokemonName(previousPokemon.name) : 'Start of Pokedex'}
+                    </strong>
+                  </button>
+                  <button
+                    type="button"
+                    className="profile-compare-button nes-btn is-primary"
+                    onClick={() => setShowComparison((visible) => !visible)}
+                    aria-expanded={showComparison}
+                  >
+                    {showComparison ? 'Close Compare' : 'Compare Stats'}
+                  </button>
+                  <button
+                    type="button"
+                    className="profile-nav-button is-next nes-btn"
+                    disabled={!nextPokemon}
+                    onClick={() => nextPokemon && searchPokemon(nextPokemon.name)}
+                  >
+                    <span>Next →</span>
+                    <strong>
+                      {nextPokemon ? formatPokemonName(nextPokemon.name) : 'End of Pokedex'}
+                    </strong>
+                  </button>
+                </div>
+                {showComparison && (
+                  <section className="pokemon-comparison-panel" aria-label="Pokemon comparison">
+                    <form
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        compareWithPokemon();
+                      }}
+                    >
+                      <label htmlFor="comparison-search">Compare with</label>
+                      <div className="pokedex-search-row">
+                        <input
+                          id="comparison-search"
+                          list="pokemon-comparison-suggestions"
+                          value={comparisonSearch}
+                          onChange={(event) => setComparisonSearch(event.target.value)}
+                          placeholder="Pokemon name or number..."
+                        />
+                        <datalist id="pokemon-comparison-suggestions">
+                          {comparisonSuggestions.map((pokemon) => (
+                            <option key={pokemon.name} value={pokemon.name}>
+                              #{pokemon.entryNumber} {formatPokemonName(pokemon.name)}
+                            </option>
+                          ))}
+                        </datalist>
+                        <button
+                          type="submit"
+                          className="nes-btn is-primary"
+                          disabled={comparisonLoading || !comparisonSearch.trim()}
+                        >
+                          {comparisonLoading ? 'Loading...' : 'Compare'}
+                        </button>
+                      </div>
+                    </form>
+                    {comparisonPokemon && (
+                      <div className="pokemon-comparison-grid">
+                        {[selectedPokemon, comparisonPokemon].map((pokemon) => (
+                          <article key={pokemon.id}>
+                            <CachedImage
+                              src={pokemon.sprites?.other?.['official-artwork']?.front_default}
+                              fallbackSrc={pokemon.sprites?.front_default}
+                              alt=""
+                            />
+                            <h3>{formatPokemonName(pokemon.name)}</h3>
+                            <div className="type-row">
+                              {pokemon.types.map(({ type }) => (
+                                <TypeBadge key={type.name} type={type.name} />
+                              ))}
+                            </div>
+                            <dl>
+                              {pokemon.stats.map((stat) => (
+                                <div key={stat.stat.name}>
+                                  <dt>{STAT_LABELS[stat.stat.name] || formatPokemonName(stat.stat.name)}</dt>
+                                  <dd>{stat.base_stat}</dd>
+                                </div>
+                              ))}
+                            </dl>
+                          </article>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                )}
                 {speciesDetails && (
                   <section className="pokedex-section flavor-section">
                     <p>{getEnglishFlavorText(speciesDetails) || 'No English flavor text found.'}</p>
@@ -1001,13 +1317,12 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
               )}
 
               <section className="pokedex-section moves-section">
-                <h3>
-                  Level-Up Moves
-                  {activeMoveGroup && (
-                    <span>{formatVersionGroupName(activeMoveGroup)}</span>
-                  )}
-                </h3>
-                <div className="move-version-grid" aria-label="Level-up move version">
+                <details className="disclosure-panel">
+                  <summary>
+                    Level-Up Moves
+                    {activeMoveGroup && ` · ${formatVersionGroupName(activeMoveGroup)}`}
+                  </summary>
+                  <div className="move-version-grid" aria-label="Level-up move version">
                   {moveVersionGroups.map((versionGroup) => (
                     <button
                       key={versionGroup}
@@ -1080,7 +1395,8 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                   {!levelUpMoves.length && (
                     <p className="pokedex-status">No level-up moves found for this game.</p>
                   )}
-                </div>
+                  </div>
+                </details>
               </section>
 
             </>
@@ -1162,21 +1478,23 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
 
       {selectedPokemon && (
         <section className="pokedex-section tcg-featured-section is-full-width">
-          <h3>Featured TCG Cards</h3>
-          {loadingTcgCards && <p className="pokedex-status">Loading TCG cards...</p>}
-          {!loadingTcgCards && (
-            <div className="tcg-featured-grid">
+          <details className="disclosure-panel">
+            <summary>Featured TCG Cards ({featuredCards.length})</summary>
+            {loadingTcgCards && <p className="pokedex-status">Loading TCG cards...</p>}
+            {!loadingTcgCards && (
+              <div className="tcg-featured-grid">
               {featuredCards.map((card) => (
                 <article
                   key={`${card.setId}-${card.id}`}
                   className="binder-card is-owned"
+                  data-card-art-entry
                   role="button"
                   tabIndex={0}
-                  onClick={() => setSelectedTcgCard(card)}
+                  onClick={() => openFeaturedCard(card)}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault();
-                      setSelectedTcgCard(card);
+                      openFeaturedCard(card);
                     }
                   }}
                 >
@@ -1197,8 +1515,9 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
               {!featuredCards.length && (
                 <p className="pokedex-status">No local TCG cards found for this Pokemon.</p>
               )}
-            </div>
-          )}
+              </div>
+            )}
+          </details>
         </section>
       )}
 
@@ -1284,23 +1603,23 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                         <dd>{selectedPokedexDetail.isHidden ? 'Hidden Ability' : 'Standard Ability'}</dd>
                       </div>
                       <div>
-                        <dt>Introduced</dt>
+                        <dt>Introduced In</dt>
                         <dd>{formatGenerationName(selectedPokedexDetail.data.generation?.name) || 'Unknown'}</dd>
                       </div>
                     </dl>
                     <section className="detail-section">
                       <h3>Effect</h3>
-                      <p>
-                        {getEnglishEffectText(selectedPokedexDetail.data.effect_entries) ||
-                          'No English effect text found.'}
-                      </p>
+                      <DetailParagraphs
+                        text={getConciseAbilityEffect(selectedPokedexDetail.data.effect_entries)}
+                        fallback="No English effect text found."
+                      />
                     </section>
                     <section className="detail-section">
                       <h3>Game Description</h3>
-                      <p>
-                        {getEnglishApiFlavorText(selectedPokedexDetail.data.flavor_text_entries) ||
-                          'No English game description found.'}
-                      </p>
+                      <DetailParagraphs
+                        text={getEnglishApiFlavorText(selectedPokedexDetail.data.flavor_text_entries)}
+                        fallback="No English game description found."
+                      />
                     </section>
                   </>
                 )}
@@ -1341,24 +1660,26 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                         <dd>{selectedPokedexDetail.data.pp ?? '-'}</dd>
                       </div>
                       <div>
-                        <dt>Introduced</dt>
+                        <dt>Introduced In</dt>
                         <dd>{formatGenerationName(selectedPokedexDetail.data.generation?.name) || 'Unknown'}</dd>
                       </div>
                     </dl>
                     <section className="detail-section">
                       <h3>Effect</h3>
-                      <p>
-                        {getEnglishEffectText(selectedPokedexDetail.data.effect_entries) ||
-                          getEnglishShortEffectText(selectedPokedexDetail.data.effect_entries) ||
-                          'No English effect text found.'}
-                      </p>
+                      <DetailParagraphs
+                        text={
+                          getEnglishEffectText(selectedPokedexDetail.data.effect_entries)
+                          || getEnglishShortEffectText(selectedPokedexDetail.data.effect_entries)
+                        }
+                        fallback="No English effect text found."
+                      />
                     </section>
                     <section className="detail-section">
                       <h3>Game Description</h3>
-                      <p>
-                        {getEnglishApiFlavorText(selectedPokedexDetail.data.flavor_text_entries) ||
-                          'No English game description found.'}
-                      </p>
+                      <DetailParagraphs
+                        text={getEnglishApiFlavorText(selectedPokedexDetail.data.flavor_text_entries)}
+                        fallback="No English game description found."
+                      />
                     </section>
                   </>
                 )}
@@ -1368,7 +1689,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
         </div>
       )}
 
-      {selectedTcgCard && (
+      {selectedTcgCard && getCardFaceImage(selectedTcgCard) && (
         <div
           className="card-detail-overlay"
           role="dialog"
@@ -1413,6 +1734,7 @@ function PokedexPage({ onBack, onOpenTcg, onOpenWhos, onOpenTeam, onOpenQuiz, on
                 src={getCardFaceImage(selectedTcgCard)}
                 data-fallback-src={getCardFallbackImage(selectedTcgCard)}
                 alt={selectedTcgCard.name}
+                onLoad={handleCardImageLoad}
                 onError={handleCardImageError}
               />
               {selectedTcgCard.isRare && <div className="holo-overlay" aria-hidden="true" />}

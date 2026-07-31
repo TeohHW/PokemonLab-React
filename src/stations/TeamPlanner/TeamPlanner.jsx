@@ -34,6 +34,7 @@ import {
 
 const TEAM_POKEMON_LIST_PAGE_SIZE = 24;
 const TEAM_PLANNER_STORAGE_KEY = 'pokemon-team-planner-saved-team';
+const TEAM_PLANNER_LIBRARY_KEY = 'pokemon-team-planner-library-v1';
 const COMPETITIVE_STATS_BASE_URL = 'https://data.pkmn.cc/stats';
 
 const loadSavedTeamPlanner = () => {
@@ -57,6 +58,14 @@ const loadSavedTeamPlanner = () => {
     return hasValidMembers ? parsedPlanner : null;
   } catch {
     return null;
+  }
+};
+const loadTeamLibrary = () => {
+  try {
+    const savedLibrary = JSON.parse(localStorage.getItem(TEAM_PLANNER_LIBRARY_KEY));
+    return Array.isArray(savedLibrary) ? savedLibrary : [];
+  } catch {
+    return [];
   }
 };
 const HISTORICAL_VGC_USAGE_FORMATS = [
@@ -919,6 +928,11 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
     savedPlanner ? JSON.stringify(savedPlanner) : '',
   );
   const [saveError, setSaveError] = useState('');
+  const [plannerView, setPlannerView] = useState('build');
+  const [teamLibrary, setTeamLibrary] = useState(loadTeamLibrary);
+  const [activeSavedTeamId, setActiveSavedTeamId] = useState('');
+  const [teamName, setTeamName] = useState('My Team');
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const plannerSnapshot = useMemo(() => ({
     teamMembers,
@@ -1743,14 +1757,76 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
     setTeamMembers([]);
   };
 
-  const saveTeam = () => {
+  const saveNamedTeam = () => {
+    const trimmedName = teamName.trim();
+    if (!trimmedName || !teamMembers.length) {
+      setSaveError(trimmedName ? 'Add at least one Pokemon before saving.' : 'Enter a team name.');
+      return;
+    }
+
     try {
+      const teamId = activeSavedTeamId || `team-${Date.now()}`;
+      const savedTeam = {
+        id: teamId,
+        name: trimmedName,
+        updatedAt: Date.now(),
+        snapshot: plannerSnapshot,
+      };
+      const nextLibrary = [
+        savedTeam,
+        ...teamLibrary.filter((team) => team.id !== teamId),
+      ].slice(0, 12);
+      localStorage.setItem(TEAM_PLANNER_LIBRARY_KEY, JSON.stringify(nextLibrary));
       localStorage.setItem(TEAM_PLANNER_STORAGE_KEY, plannerSignature);
+      setTeamLibrary(nextLibrary);
+      setActiveSavedTeamId(teamId);
       setSavedPlannerSignature(plannerSignature);
       setSaveError('');
     } catch {
       setSaveError('Unable to save this team in local storage.');
     }
+  };
+
+  const loadNamedTeam = (teamId) => {
+    const savedTeam = teamLibrary.find((team) => team.id === teamId);
+    if (!savedTeam?.snapshot) return;
+
+    const snapshot = savedTeam.snapshot;
+    setTeamMembers(snapshot.teamMembers?.slice(0, 6) || []);
+    setSelectedDex(snapshot.selectedDex || ALL_POKEDEX_OPTION.id);
+    setSelectedBattleFormat(snapshot.selectedBattleFormat || BATTLE_FORMATS[0].id);
+    setSelectedChampionYear(snapshot.selectedChampionYear || WORLD_CHAMPION_TEAMS[0].year);
+    setUseNatureAdjustedStats(snapshot.useNatureAdjustedStats ?? true);
+    setTeamName(savedTeam.name);
+    setActiveSavedTeamId(savedTeam.id);
+    setSavedPlannerSignature(JSON.stringify(snapshot));
+    localStorage.setItem(TEAM_PLANNER_STORAGE_KEY, JSON.stringify(snapshot));
+    setLoadingList(true);
+    setPokemonList([]);
+    setError('');
+    setSaveError('');
+  };
+
+  const startNewNamedTeam = () => {
+    localStorage.removeItem(TEAM_PLANNER_STORAGE_KEY);
+    setActiveSavedTeamId('');
+    setTeamName(`Team ${teamLibrary.length + 1}`);
+    setTeamMembers([]);
+    setSavedPlannerSignature('');
+    setSaveError('');
+    setPlannerView('build');
+  };
+
+  const deleteNamedTeam = () => {
+    if (!activeSavedTeamId) return;
+    const nextLibrary = teamLibrary.filter((team) => team.id !== activeSavedTeamId);
+    localStorage.setItem(TEAM_PLANNER_LIBRARY_KEY, JSON.stringify(nextLibrary));
+    localStorage.removeItem(TEAM_PLANNER_STORAGE_KEY);
+    setTeamLibrary(nextLibrary);
+    setActiveSavedTeamId('');
+    setTeamName('My Team');
+    setSavedPlannerSignature('');
+    setSaveError('');
   };
 
   const selectTeamAbility = (memberId, ability) => {
@@ -2048,8 +2124,21 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
         />
       </header>
 
+      <button
+        type="button"
+        className="mobile-filter-toggle nes-btn"
+        aria-controls="team-planner-controls"
+        aria-expanded={mobileFiltersOpen}
+        onClick={() => setMobileFiltersOpen((isOpen) => !isOpen)}
+      >
+        {mobileFiltersOpen ? 'Hide Team Controls' : 'Show Team Controls'}
+      </button>
+
       <section className="team-planner-layout">
-        <aside className="team-control-panel">
+        <aside
+          id="team-planner-controls"
+          className={`team-control-panel ${mobileFiltersOpen ? '' : 'is-mobile-collapsed'}`}
+        >
           <label htmlFor="team-game-select">Game Pokedex</label>
           <select
             id="team-game-select"
@@ -2132,21 +2221,54 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
           </select>
 
           <p className="team-count-badge">{teamMembers.length}/6 selected</p>
-          <div className="team-save-row">
+          <section className="team-library-panel" aria-labelledby="saved-teams-title">
+            <div className="team-library-heading">
+              <strong id="saved-teams-title">Saved Teams</strong>
+              <button type="button" className="nes-btn" onClick={startNewNamedTeam}>
+                New
+              </button>
+            </div>
+            {teamLibrary.length > 0 && (
+              <select
+                aria-label="Load a saved team"
+                value={activeSavedTeamId}
+                onChange={(event) => loadNamedTeam(event.target.value)}
+              >
+                <option value="">Choose a saved team...</option>
+                {teamLibrary.map((team) => (
+                  <option key={team.id} value={team.id}>{team.name}</option>
+                ))}
+              </select>
+            )}
+            <label htmlFor="team-name">Team name</label>
+            <input
+              id="team-name"
+              value={teamName}
+              maxLength={40}
+              onChange={(event) => setTeamName(event.target.value)}
+              placeholder="My Team"
+            />
+            <div className="team-save-row">
             <button
               type="button"
               className="nes-btn is-primary"
-              onClick={saveTeam}
-              disabled={!teamMembers.length || isPlannerSaved || loadingTeamMember}
+                onClick={saveNamedTeam}
+                disabled={!teamMembers.length || loadingTeamMember}
             >
-              {isPlannerSaved ? 'Team Saved' : 'Save Team'}
+                {activeSavedTeamId ? 'Update Team' : 'Save Team'}
             </button>
+              {activeSavedTeamId && (
+                <button type="button" className="nes-btn is-error" onClick={deleteNamedTeam}>
+                  Delete
+                </button>
+              )}
+            </div>
             <span className={saveError ? 'is-error' : ''} role="status">
               {saveError || (isPlannerSaved
                 ? 'This team will be restored after reload.'
-                : 'Save this team to restore it after reload.')}
+                : `${teamLibrary.length}/12 saved teams`)}
             </span>
-          </div>
+          </section>
           {loadingPokemonMetadata && (
             <p className="pokedex-status">Loading Pokemon sort data...</p>
           )}
@@ -2287,10 +2409,29 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
         </aside>
 
         <main className="team-builder-panel">
+          <nav className="team-view-tabs" aria-label="Team planner view">
+            <button
+              type="button"
+              className={`nes-btn ${plannerView === 'build' ? 'is-primary' : ''}`}
+              aria-pressed={plannerView === 'build'}
+              onClick={() => setPlannerView('build')}
+            >
+              Build
+            </button>
+            <button
+              type="button"
+              className={`nes-btn ${plannerView === 'analysis' ? 'is-primary' : ''}`}
+              aria-pressed={plannerView === 'analysis'}
+              onClick={() => setPlannerView('analysis')}
+            >
+              Analysis
+            </button>
+          </nav>
           <p className="team-move-source-note">
             <strong>Data and build defaults:</strong> PokéAPI supplies Pokémon stats, forms, abilities, and moves available in {formatVersionGroupName(activeVersionGroup)}.
             Competitive usage data helps choose move and nature defaults when available; otherwise the planner uses role, move, and base-stat fallbacks.
           </p>
+          {plannerView === 'build' && (
           <section className="team-slot-grid" aria-label="Team slots">
             {teamMembers.map((member) => (
               <article key={member.id} className="team-member-card">
@@ -2319,6 +2460,8 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
                   </div>
                 </div>
 
+                <details className="team-member-build-disclosure">
+                  <summary>Build options</summary>
                 <div className="team-form-slot">
                   {(member.formOptions?.length || 0) > 1 && (
                     <div className="team-form-control">
@@ -2426,6 +2569,7 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
                     ))}
                   </div>
                 </div>
+                </details>
               </article>
             ))}
 
@@ -2435,7 +2579,10 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
               </article>
             ))}
           </section>
+          )}
 
+          {plannerView === 'analysis' && (
+          <>
           <section className="team-assistant-panel" aria-labelledby="team-assistant-title">
             <div className="team-assistant-header">
               <div>
@@ -2814,6 +2961,8 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
             </article>
 
           </section>
+          </>
+          )}
         </main>
       </section>
 

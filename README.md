@@ -42,14 +42,19 @@ Demo: https://pokemon-lab-react.vercel.app/
 
 ## Features
 
-- **Pokédex** — browse by game/region, search, view stats, weaknesses, abilities, evolutions, forms, moves, cries, and generation sprites
-- **TCG Simulator** — open single, ten-pack, random, and God Pack pulls; track collection in a binder with set filters, search, and card detail views
-- **Trainer Dex** — browse Gym Leaders, Elite Four, Champions, Kahunas, and special trainers by region, with teams, type analysis, counters, and rematch info
-- **Team Planner** — build a casual six-Pokémon team manually or with meta-aware, random, and World Champion roster fills; configure forms, abilities, moves, and natures; and review format legality, team roles, nature-adjusted stats, move balance, type coverage, and suggested swaps
-- **Who's That Pokémon?** — silhouette guessing game with hints, scoring, and a saved leaderboard
-- **Pokémon Quiz** — mixed-category questions covering types, evolutions, generations, stats, cries, moves, and effectiveness
+Pokemon Lab is a collection of casual Pokemon reference and game stations. No account is required. The application supports bookmarkable station routes, browser Back/Forward navigation, a Continue shortcut, four recently viewed items, remembered station choices, accessible dialogs, and an optional `Limit animations` preference. On smaller screens, long station controls collapse behind dedicated toggles.
 
-See the [detailed station feature reference](docs/STATION_FEATURES.md) for complete behavior, data sources, persistence, and current scope.
+- **Pokédex** — browse by game/region, search, view stats, weaknesses, abilities, evolutions, forms, moves, cries, and generation sprites
+- **TCG Simulator** — open single, ten-pack, random, and God Pack pulls; filter a persistent binder; review recent pulls; and search cards across released sets
+- **Trainer Dex** — browse notable in-game trainers by region and game, inspect initial/rematch teams, review matchup guidance, and explore related TCG cards
+- **Team Planner** — build and locally save up to 12 named casual teams; configure forms, abilities, moves, and natures; and review roles, format warnings, coverage, and suggested swaps
+- **Who's That Pokémon?** — play Easy, Normal, or Hard silhouette rounds in ten-round or Endless sessions with staged hints and a local leaderboard
+- **Pokémon Quiz** — play Easy, Normal, or Hard mixed-category quizzes in ten-question, twenty-question, or Endless sessions with local best-score tracking
+
+See:
+
+- [Detailed station feature reference](docs/STATION_FEATURES.md) for the current application behavior, data sources, persistence, and scope.
+- [Current change handoff and QA prompt](docs/CURRENT_CHANGE_HANDOFF.md) for a copy-ready comparison against the previous committed scope and the required regression matrix.
 
 Retro NES/Game Boy visual style with responsive layouts. PokéAPI responses and sprites are cached locally via IndexedDB to minimise repeat requests.
 
@@ -59,6 +64,16 @@ Retro NES/Game Boy visual style with responsive layouts. PokéAPI responses and 
 npm install
 npm run dev
 ```
+
+## Validation
+
+```bash
+npm run build
+npm run lint
+git diff --check
+```
+
+There is currently no automated test script. Behavioral changes should be checked using the manual matrix in the [change handoff](docs/CURRENT_CHANGE_HANDOFF.md). The current build may report a non-blocking large-chunk warning, and lint may report Fast Refresh warnings for the shared station module.
 
 ## About
 
