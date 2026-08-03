@@ -1345,6 +1345,10 @@ button.brand-home-button:focus-visible {
   transition: transform 160ms ease;
 }
 
+[data-card-art-entry][hidden] {
+  display: none !important;
+}
+
 .binder-card:hover {
   transform: translateY(-4px);
 }

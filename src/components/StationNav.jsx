@@ -78,6 +78,7 @@ function StationNav({ activeStation, onNavigate }) {
                   className={`station-menu-option ${
                     station.id === activeStation ? 'is-active' : ''
                   }`}
+                  data-dialog-initial-focus={station.id === 'home' ? 'true' : undefined}
                   onClick={() => handleNavigate(station.id)}
                 >
                   <span>{station.label}</span>

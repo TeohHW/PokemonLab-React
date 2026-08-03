@@ -77,6 +77,9 @@ function App() {
         'button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
       ),
     ].filter((element) => !element.hasAttribute('hidden'));
+    const getInitialFocusItem = (dialog) => (
+      dialog.querySelector('[data-dialog-initial-focus]') || getFocusableItems(dialog)[0]
+    );
     const syncDialog = () => {
       const nextDialog = getTopDialog();
       if (nextDialog === activeDialog) return;
@@ -89,11 +92,9 @@ function App() {
       if (nextDialog) {
         if (!activeDialog) previousFocus = document.activeElement;
         document.body.classList.add('has-open-dialog');
-        window.requestAnimationFrame(() => {
-          if (!nextDialog.contains(document.activeElement)) {
-            getFocusableItems(nextDialog)[0]?.focus();
-          }
-        });
+        if (!nextDialog.contains(document.activeElement)) {
+          getInitialFocusItem(nextDialog)?.focus({ preventScroll: true });
+        }
       }
 
       activeDialog = nextDialog;
@@ -121,7 +122,10 @@ function App() {
         if (!focusableItems.length) return;
         const firstItem = focusableItems[0];
         const lastItem = focusableItems.at(-1);
-        if (event.shiftKey && document.activeElement === firstItem) {
+        if (!dialog.contains(document.activeElement)) {
+          event.preventDefault();
+          (event.shiftKey ? lastItem : getInitialFocusItem(dialog))?.focus();
+        } else if (event.shiftKey && document.activeElement === firstItem) {
           event.preventDefault();
           lastItem.focus();
         } else if (!event.shiftKey && document.activeElement === lastItem) {
