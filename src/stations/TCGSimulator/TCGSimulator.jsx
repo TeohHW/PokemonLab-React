@@ -11,6 +11,7 @@ import {
   compactSearchText,
   createCardSearchIndex,
   expansionHasCardMatch,
+  getCardArtworkKey,
   getCardFaceImage,
   getCardFallbackImage,
   getExpansionCards,
@@ -168,6 +169,8 @@ function TcgSimulator({
   const revealTimersRef = useRef([]);
   const prepTimerRef = useRef(null);
   const revealDelayRef = useRef(CARD_FLIP_DELAY);
+  const activePackTransactionRef = useRef('');
+  const committedPackTransactionRef = useRef('');
   const binderPanelRef = useRef(null);
 
   useEffect(
@@ -215,11 +218,19 @@ function TcgSimulator({
     revealTimersRef.current = [];
   };
 
-  const addPackToBinder = useCallback((cards, force = false) => {
-    if ((!force && packAdded) || !cards.length || !cards.every((card) => card.flipped)) {
+  const addPackToBinder = useCallback((cards, transactionId) => {
+    if (
+      !transactionId ||
+      transactionId !== activePackTransactionRef.current ||
+      committedPackTransactionRef.current === transactionId ||
+      !cards.length ||
+      !cards.every((card) => card.flipped)
+    ) {
       return;
     }
 
+    // Claim the transaction synchronously before scheduling any React state updates.
+    committedPackTransactionRef.current = transactionId;
     setCollection((prevCollection) =>
       cards.reduce((nextCollection, card) => {
         const ownedCard = nextCollection[card.id];
@@ -257,7 +268,7 @@ function TcgSimulator({
       return nextHistory;
     });
     setPackAdded(true);
-  }, [packAdded]);
+  }, []);
 
   const revealAllCards = useCallback(() => {
     clearRevealTimers();
@@ -265,10 +276,10 @@ function TcgSimulator({
     setCurrentPack(revealedPack);
     setIsPreparingPack(false);
     setIsAutoRevealing(false);
-    addPackToBinder(revealedPack, true);
+    addPackToBinder(revealedPack, activePackTransactionRef.current);
   }, [addPackToBinder, currentPack]);
 
-  const revealCards = (cards, delay = CARD_FLIP_DELAY) => {
+  const revealCards = (cards, delay, transactionId) => {
     clearRevealTimers();
     setIsPreparingPack(true);
     setIsAutoRevealing(false);
@@ -280,17 +291,15 @@ function TcgSimulator({
       revealTimersRef.current = cards.map((card, index) =>
         setTimeout(() => {
           setCurrentPack((prevPack) => {
-            const nextPack = prevPack.map((packCard) =>
+            return prevPack.map((packCard) =>
               packCard.packId === card.packId ? { ...packCard, flipped: true } : packCard,
             );
-
-            if (index === cards.length - 1) {
-              setIsAutoRevealing(false);
-              addPackToBinder(cards.map((packCard) => ({ ...packCard, flipped: true })), true);
-            }
-
-            return nextPack;
           });
+          if (index === cards.length - 1) {
+            const revealedPack = cards.map((packCard) => ({ ...packCard, flipped: true }));
+            setIsAutoRevealing(false);
+            addPackToBinder(revealedPack, transactionId);
+          }
         }, (index + 1) * delay),
       );
     }, PACK_PREP_DELAY);
@@ -298,6 +307,9 @@ function TcgSimulator({
 
   const startPackReveal = (cards, revealDelay = CARD_FLIP_DELAY) => {
     clearRevealTimers();
+    const transactionId = `pack-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    activePackTransactionRef.current = transactionId;
+    committedPackTransactionRef.current = '';
     const annotatedCards = cards.map((card) => ({
       ...card,
       isNewPull: !collection[card.id],
@@ -315,7 +327,7 @@ function TcgSimulator({
     setIsAutoRevealing(false);
     setSelectedCard(null);
     revealDelayRef.current = revealDelay;
-    revealCards(annotatedCards, revealDelay);
+    revealCards(annotatedCards, revealDelay, transactionId);
   };
 
   const openPack = () => {
@@ -384,7 +396,7 @@ function TcgSimulator({
       packCard.packId === packId ? { ...packCard, flipped: true } : packCard,
     );
     setCurrentPack(nextPack);
-    addPackToBinder(nextPack);
+    addPackToBinder(nextPack, activePackTransactionRef.current);
   };
 
   const clearAllBinders = () => {
@@ -931,6 +943,7 @@ function TcgSimulator({
                 <img
                   src={getCardFaceImage(card)}
                   data-fallback-src={getCardFallbackImage(card)}
+                  data-card-art-key={getCardArtworkKey(card)}
                   alt={card.name}
                   loading="lazy"
                   onLoad={handleCardImageLoad}
@@ -1081,6 +1094,7 @@ function TcgSimulator({
                 <img
                   src={getCardFaceImage(card)}
                   data-fallback-src={getCardFallbackImage(card)}
+                  data-card-art-key={getCardArtworkKey(card)}
                   alt={card.name}
                   loading="lazy"
                   onLoad={handleCardImageLoad}
@@ -1223,6 +1237,7 @@ function TcgSimulator({
                         <img
                           src={getCardFaceImage(card)}
                           data-fallback-src={getCardFallbackImage(card)}
+                          data-card-art-key={getCardArtworkKey(card)}
                           alt={card.name}
                           onLoad={handleCardImageLoad}
                           onError={handleCardImageError}

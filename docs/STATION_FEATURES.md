@@ -138,7 +138,7 @@ The reveal experience includes:
 - Direct access to another pack without closing the overlay
 - Opening an already-revealed card in the full detail view
 
-Cards are added to the binder after the complete reveal. Duplicate pulls increase the owned quantity rather than creating separate binder entries.
+Cards are added to the binder after the complete reveal. Each opened pack is committed once, while legitimate duplicate pulls still increase the owned quantity rather than creating separate binder entries.
 
 ### Binder and collection management
 
@@ -316,7 +316,7 @@ The Team Planner does not currently include held items, EVs, IVs, Tera types, ex
 
 ## Pokemon Quiz
 
-No account is required. Easy, Normal, and Hard modes show two, three, or four answer choices, while 10-question, 20-question, and Endless sessions offer different play lengths. Finite sessions finish with accuracy and category results, and the best score and streak are stored on the current device.
+No account is required. Easy and Normal target two and three answer choices, while Hard shows up to four when the category has enough meaningful answers. The 10-question, 20-question, and Endless sessions offer different play lengths. Finite sessions finish with accuracy and category results, and the best score and streak are stored on the current device.
 
 Pokemon Quiz is an unlimited multiple-choice quiz generator backed by the selected Pokedex and live Pokemon/type data.
 

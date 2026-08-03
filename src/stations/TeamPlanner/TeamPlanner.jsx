@@ -345,6 +345,16 @@ const META_POKEMON = [
 
 const compactCompetitiveName = (value = '') => normalizeSearchText(value).replace(/\s+/g, '');
 
+const resolveCompetitiveSpeciesName = (competitiveName, availableNames) => {
+  const normalizedName = normalizePokemonLookup(competitiveName);
+
+  return [...availableNames]
+    .filter((speciesName) => (
+      normalizedName === speciesName || normalizedName.startsWith(`${speciesName}-`)
+    ))
+    .sort((firstName, secondName) => secondName.length - firstName.length)[0] || '';
+};
+
 const getMovesForVersionGroup = (pokemon, versionGroup) => pokemon.moves
   .map((move) => {
     const versionDetails = move.version_group_details.filter(
@@ -1060,29 +1070,32 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
         });
 
         return Promise.all(
-          [...usageRecords.values()].map((record) =>
-            fetchPokemonByNameOrSpecies(record.statsPokemonName, { signal: controller.signal })
-              .then((statsPokemon) => {
-                const speciesName = statsPokemon.species.name;
-                if (statsPokemon.name === speciesName) {
-                  return { pokemon: statsPokemon, record, competitiveForm: '' };
-                }
+          [...usageRecords.values()].map((record) => {
+            const normalizedCompetitiveName = normalizePokemonLookup(record.statsPokemonName);
+            const speciesName = resolveCompetitiveSpeciesName(record.statsPokemonName, availableNames);
 
-                return fetchPokemonByNameOrSpecies(speciesName, { signal: controller.signal })
-                  .then((pokemon) => ({ pokemon, record, competitiveForm: statsPokemon.name }));
-              })
+            if (!speciesName) return Promise.resolve(null);
+
+            return fetchPokemonByNameOrSpecies(speciesName, { signal: controller.signal })
+              .then((pokemon) => ({
+                pokemon,
+                record,
+                statsFormName: normalizedCompetitiveName === speciesName
+                  ? ''
+                  : normalizedCompetitiveName,
+              }))
               .catch((fetchError) => {
                 if (fetchError.name === 'AbortError') throw fetchError;
                 return null;
-              }),
-          ),
+              });
+          }),
         );
       })
       .then((resolvedRecords) => {
         if (controller.signal.aborted) return;
 
         const candidatesBySpecies = new Map();
-        resolvedRecords.filter(Boolean).forEach(({ pokemon, record, competitiveForm }) => {
+        resolvedRecords.filter(Boolean).forEach(({ pokemon, record, statsFormName }) => {
           const speciesName = pokemon.species.name;
           if (!availableNames.has(speciesName) || staticNames.has(speciesName)) return;
 
@@ -1102,10 +1115,9 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
             sourceUrl: `${COMPETITIVE_STATS_BASE_URL}/${record.format.id}.json`,
             statsFormat: record.format.id,
             statsPokemonName: record.statsPokemonName,
-            competitiveForm,
             ...(HISTORICAL_TOURNAMENT_MOVE_EVIDENCE[speciesName] || {}),
-            eraWarning: competitiveForm
-              ? `The evidence is for ${formatPokemonName(competitiveForm)}. Form availability, typing, abilities, and power can differ from the base species loaded by this planner.`
+            eraWarning: statsFormName
+              ? `The evidence is for ${formatPokemonName(statsFormName)}. Form availability, typing, abilities, and power can differ from the base species loaded by this planner.`
               : '',
           });
         });

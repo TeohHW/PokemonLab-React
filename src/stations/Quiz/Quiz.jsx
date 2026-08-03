@@ -482,7 +482,7 @@ function PokemonQuizStation({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
               >
                 <option value="easy">Easy · 2 choices</option>
                 <option value="normal">Normal · 3 choices</option>
-                <option value="hard">Hard · 4 choices</option>
+                <option value="hard">Hard · up to 4 choices</option>
               </select>
             </label>
             <label htmlFor="quiz-length-select">

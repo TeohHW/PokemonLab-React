@@ -1672,9 +1672,18 @@ const parseReleaseDate = (releaseDate = '') => {
 
 const KNOWN_MISSING_OFFICIAL_IMAGE_SET_IDS = new Set(['mcd14', 'mcd15', 'mcd17', 'mcd18']);
 const KNOWN_MISSING_OFFICIAL_IMAGE_CARD_IDS = new Set(['xyp-XY68']);
+const unavailableCardArtworkKeys = new Set();
+
+const getCardArtworkKey = (card = {}) => [
+  card.setId || card.setName || 'unknown-set',
+  card.id || card.number || card.name || 'unknown-card',
+].join(':');
 
 const getCardImageCandidates = (card = {}) => {
-  if (KNOWN_MISSING_OFFICIAL_IMAGE_CARD_IDS.has(card.id)) {
+  if (
+    KNOWN_MISSING_OFFICIAL_IMAGE_CARD_IDS.has(card.id)
+    || unavailableCardArtworkKeys.has(getCardArtworkKey(card))
+  ) {
     return [];
   }
 
@@ -1710,6 +1719,10 @@ const isCardBackPlaceholderImage = (image) =>
   image?.naturalWidth === 640 && image?.naturalHeight === 892;
 
 const hideUnavailableCardArtwork = (image) => {
+  const artworkKey = image.dataset.cardArtKey;
+  if (artworkKey) {
+    unavailableCardArtworkKeys.add(artworkKey);
+  }
   image.hidden = true;
   image.removeAttribute('src');
   image.removeAttribute('data-fallback-src');
@@ -1828,6 +1841,7 @@ function TcgCardDetailModal({
           <img
             src={getCardFaceImage(card)}
             data-fallback-src={getCardFallbackImage(card)}
+            data-card-art-key={getCardArtworkKey(card)}
             alt={card.name}
             onLoad={handleCardImageLoad}
             onError={handleCardImageError}
@@ -2176,6 +2190,7 @@ export {
   formatPokemonName,
   formatVersionGroupName,
   getAvailableLevelUpMoveGroups,
+  getCardArtworkKey,
   getCardFaceImage,
   getCardFallbackImage,
   getEnglishApiFlavorText,

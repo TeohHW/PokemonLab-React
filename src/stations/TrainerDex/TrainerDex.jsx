@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CachedImage,
+  getCardArtworkKey,
   getCardFaceImage,
   getCardFallbackImage,
   getExpansionCards,
   getExpansionCategory,
   getPokemonSpriteUrl,
   handleCardImageError,
+  handleCardImageLoad,
   hasFeaturedTcgCards,
   isCardBackPlaceholderImage,
   parseReleaseDate,
@@ -419,14 +421,23 @@ function TrainerDexPage({
     (trainer) => trainer.id === (routeParams.trainer || savedView.trainer),
   ) || TRAINERDEX_TRAINERS.find((trainer) => trainer.regionId === TRAINERDEX_OPTIONS[0].id);
   const initialRegion = initialTrainer?.regionId || TRAINERDEX_OPTIONS[0].id;
-  const initialGame = routeParams.trainer
-    ? getTrainerDefaultGameId(initialTrainer)
-    : savedView.game || getTrainerDefaultGameId(initialTrainer);
+  const initialRegionGames = TRAINERDEX_OPTIONS.find(
+    (region) => region.id === initialRegion,
+  )?.games || [];
+  const isRestoringSavedTrainer = savedView.trainer === initialTrainer?.id;
+  const requestedInitialGame = routeParams.game || (
+    isRestoringSavedTrainer ? savedView.game : ''
+  );
+  const initialGame = initialRegionGames.some((game) => game.id === requestedInitialGame)
+    && isTrainerAvailableForGame(initialTrainer, requestedInitialGame)
+    ? requestedInitialGame
+    : getTrainerDefaultGameId(initialTrainer);
+  const requestedInitialStage = routeParams.stage || (
+    isRestoringSavedTrainer ? savedView.stage : ''
+  );
   const [selectedRegion, setSelectedRegion] = useState(initialRegion);
   const [selectedGame, setSelectedGame] = useState(initialGame);
-  const [selectedBattleStage, setSelectedBattleStage] = useState(
-    routeParams.trainer ? 'initial' : savedView.stage || 'initial',
-  );
+  const [selectedBattleStage, setSelectedBattleStage] = useState(requestedInitialStage || 'initial');
   const [trainerSearchTerm, setTrainerSearchTerm] = useState('');
   const [selectedTrainerId, setSelectedTrainerId] = useState(
     initialTrainer?.id,
@@ -505,7 +516,11 @@ function TrainerDexPage({
       game: selectedGame,
       stage: activeBattleStage,
     }));
-    onRouteChange?.({ trainer: selectedTrainer.id }, { replace: true });
+    onRouteChange?.({
+      trainer: selectedTrainer.id,
+      game: selectedGame,
+      stage: activeBattleStage,
+    }, { replace: true });
   }, [activeBattleStage, onRouteChange, selectedGame, selectedTrainer.id, selectedTrainer.name, selectedTrainer.regionId]);
   const activeRegion = TRAINERDEX_OPTIONS.find((region) => region.id === selectedRegion);
   const activeGame = activeRegion?.games?.find((game) => game.id === selectedGame) || activeRegion?.games?.[0];
@@ -577,6 +592,7 @@ function TrainerDexPage({
       return;
     }
 
+    handleCardImageError(event);
     setUnavailableTcgCardArtIds((currentIds) => (
       currentIds[cardId] ? currentIds : { ...currentIds, [cardId]: true }
     ));
@@ -586,6 +602,7 @@ function TrainerDexPage({
       return;
     }
 
+    handleCardImageLoad(event);
     setUnavailableTcgCardArtIds((currentIds) => (
       currentIds[cardId] ? currentIds : { ...currentIds, [cardId]: true }
     ));
@@ -636,6 +653,7 @@ function TrainerDexPage({
       <img
         src={getCardFaceImage(card)}
         data-fallback-src={getCardFallbackImage(card)}
+        data-card-art-key={getCardArtworkKey(card)}
         alt={card.name}
         loading="lazy"
         onLoad={(event) => handleFeaturedCardImageLoad(event, card.id)}

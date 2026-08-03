@@ -9,6 +9,7 @@ import {
   fetchPokemonByNameOrSpecies,
   formatLeaderboardDate,
   formatPokemonName,
+  getCardArtworkKey,
   getCardFaceImage,
   getCardFallbackImage,
   getEnglishFlavorText,
@@ -1116,6 +1117,7 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
                       key={`${card.setId}-${card.id}`}
                       className="binder-card is-owned"
                       data-card-art-entry
+                      hidden={!getCardFaceImage(card)}
                       role="button"
                       tabIndex={0}
                       onClick={() => setSelectedTcgCard(card)}
@@ -1129,6 +1131,7 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
                       <img
                         src={getCardFaceImage(card)}
                         data-fallback-src={getCardFallbackImage(card)}
+                        data-card-art-key={getCardArtworkKey(card)}
                         alt={card.name}
                         loading="lazy"
                         onLoad={handleCardImageLoad}
@@ -1194,6 +1197,7 @@ function WhosThatPokemonPage({ onBack, onOpenPokedex, onOpenTcg, onOpenTeam, onO
               <img
                 src={getCardFaceImage(selectedTcgCard)}
                 data-fallback-src={getCardFallbackImage(selectedTcgCard)}
+                data-card-art-key={getCardArtworkKey(selectedTcgCard)}
                 alt={selectedTcgCard.name}
                 onLoad={handleCardImageLoad}
                 onError={handleCardImageError}

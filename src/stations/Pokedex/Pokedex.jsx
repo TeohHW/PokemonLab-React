@@ -15,6 +15,7 @@ import {
   formatPokemonName,
   formatVersionGroupName,
   getAvailableLevelUpMoveGroups,
+  getCardArtworkKey,
   getCardFaceImage,
   getCardFallbackImage,
   getEnglishApiFlavorText,
@@ -721,6 +722,7 @@ function PokedexPage({
       return;
     }
 
+    handleCardImageError(event);
     setUnavailableTcgCardArtIds((currentIds) => (
       currentIds[cardId] ? currentIds : { ...currentIds, [cardId]: true }
     ));
@@ -730,6 +732,7 @@ function PokedexPage({
       return;
     }
 
+    handleCardImageLoad(event);
     setUnavailableTcgCardArtIds((currentIds) => (
       currentIds[cardId] ? currentIds : { ...currentIds, [cardId]: true }
     ));
@@ -1501,6 +1504,7 @@ function PokedexPage({
                   <img
                     src={getCardFaceImage(card)}
                     data-fallback-src={getCardFallbackImage(card)}
+                    data-card-art-key={getCardArtworkKey(card)}
                     alt={card.name}
                     loading="lazy"
                     onLoad={(event) => handleFeaturedCardImageLoad(event, card.id)}
@@ -1733,6 +1737,7 @@ function PokedexPage({
               <img
                 src={getCardFaceImage(selectedTcgCard)}
                 data-fallback-src={getCardFallbackImage(selectedTcgCard)}
+                data-card-art-key={getCardArtworkKey(selectedTcgCard)}
                 alt={selectedTcgCard.name}
                 onLoad={handleCardImageLoad}
                 onError={handleCardImageError}
