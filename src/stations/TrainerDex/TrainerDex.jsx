@@ -1005,7 +1005,7 @@ function TrainerDexPage({
                   <dd>{selectedTrainer.team.length}</dd>
                 </div>
               </dl>
-              <section className="trainerdex-info-cluster" aria-label="Trainer analysis">
+              <section className="trainerdex-info-cluster" aria-label="Trainer team overview">
                 <div>
                   <h3>Types Used</h3>
                   <div className="trainerdex-type-row" aria-label="Trainer team types">
@@ -1032,7 +1032,7 @@ function TrainerDexPage({
                       <TypeBadge key={counter.type} type={counter.type} className="move-type-pill" />
                     ))}
                     {!recommendedCounters.length && (
-                      <p className="pokedex-status">Counters load after team analysis.</p>
+                      <p className="pokedex-status">Recommended types load with the Pokemon team.</p>
                     )}
                   </div>
                 </div>
@@ -1073,7 +1073,7 @@ function TrainerDexPage({
               <div className="loading-skeleton row-skeleton" role="status">
                 <span />
                 <span />
-                <p>Loading team analysis...</p>
+                <p>Loading Pokemon team...</p>
               </div>
             )}
             <div className="trainerdex-team-panel">
