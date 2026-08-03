@@ -943,6 +943,9 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
   const [activeSavedTeamId, setActiveSavedTeamId] = useState('');
   const [teamName, setTeamName] = useState('My Team');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [mobileTeamMemberId, setMobileTeamMemberId] = useState(
+    savedPlanner?.teamMembers?.[0]?.id || '',
+  );
 
   const plannerSnapshot = useMemo(() => ({
     teamMembers,
@@ -953,6 +956,9 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
   }), [selectedBattleFormat, selectedChampionYear, selectedDex, teamMembers, useNatureAdjustedStats]);
   const plannerSignature = useMemo(() => JSON.stringify(plannerSnapshot), [plannerSnapshot]);
   const isPlannerSaved = Boolean(teamMembers.length && plannerSignature === savedPlannerSignature);
+  const activeMobileTeamMemberId = teamMembers.some((member) => member.id === mobileTeamMemberId)
+    ? mobileTeamMemberId
+    : teamMembers[0]?.id || '';
 
   const battleFormat = BATTLE_FORMATS.find((format) => format.id === selectedBattleFormat) || BATTLE_FORMATS[0];
 
@@ -2444,9 +2450,38 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
             Competitive usage data helps choose move and nature defaults when available; otherwise the planner uses role, move, and base-stat fallbacks.
           </p>
           {plannerView === 'build' && (
+          <>
+          {teamMembers.length > 0 && (
+            <nav className="team-mobile-slot-selector" aria-label="Choose a Pokemon team slot">
+              {teamMembers.map((member, memberIndex) => (
+                <button
+                  key={member.id}
+                  type="button"
+                  className={`team-mobile-slot-button ${activeMobileTeamMemberId === member.id ? 'is-active' : ''}`}
+                  onClick={() => setMobileTeamMemberId(member.id)}
+                  aria-pressed={activeMobileTeamMemberId === member.id}
+                  aria-label={`Show slot ${memberIndex + 1}: ${formatPokemonName(member.name)}`}
+                >
+                  <img
+                    src={member.sprite || getPokemonSpriteUrl(member.pokemonId)}
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
+                  />
+                  <span>{memberIndex + 1}</span>
+                  <strong>{formatPokemonName(member.name)}</strong>
+                </button>
+              ))}
+            </nav>
+          )}
           <section className="team-slot-grid" aria-label="Team slots">
             {teamMembers.map((member) => (
-              <article key={member.id} className="team-member-card">
+              <article
+                key={member.id}
+                className={`team-member-card ${
+                  activeMobileTeamMemberId === member.id ? 'is-mobile-active-member' : 'is-mobile-inactive-member'
+                }`}
+              >
                 <button
                   type="button"
                   className="team-remove-button nes-btn is-error"
@@ -2591,6 +2626,7 @@ function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOp
               </article>
             ))}
           </section>
+          </>
           )}
 
           {plannerView === 'analysis' && (

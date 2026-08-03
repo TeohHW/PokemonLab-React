@@ -146,6 +146,7 @@ function PokedexPage({
   const [error, setError] = useState('');
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [mobileDetailSection, setMobileDetailSection] = useState('overview');
   const cryAudioRef = useRef(null);
   const initialPokemonRef = useRef(routeParams.pokemon || savedView.pokemon || '');
 
@@ -339,6 +340,7 @@ function PokedexPage({
     fetchPokemonByNameOrSpecies(normalizedName)
       .then((data) => {
         setSelectedPokemon(data);
+        setMobileDetailSection('overview');
         setSelectedMoveGroup('');
         setSpeciesDetails(null);
         setEvolutionTree(null);
@@ -519,6 +521,7 @@ function PokedexPage({
       })
       .then((data) => {
         setSelectedPokemon(data);
+        setMobileDetailSection('overview');
         setSelectedMoveGroup('');
         setSpeciesDetails(null);
         setEvolutionTree(null);
@@ -766,7 +769,7 @@ function PokedexPage({
   );
 
   return (
-    <div className="app-container pokedex-page">
+    <div className="app-container pokedex-page" data-mobile-detail-section={mobileDetailSection}>
       <header className="app-header">
         <button type="button" className="brand-mark brand-home-button" onClick={onBack}>
           <span className="nes-pokeball brand-pokeball" aria-hidden="true" />
@@ -797,6 +800,27 @@ function PokedexPage({
       >
         {mobileFiltersOpen ? 'Hide Search & Filters' : 'Show Search & Filters'}
       </button>
+
+      {selectedPokemon && (
+        <nav className="mobile-section-tabs pokedex-mobile-section-tabs" aria-label="Pokemon detail sections">
+          {[
+            ['overview', 'Overview'],
+            ['forms', 'Forms'],
+            ['moves', 'Moves'],
+            ['cards', 'Cards'],
+          ].map(([sectionId, label]) => (
+            <button
+              key={sectionId}
+              type="button"
+              className={`nes-btn ${mobileDetailSection === sectionId ? 'is-error' : ''}`}
+              aria-pressed={mobileDetailSection === sectionId}
+              onClick={() => setMobileDetailSection(sectionId)}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+      )}
 
       <section className="pokedex-layout">
         <form
@@ -1030,44 +1054,6 @@ function PokedexPage({
             )}
           </div>
 
-          {selectedPokemon && (
-            <section className="pokedex-section generation-sprites-section is-left-column">
-              <details className="disclosure-panel">
-                <summary>Generation Sprites ({visibleGenerationSprites.length})</summary>
-                <div className="generation-sprite-grid">
-                  {visibleGenerationSprites.map((sprite) => (
-                    <article
-                      key={sprite.id}
-                      className="generation-sprite-card"
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setSelectedSpriteSet(sprite)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          setSelectedSpriteSet(sprite);
-                        }
-                      }}
-                    >
-                      <CachedImage
-                        src={sprite.image}
-                        alt={`${selectedPokemon.name} ${sprite.game} sprite`}
-                        onUnavailable={() => {
-                          setUnavailableGenerationSpriteIds((previousIds) => ({
-                            ...previousIds,
-                            [sprite.id]: true,
-                          }));
-                        }}
-                      />
-                      <strong>{sprite.generation}</strong>
-                      <span>{sprite.game}</span>
-                    </article>
-                  ))}
-                </div>
-              </details>
-            </section>
-          )}
-
         </form>
 
         <article className="pokedex-card">
@@ -1286,9 +1272,9 @@ function PokedexPage({
                 </div>
               </section>
 
-              {alternateForms.length > 1 && (
-                <section className="pokedex-section alternate-forms-section">
-                  <h3>Alternate Forms</h3>
+              <section className="pokedex-section alternate-forms-section">
+                <h3>Forms & Sprites</h3>
+                {alternateForms.length > 1 ? (
                   <div className="alternate-form-grid">
                     {alternateForms.map((form) => (
                       <button
@@ -1316,8 +1302,43 @@ function PokedexPage({
                       </button>
                     ))}
                   </div>
-                </section>
-              )}
+                ) : (
+                  <p className="pokedex-status">No alternate forms found for this Pokemon.</p>
+                )}
+                <details className="disclosure-panel">
+                  <summary>Generation Sprites ({visibleGenerationSprites.length})</summary>
+                  <div className="generation-sprite-grid">
+                    {visibleGenerationSprites.map((sprite) => (
+                      <article
+                        key={sprite.id}
+                        className="generation-sprite-card"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setSelectedSpriteSet(sprite)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            setSelectedSpriteSet(sprite);
+                          }
+                        }}
+                      >
+                        <CachedImage
+                          src={sprite.image}
+                          alt={`${selectedPokemon.name} ${sprite.game} sprite`}
+                          onUnavailable={() => {
+                            setUnavailableGenerationSpriteIds((previousIds) => ({
+                              ...previousIds,
+                              [sprite.id]: true,
+                            }));
+                          }}
+                        />
+                        <strong>{sprite.generation}</strong>
+                        <span>{sprite.game}</span>
+                      </article>
+                    ))}
+                  </div>
+                </details>
+              </section>
 
               <section className="pokedex-section moves-section">
                 <details className="disclosure-panel">

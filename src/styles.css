@@ -9091,3 +9091,255 @@ body.has-open-dialog {
     justify-content: flex-start;
   }
 }
+
+/* Mobile density pass: keep data-rich stations navigable without changing desktop content. */
+.mobile-section-tabs,
+.team-mobile-slot-selector {
+  display: none;
+}
+
+.tcg-set-browser-content {
+  display: grid;
+  gap: 16px;
+}
+
+.set-grid-pagination {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.set-grid-pagination .nes-btn {
+  min-width: 88px;
+  min-height: 40px;
+  padding: 7px 10px;
+  font-size: 0.7rem;
+}
+
+.set-grid-pagination span {
+  color: #212529;
+  font-size: 0.76rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .mobile-section-tabs {
+    position: sticky;
+    top: 8px;
+    z-index: 12;
+    display: grid;
+    gap: 8px;
+    border: 3px solid #212529;
+    padding: 8px;
+    background: rgb(255 255 255 / 97%);
+    box-shadow: 4px 4px 0 rgb(33 37 41 / 22%);
+  }
+
+  .mobile-section-tabs .nes-btn {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 7px 8px;
+    font-size: clamp(0.66rem, 2.7vw, 0.78rem);
+  }
+
+  .trainerdex-mobile-section-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pokedex-mobile-section-tabs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-bottom: 12px;
+  }
+
+  .trainerdex-dossier[data-mobile-section='overview'] .trainerdex-team-section,
+  .trainerdex-dossier[data-mobile-section='overview'] .trainerdex-tcg-section,
+  .trainerdex-dossier[data-mobile-section='team'] .trainerdex-hero,
+  .trainerdex-dossier[data-mobile-section='team'] .trainerdex-tcg-section,
+  .trainerdex-dossier[data-mobile-section='cards'] .trainerdex-hero,
+  .trainerdex-dossier[data-mobile-section='cards'] .trainerdex-team-section {
+    display: none;
+  }
+
+  .pokedex-page[data-mobile-detail-section='overview'] .alternate-forms-section,
+  .pokedex-page[data-mobile-detail-section='overview'] .moves-section,
+  .pokedex-page[data-mobile-detail-section='overview'] .tcg-featured-section.is-full-width,
+  .pokedex-page[data-mobile-detail-section='forms'] .pokedex-card-media,
+  .pokedex-page[data-mobile-detail-section='forms'] .pokedex-card-info,
+  .pokedex-page[data-mobile-detail-section='forms'] .evolution-section,
+  .pokedex-page[data-mobile-detail-section='forms'] .moves-section,
+  .pokedex-page[data-mobile-detail-section='forms'] .tcg-featured-section.is-full-width,
+  .pokedex-page[data-mobile-detail-section='moves'] .pokedex-card-media,
+  .pokedex-page[data-mobile-detail-section='moves'] .pokedex-card-info,
+  .pokedex-page[data-mobile-detail-section='moves'] .evolution-section,
+  .pokedex-page[data-mobile-detail-section='moves'] .alternate-forms-section,
+  .pokedex-page[data-mobile-detail-section='moves'] .tcg-featured-section.is-full-width,
+  .pokedex-page[data-mobile-detail-section='cards'] .pokedex-card {
+    display: none;
+  }
+
+  .pokedex-page[data-mobile-detail-section='cards'] .pokedex-layout {
+    display: block;
+  }
+
+  .trainerdex-page .trainerdex-dossier {
+    font-size: 1rem;
+  }
+
+  .trainerdex-page .trainerdex-info-cluster h3,
+  .trainerdex-page .trainerdex-featured-group h4 {
+    font-size: 0.9rem;
+  }
+
+  .trainerdex-page .trainerdex-meta dt,
+  .trainerdex-page .trainerdex-stat-list dt,
+  .trainerdex-page .trainerdex-card-help {
+    font-size: 0.78rem;
+  }
+
+  .trainerdex-page .trainerdex-meta dd,
+  .trainerdex-page .trainerdex-stat-list dd,
+  .trainerdex-page .trainerdex-move-list li {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .team-mobile-slot-selector {
+    position: sticky;
+    top: 68px;
+    z-index: 7;
+    display: flex;
+    gap: 8px;
+    max-width: 100%;
+    overflow-x: auto;
+    border: 3px solid #212529;
+    padding: 8px;
+    background: rgb(255 255 255 / 97%);
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+  }
+
+  .team-mobile-slot-button {
+    display: grid;
+    flex: 0 0 94px;
+    grid-template-columns: 34px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    gap: 2px 6px;
+    align-items: center;
+    min-height: 54px;
+    border: 3px solid #212529;
+    padding: 5px;
+    color: #212529;
+    background: #ffffff;
+    font-family: "Pokemon GB", "Courier New", monospace;
+    scroll-snap-align: start;
+  }
+
+  .team-mobile-slot-button.is-active {
+    color: #ffffff;
+    background: #209cee;
+    box-shadow: inset -3px -3px 0 #075985;
+  }
+
+  .team-mobile-slot-button img {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    image-rendering: pixelated;
+  }
+
+  .team-mobile-slot-button span,
+  .team-mobile-slot-button strong {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 0.58rem;
+    line-height: 1.2;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .team-planner-page .team-slot-grid .is-mobile-inactive-member,
+  .team-planner-page .team-slot-grid:has(.team-member-card:not(.is-empty)) .team-member-card.is-empty {
+    display: none;
+  }
+
+  .trainerdex-page .trainerdex-team-panel {
+    grid-auto-flow: column;
+    grid-auto-columns: min(82vw, 310px);
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 12px;
+    scroll-snap-type: x mandatory;
+  }
+
+  .trainerdex-page .trainerdex-team-row {
+    align-content: start;
+    min-height: 330px;
+    border: 3px solid #212529;
+    padding: 12px;
+    scroll-snap-align: start;
+  }
+
+  .trainerdex-page .trainerdex-team-row:first-child,
+  .trainerdex-page .trainerdex-team-row:last-child {
+    padding: 12px;
+  }
+
+  .trainerdex-page .trainerdex-team-row:last-child {
+    border-bottom: 3px solid #212529;
+  }
+
+  .tcg-page {
+    padding-bottom: calc(178px + env(safe-area-inset-bottom));
+  }
+
+  .tcg-page .tcg-selected-set-actions {
+    position: fixed;
+    right: 8px;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    left: 8px;
+    z-index: 22;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin: 0;
+    padding: 8px;
+    box-shadow: 0 -5px 0 rgb(33 37 41 / 22%);
+  }
+
+  .tcg-page .tcg-selected-set-label {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    min-width: 0;
+  }
+
+  .tcg-page .tcg-selected-set-label strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tcg-page .tcg-selected-set-actions .nes-btn {
+    min-height: 40px;
+    padding: 6px 4px;
+    font-size: 0.6rem;
+  }
+
+  .set-grid-pagination .nes-btn {
+    min-width: 72px;
+  }
+
+  .set-grid-pagination span {
+    font-size: 0.68rem;
+  }
+}

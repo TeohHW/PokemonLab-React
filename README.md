@@ -4,6 +4,8 @@ A browser-based Pokémon lab built with React, combining a Pokédex, TCG simulat
 
 Demo: https://pokemon-lab-react.vercel.app/
 
+> **Viewing note:** Pokemon Lab is responsive and supports smaller screens, but its data-dense stations are best viewed on a desktop or laptop.
+
 ## Screenshots
 
 | Pokédex | TCG Simulator |

@@ -120,6 +120,7 @@ const compareCardsByRarity = (firstCard, secondCard, rarityDirection) => {
 
 const TCG_VIEW_STORAGE_KEY = 'pokemon-lab-tcg-view-v1';
 const TCG_PULL_HISTORY_KEY = 'pokemon-lab-tcg-pull-history-v1';
+const EXPANSION_PAGE_SIZE = 8;
 
 const loadPullHistory = () => {
   try {
@@ -166,6 +167,8 @@ function TcgSimulator({
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [loadAttempt, setLoadAttempt] = useState(0);
+  const [expansionPage, setExpansionPage] = useState(1);
+  const [setBrowserOpen, setSetBrowserOpen] = useState(true);
   const revealTimersRef = useRef([]);
   const prepTimerRef = useRef(null);
   const revealDelayRef = useRef(CARD_FLIP_DELAY);
@@ -675,6 +678,12 @@ function TcgSimulator({
       sortMode,
     ],
   );
+  const expansionPageCount = Math.max(1, Math.ceil(visibleExpansions.length / EXPANSION_PAGE_SIZE));
+  const activeExpansionPage = Math.min(expansionPage, expansionPageCount);
+  const visibleExpansionPage = visibleExpansions.slice(
+    (activeExpansionPage - 1) * EXPANSION_PAGE_SIZE,
+    activeExpansionPage * EXPANSION_PAGE_SIZE,
+  );
 
   const chooseSet = (setId) => {
     const nextSet = allExpansions?.[setId];
@@ -747,13 +756,23 @@ function TcgSimulator({
             </button>
           </div>
         )}
+        <details
+          className="disclosure-panel tcg-set-browser-disclosure"
+          open={setBrowserOpen}
+          onToggle={(event) => setSetBrowserOpen(event.currentTarget.open)}
+        >
+          <summary>Browse expansions ({visibleExpansions.length})</summary>
+          <div className="tcg-set-browser-content">
         <div className="series-filter" aria-label="Filter by series">
           {seriesOptions.map((series) => (
             <button
               key={series}
               type="button"
               className={`series-button ${selectedSeries === series ? 'is-active' : ''}`}
-              onClick={() => setSelectedSeries(series)}
+              onClick={() => {
+                setSelectedSeries(series);
+                setExpansionPage(1);
+              }}
               disabled={loading}
             >
               {series}
@@ -781,7 +800,10 @@ function TcgSimulator({
             id="set-search"
             type="text"
             value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
+            onChange={(event) => {
+              setSearchTerm(event.target.value);
+              setExpansionPage(1);
+            }}
             placeholder="Try Charizard, Base Set, or Base Set Charizard..."
             disabled={loading}
           />
@@ -789,7 +811,10 @@ function TcgSimulator({
             <button
               type="button"
               className="search-clear-button"
-              onClick={() => setSearchTerm('')}
+              onClick={() => {
+                setSearchTerm('');
+                setExpansionPage(1);
+              }}
               disabled={loading}
               aria-label="Clear expansion search"
               title="Clear expansion search"
@@ -819,7 +844,10 @@ function TcgSimulator({
         <select
           id="set-sort"
           value={sortMode}
-          onChange={(event) => setSortMode(event.target.value)}
+          onChange={(event) => {
+            setSortMode(event.target.value);
+            setExpansionPage(1);
+          }}
           disabled={loading}
         >
           <option value="release-oldest">Release year: oldest first</option>
@@ -828,7 +856,7 @@ function TcgSimulator({
         </select>
 
         <div className="set-grid" aria-label="Expansion sets">
-          {visibleExpansions.map(([key, expansion]) => (
+          {visibleExpansionPage.map(([key, expansion]) => (
             <button
               key={key}
               type="button"
@@ -871,6 +899,32 @@ function TcgSimulator({
             <p className="pokedex-status" role="status">No sets or cards match this search.</p>
           )}
         </div>
+
+        {!loading && visibleExpansions.length > 0 && (
+          <nav className="set-grid-pagination" aria-label="Expansion set pages">
+            <button
+              type="button"
+              className="nes-btn"
+              onClick={() => setExpansionPage(Math.max(1, activeExpansionPage - 1))}
+              disabled={activeExpansionPage === 1}
+            >
+              Prev
+            </button>
+            <span aria-live="polite">
+              Page {activeExpansionPage} / {expansionPageCount} · {visibleExpansions.length} sets
+            </span>
+            <button
+              type="button"
+              className="nes-btn"
+              onClick={() => setExpansionPage(Math.min(expansionPageCount, activeExpansionPage + 1))}
+              disabled={activeExpansionPage === expansionPageCount}
+            >
+              Next
+            </button>
+          </nav>
+        )}
+          </div>
+        </details>
 
         <div className="button-group tcg-selected-set-actions">
           <p className="tcg-selected-set-label">

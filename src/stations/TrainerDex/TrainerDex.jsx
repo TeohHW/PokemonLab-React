@@ -458,6 +458,7 @@ function TrainerDexPage({
   const [dataLoadAttempt, setDataLoadAttempt] = useState(0);
   const [teamLoadAttempt, setTeamLoadAttempt] = useState(0);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [mobileDossierSection, setMobileDossierSection] = useState('overview');
 
   const regionTrainers = useMemo(
     () => getRegionTrainersForGame(selectedRegion, selectedGame),
@@ -899,7 +900,24 @@ function TrainerDexPage({
           </div>
         </aside>
 
-        <main className="trainerdex-dossier">
+        <main className="trainerdex-dossier" data-mobile-section={mobileDossierSection}>
+          <nav className="mobile-section-tabs trainerdex-mobile-section-tabs" aria-label="Trainer dossier sections">
+            {[
+              ['overview', 'Overview'],
+              ['team', 'Team'],
+              ['cards', 'Cards'],
+            ].map(([sectionId, label]) => (
+              <button
+                key={sectionId}
+                type="button"
+                className={`nes-btn ${mobileDossierSection === sectionId ? 'is-primary' : ''}`}
+                aria-pressed={mobileDossierSection === sectionId}
+                onClick={() => setMobileDossierSection(sectionId)}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
           {error && (
             <div className="status-with-action">
               <p className="pokedex-error" role="alert">{error}</p>
@@ -918,7 +936,7 @@ function TrainerDexPage({
               </button>
             </div>
           )}
-          <section className="trainerdex-hero">
+          <section className="trainerdex-hero" id="trainerdex-overview-section">
             <div className="trainerdex-art-panel">
               <img src={getTrainerArt(selectedTrainer.name)} alt={selectedTrainer.name} loading="lazy" />
             </div>
@@ -1040,7 +1058,7 @@ function TrainerDexPage({
             </div>
           </section>
 
-          <section className="pokedex-section trainerdex-team-section">
+          <section className="pokedex-section trainerdex-team-section" id="trainerdex-team-section">
             <div className="trainerdex-section-heading">
               <div className="trainerdex-team-title-row">
                 <h3>Pokemon Team</h3>
@@ -1132,7 +1150,7 @@ function TrainerDexPage({
             </div>
           </section>
 
-          <section className="pokedex-section tcg-featured-section trainerdex-tcg-section">
+          <section className="pokedex-section tcg-featured-section trainerdex-tcg-section" id="trainerdex-cards-section">
             <div className="trainerdex-tcg-heading">
               <h3>Featured TCG Cards</h3>
               {!loadingTcgCards && featuredTrainerCards.length > 0 && (
