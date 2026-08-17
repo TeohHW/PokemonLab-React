@@ -4,8 +4,54 @@ import tcgLogo from '../../logos/tcg_simulator.png';
 import teamLogo from '../../logos/team_planner.png';
 import trainerdexLogo from '../../logos/trainerdex.png';
 import whoLogo from '../../logos/whos_that_pokemon.png';
-import { GitHubRepoLink } from '../stations/shared/stationShared';
+import { GitHubRepoLink, loadCollection } from '../stations/shared/stationShared';
 import { useAppState } from '../utils/appState';
+
+const TEAM_PLANNER_STORAGE_KEY = 'pokemon-team-planner-saved-team';
+const TCG_VIEW_STORAGE_KEY = 'pokemon-lab-tcg-view-v1';
+
+const loadSavedTeamCount = () => {
+  try {
+    const savedTeam = JSON.parse(localStorage.getItem(TEAM_PLANNER_STORAGE_KEY));
+    return Array.isArray(savedTeam?.teamMembers) ? savedTeam.teamMembers.length : 0;
+  } catch {
+    return 0;
+  }
+};
+
+const getContinueTasks = (appState) => {
+  const tasks = [];
+  const savedTeamCount = loadSavedTeamCount();
+  const collection = loadCollection();
+  const collectedCards = Object.values(collection).filter((card) => card?.count > 0);
+
+  if (savedTeamCount > 0) {
+    tasks.push({
+      id: 'team',
+      station: 'team',
+      title: 'Team Planner',
+      detail: `${savedTeamCount} of 6 Pokemon selected`,
+      params: {},
+    });
+  }
+
+  if (collectedCards.length > 0) {
+    const cardCount = collectedCards.reduce((total, card) => total + card.count, 0);
+    const savedSet = localStorage.getItem(TCG_VIEW_STORAGE_KEY) || '';
+    tasks.push({
+      id: 'tcg',
+      station: 'tcg',
+      title: 'TCG Binder',
+      detail: `${collectedCards.length} unique / ${cardCount} total cards`,
+      params: savedSet ? { set: savedSet } : {},
+    });
+  }
+
+  return tasks.sort((firstTask, secondTask) => (
+    Number(secondTask.station === appState.lastStation)
+    - Number(firstTask.station === appState.lastStation)
+  ));
+};
 
 const HOME_STATIONS = [
   {
@@ -54,12 +100,7 @@ const HOME_STATIONS = [
 
 function HomePage({ onChoose }) {
   const { appState } = useAppState();
-  const lastStation = HOME_STATIONS.find((station) => station.id === appState.lastStation);
-  const recentItems = [
-    ...appState.recent.pokemon.map((item) => ({ ...item, kind: 'Pokemon', station: 'pokedex', params: { pokemon: item.id } })),
-    ...appState.recent.trainers.map((item) => ({ ...item, kind: 'Trainer', station: 'trainerdex', params: { trainer: item.id } })),
-    ...appState.recent.cards.map((item) => ({ ...item, kind: 'Card', station: 'tcg', params: { set: item.setId || '' } })),
-  ].sort((a, b) => b.viewedAt - a.viewedAt).slice(0, 4);
+  const continueTasks = getContinueTasks(appState);
 
   return (
     <main className="home-screen">
@@ -74,22 +115,25 @@ function HomePage({ onChoose }) {
           </div>
         </div>
 
-        {lastStation && (
-          <section className="home-continue-panel" aria-labelledby="continue-title">
-            <div>
-              <p className="home-section-kicker">Continue</p>
-              <h2 id="continue-title">{lastStation.title}</h2>
+        {continueTasks.length > 0 && (
+          <section className="home-continue-row" aria-labelledby="continue-title">
+            <h2 id="continue-title">Continue</h2>
+            <div className="home-continue-list">
+              {continueTasks.map((task) => (
+                <button
+                  key={task.id}
+                  type="button"
+                  className={`home-continue-item home-continue-item-${task.station} nes-btn`}
+                  onClick={() => onChoose(task.station, task.params)}
+                >
+                  <span>
+                    <strong>{task.title}</strong>
+                    <small>{task.detail}</small>
+                  </span>
+                  <span className="home-continue-arrow" aria-hidden="true">&gt;</span>
+                </button>
+              ))}
             </div>
-            <button
-              type="button"
-              className="nes-btn is-success"
-              onClick={() => onChoose(
-                appState.lastRoute?.station || lastStation.id,
-                appState.lastRoute?.params || {},
-              )}
-            >
-              Resume
-            </button>
           </section>
         )}
 
@@ -112,28 +156,6 @@ function HomePage({ onChoose }) {
             </button>
           ))}
         </div>
-
-        {recentItems.length > 0 && (
-          <div className="home-library-grid">
-            <section className="home-library-panel" aria-labelledby="recent-title">
-              <h2 id="recent-title">Recently Viewed</h2>
-              <div className="home-library-list">
-                {recentItems.map((item) => (
-                  <button
-                    key={`${item.kind}-${item.id}`}
-                    type="button"
-                    className={`home-library-item home-library-item-${item.station} nes-btn`}
-                    onClick={() => onChoose(item.station, item.params)}
-                  >
-                    <span className="home-library-item-kind">{item.kind}</span>
-                    <strong>{item.label}</strong>
-                    <span className="home-library-item-arrow" aria-hidden="true">&gt;</span>
-                  </button>
-                ))}
-              </div>
-            </section>
-          </div>
-        )}
 
         <p className="choice-prompt">Choose a station.</p>
       </section>

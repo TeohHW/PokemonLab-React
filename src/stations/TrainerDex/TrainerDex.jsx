@@ -16,7 +16,6 @@ import {
   TypeBadge,
 } from '../shared/stationShared';
 import { TRAINERDEX_OPTIONS, TRAINERDEX_TRAINERS, TRAINER_GROUPS } from './trainerDexData';
-import { addRecentItem } from '../../utils/appState';
 
 const POKEAPI_BASE_URL = 'https://pokeapi.co/api/v2';
 const TYPE_NAMES = [
@@ -507,11 +506,6 @@ function TrainerDexPage({
       ? regionTrainers[selectedTrainerIndex + 1]
       : null;
   useEffect(() => {
-    addRecentItem('trainers', {
-      id: selectedTrainer.id,
-      label: selectedTrainer.name,
-      regionId: selectedTrainer.regionId,
-    });
     localStorage.setItem(TRAINERDEX_VIEW_STORAGE_KEY, JSON.stringify({
       trainer: selectedTrainer.id,
       game: selectedGame,

@@ -8410,8 +8410,7 @@ button.choice-card.nes-btn:active:not(:disabled)::after {
 }
 
 @media (max-width: 640px) {
-  .status-with-action,
-  .home-continue-panel {
+  .status-with-action {
     align-items: stretch;
     flex-direction: column;
   }
@@ -8648,140 +8647,112 @@ body.has-open-dialog {
   padding-bottom: 32px;
 }
 
-.home-continue-panel {
+.home-continue-row {
   display: flex;
-  gap: 18px;
+  gap: 12px;
   align-items: center;
-  justify-content: space-between;
   border: 4px solid #174a7a;
-  padding: 14px 18px;
+  padding: 8px 10px;
   background: rgb(255 255 255 / 90%);
   box-shadow: 4px 4px 0 #72a8b8;
 }
 
-.home-continue-panel h2,
-.home-section-kicker {
+.home-continue-row h2 {
+  flex: 0 0 auto;
   margin: 0;
+  font-size: 0.8rem;
 }
 
-.home-section-kicker,
-.home-library-item-kind {
-  color: #555555;
-  font-size: 0.7rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.home-library-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 12px;
-}
-
-.home-library-panel {
-  border: 4px solid #174a7a;
-  padding: 14px;
-  background: rgb(255 255 255 / 86%);
-  box-shadow: 4px 4px 0 #72a8b8;
-}
-
-.home-library-panel h2 {
-  margin-bottom: 12px;
-}
-
-.home-library-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.home-continue-list {
+  display: flex;
+  min-width: 0;
+  flex: 1;
   gap: 8px;
+  overflow-x: auto;
+  padding: 2px;
 }
 
-.home-library-list .home-library-item.nes-btn {
-  --library-accent: #2a75bb;
-  --library-accent-dark: #174a7a;
-  --library-accent-light: #edf6ff;
+.home-continue-item.nes-btn {
+  --continue-accent: #2a75bb;
+  --continue-accent-dark: #174a7a;
+  --continue-accent-light: #edf6ff;
 
-  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 28px;
-  grid-template-rows: auto auto;
-  gap: 5px 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
   align-items: center;
-  justify-items: start;
-  width: 100%;
-  min-height: 72px;
+  flex: 0 0 clamp(240px, 32vw, 360px);
+  min-height: 52px;
   border: 0;
-  padding: 12px 14px;
+  padding: 8px 12px;
   color: #12384d;
-  background: linear-gradient(135deg, #ffffff 18%, var(--library-accent-light));
+  background: linear-gradient(135deg, #ffffff 18%, var(--continue-accent-light));
   box-shadow:
-    inset 0 0 0 4px var(--library-accent-dark),
-    inset 0 0 0 7px color-mix(in srgb, var(--library-accent) 38%, #ffffff),
-    4px 4px 0 #72a8b8;
+    inset 0 0 0 3px var(--continue-accent-dark),
+    inset 0 0 0 6px color-mix(in srgb, var(--continue-accent) 38%, #ffffff);
   text-align: left;
   white-space: normal;
 }
 
-.home-library-list .home-library-item.nes-btn::after {
+.home-continue-item.nes-btn::after {
   box-shadow: none;
 }
 
-.home-library-list .home-library-item.nes-btn:hover:not(:disabled),
-.home-library-list .home-library-item.nes-btn:active:not(:disabled),
-.home-library-list .home-library-item.nes-btn:focus-visible {
+.home-continue-item.nes-btn:hover:not(:disabled),
+.home-continue-item.nes-btn:active:not(:disabled),
+.home-continue-item.nes-btn:focus-visible {
   color: #12384d;
   background: linear-gradient(
     135deg,
     #ffffff 8%,
-    color-mix(in srgb, var(--library-accent) 24%, #ffffff)
+    color-mix(in srgb, var(--continue-accent) 24%, #ffffff)
   );
-  outline: 3px solid var(--library-accent);
+  outline: 3px solid var(--continue-accent);
   outline-offset: -3px;
   box-shadow:
-    inset 0 0 0 4px var(--library-accent-dark),
-    inset 0 0 0 7px color-mix(in srgb, var(--library-accent) 50%, #ffffff),
-    4px 4px 0 #72a8b8;
+    inset 0 0 0 3px var(--continue-accent-dark),
+    inset 0 0 0 6px color-mix(in srgb, var(--continue-accent) 50%, #ffffff);
   transform: none;
 }
 
-.home-library-item-kind,
-.home-library-item strong {
-  grid-column: 1;
+.home-continue-item > span:first-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
 }
 
-.home-library-item strong {
+.home-continue-item strong,
+.home-continue-item small {
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.home-library-item-arrow {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  align-self: stretch;
-  display: grid;
-  place-items: center;
-  width: 28px;
-  color: var(--library-accent-dark);
-  font-size: 1.25rem;
+.home-continue-item small {
+  color: #555555;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
-.home-library-list .home-library-item-pokedex.nes-btn {
-  --library-accent: #e3350d;
-  --library-accent-dark: #9f1c12;
-  --library-accent-light: #fff1ee;
+.home-continue-arrow {
+  color: var(--continue-accent-dark);
+  font-size: 1.1rem;
 }
 
-.home-library-list .home-library-item-tcg.nes-btn {
-  --library-accent: #3b3b3b;
-  --library-accent-dark: #050505;
-  --library-accent-light: #f4f4f4;
+.home-continue-item-team.nes-btn {
+  --continue-accent: #49a35b;
+  --continue-accent-dark: #247836;
+  --continue-accent-light: #eff9ef;
 }
 
-.home-library-list .home-library-item-trainerdex.nes-btn {
-  --library-accent: #0f766e;
-  --library-accent-dark: #115e59;
-  --library-accent-light: #e9f5fb;
+.home-continue-item-tcg.nes-btn {
+  --continue-accent: #3b3b3b;
+  --continue-accent-dark: #050505;
+  --continue-accent-light: #f4f4f4;
 }
 
 .choice-grid {
@@ -8804,17 +8775,17 @@ body.has-open-dialog {
 }
 
 @media (max-width: 760px) {
-  .home-library-grid,
-  .home-library-list {
-    grid-template-columns: 1fr;
+  .home-continue-row {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
-  .home-continue-panel {
-    align-items: stretch;
+  .home-continue-list {
+    width: 100%;
   }
 
-  .home-continue-panel .nes-btn {
-    flex: 0 0 auto;
+  .home-continue-item.nes-btn {
+    flex-basis: min(78vw, 300px);
   }
 }
 

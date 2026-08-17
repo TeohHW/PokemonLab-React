@@ -20,7 +20,6 @@ import waterTypeIcon from '../../../pokedex/types/water.png';
 import physicalMoveIcon from '../../../pokedex/moves/move-physical.png';
 import specialMoveIcon from '../../../pokedex/moves/move-special.png';
 import statusMoveIcon from '../../../pokedex/moves/move-status.png';
-import { addRecentItem } from '../../utils/appState';
 import alphaSapphireGameArt from '../../../pokedex/games/AlphaSapphire.png';
 import blackGameArt from '../../../pokedex/games/Black.png';
 import diamondGameArt from '../../../pokedex/games/Diamond.jpg';
@@ -1775,21 +1774,6 @@ function TcgCardDetailModal({
   onClose,
   imageClassName = '',
 }) {
-  const cardRecentId = card
-    ? `${card.setId || card.setName || 'unknown'}:${card.id}`
-    : '';
-
-  useEffect(() => {
-    if (!card) return;
-    addRecentItem('cards', {
-      id: cardRecentId,
-      cardId: card.id,
-      label: card.name,
-      setId: card.setId,
-      setName: card.setName,
-    });
-  }, [card, cardRecentId]);
-
   if (!card || !getCardFaceImage(card)) return null;
 
   const textEntries = getCardTextEntries(card);

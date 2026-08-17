@@ -49,7 +49,6 @@ import {
   STAT_SORT_OPTIONS,
   TypeBadge,
 } from '../shared/stationShared';
-import { addRecentItem } from '../../utils/appState';
 
 const POKEMON_LIST_PAGE_SIZE = 24;
 const POKEDEX_VIEW_STORAGE_KEY = 'pokemon-lab-pokedex-view-v1';
@@ -373,12 +372,6 @@ function PokedexPage({
     if (!selectedPokemon) return;
 
     const pokemonName = selectedPokemon.species?.name || selectedPokemon.name;
-    const pokemonLabel = formatPokemonName(selectedPokemon.name);
-    addRecentItem('pokemon', {
-      id: pokemonName,
-      label: pokemonLabel,
-      pokemonId: selectedPokemon.id,
-    });
     localStorage.setItem(POKEDEX_VIEW_STORAGE_KEY, JSON.stringify({
       selectedDex,
       pokemon: pokemonName,
@@ -741,13 +734,6 @@ function PokedexPage({
     ));
   }, []);
   const openFeaturedCard = useCallback((card) => {
-    addRecentItem('cards', {
-      id: `${card.setId || card.setName || 'unknown'}:${card.id}`,
-      cardId: card.id,
-      label: card.name,
-      setId: card.setId,
-      setName: card.setName,
-    });
     setSelectedTcgCard(card);
   }, []);
   useEffect(() => {
