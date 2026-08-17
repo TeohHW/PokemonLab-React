@@ -72,8 +72,7 @@ npm run lint
 git diff --check
 ```
 
-There is currently no automated test script. Behavioral changes require manual browser testing across the affected stations and responsive layouts. The current build may report a non-blocking large-chunk warning, and lint may report Fast Refresh warnings for the shared station module.
-
+An extensive Playwright test suite for this application can be found here : https://github.com/TeohHW/PokemonLab_Playwright
 ## About
 
 Personal project, not for commercial use. Built to study React and experiment with Pokémon data and small game-like tools. AI coding tools were used during development. All Pokémon, TCG, and related assets belong to their respective owners.
