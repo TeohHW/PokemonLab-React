@@ -648,7 +648,35 @@ function PokedexPage({
     () => getAvailableLevelUpMoveGroups(selectedPokemon),
     [selectedPokemon],
   );
-  const activeMoveGroup = selectedMoveGroup || moveVersionGroups[0] || '';
+  const moveVersionOptions = useMemo(() => {
+    const optionsByMoveList = new Map();
+
+    moveVersionGroups.forEach((versionGroup) => {
+      const moves = getLevelUpMovesForVersionGroup(selectedPokemon, versionGroup);
+      const moveListSignature = moves
+        .map((move) => `${move.level}:${move.name}`)
+        .join('|');
+      const matchingOption = optionsByMoveList.get(moveListSignature);
+
+      if (matchingOption) {
+        matchingOption.versionGroups.push(versionGroup);
+      } else {
+        optionsByMoveList.set(moveListSignature, {
+          value: versionGroup,
+          versionGroups: [versionGroup],
+        });
+      }
+    });
+
+    return [...optionsByMoveList.values()].map((option) => ({
+      ...option,
+      label: option.versionGroups.map(formatVersionGroupName).join(' / '),
+    }));
+  }, [selectedPokemon, moveVersionGroups]);
+  const activeMoveGroup = selectedMoveGroup || moveVersionOptions[0]?.value || '';
+  const activeMoveVersionOption = moveVersionOptions.find(
+    (option) => option.versionGroups.includes(activeMoveGroup),
+  );
   const levelUpMoves = useMemo(
     () => getLevelUpMovesForVersionGroup(selectedPokemon, activeMoveGroup),
     [selectedPokemon, activeMoveGroup],
@@ -1330,19 +1358,19 @@ function PokedexPage({
                 <details className="disclosure-panel">
                   <summary>
                     Level-Up Moves
-                    {activeMoveGroup && ` · ${formatVersionGroupName(activeMoveGroup)}`}
+                    {activeMoveVersionOption && ` · ${activeMoveVersionOption.label}`}
                   </summary>
-                  {moveVersionGroups.length > 0 && (
+                  {moveVersionOptions.length > 0 && (
                     <div className="move-version-picker">
                       <label htmlFor="level-up-move-version">Game version</label>
                       <select
                         id="level-up-move-version"
-                        value={activeMoveGroup}
+                        value={activeMoveVersionOption?.value || ''}
                         onChange={(event) => setSelectedMoveGroup(event.target.value)}
                       >
-                        {moveVersionGroups.map((versionGroup) => (
-                          <option key={versionGroup} value={versionGroup}>
-                            {formatVersionGroupName(versionGroup)}
+                        {moveVersionOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
                           </option>
                         ))}
                       </select>
