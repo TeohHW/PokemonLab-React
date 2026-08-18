@@ -5083,6 +5083,40 @@ button.brand-home-button:focus-visible {
   background-color: var(--pokedex-red);
 }
 
+.move-version-picker {
+  display: grid;
+  grid-template-columns: auto minmax(220px, 360px);
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  border: 3px solid var(--pokedex-black);
+  padding: 10px 12px;
+  background: var(--pokedex-red-soft);
+  box-shadow: inset -3px -3px 0 #f1cbc4;
+}
+
+.move-version-picker label,
+.move-version-picker select {
+  margin: 0;
+}
+
+.move-version-picker label {
+  color: var(--pokedex-black);
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+.move-version-picker select {
+  min-width: 0;
+  border: 3px solid var(--pokedex-black);
+  border-radius: 0;
+  color: var(--pokedex-black);
+  background-color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  box-shadow: inset -3px -3px 0 #adafbc;
+}
+
 .moves-table {
   width: 100%;
   border-collapse: collapse;
@@ -7731,16 +7765,10 @@ button.choice-card.nes-btn:active:not(:disabled)::after {
     padding-bottom: 6px;
   }
 
-  .pokedex-page .move-version-grid {
-    flex-wrap: nowrap;
-    max-height: none;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 8px;
-  }
-
-  .pokedex-page .move-version-button.nes-btn {
-    flex: 0 0 auto;
+  .pokedex-page .move-version-picker {
+    grid-template-columns: 1fr;
+    gap: 7px;
+    padding: 9px;
   }
 
   .pokedex-page .alternate-form-grid,
@@ -8099,7 +8127,6 @@ button.choice-card.nes-btn:active:not(:disabled)::after {
     height: 44px;
   }
 
-  .pokedex-page .move-version-button.nes-btn,
   .trainerdex-page .move-version-button.nes-btn {
     min-height: 44px;
   }

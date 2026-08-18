@@ -1332,20 +1332,22 @@ function PokedexPage({
                     Level-Up Moves
                     {activeMoveGroup && ` · ${formatVersionGroupName(activeMoveGroup)}`}
                   </summary>
-                  <div className="move-version-grid" aria-label="Level-up move version">
-                  {moveVersionGroups.map((versionGroup) => (
-                    <button
-                      key={versionGroup}
-                      type="button"
-                      className={`move-version-button nes-btn ${
-                        activeMoveGroup === versionGroup ? 'is-error is-selected' : ''
-                      }`}
-                      onClick={() => setSelectedMoveGroup(versionGroup)}
-                    >
-                      {formatVersionGroupName(versionGroup)}
-                    </button>
-                  ))}
-                </div>
+                  {moveVersionGroups.length > 0 && (
+                    <div className="move-version-picker">
+                      <label htmlFor="level-up-move-version">Game version</label>
+                      <select
+                        id="level-up-move-version"
+                        value={activeMoveGroup}
+                        onChange={(event) => setSelectedMoveGroup(event.target.value)}
+                      >
+                        {moveVersionGroups.map((versionGroup) => (
+                          <option key={versionGroup} value={versionGroup}>
+                            {formatVersionGroupName(versionGroup)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 <div className="moves-table-wrap">
                   <table className="moves-table">
                     <thead>
