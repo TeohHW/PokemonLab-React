@@ -909,8 +909,18 @@ const chooseGapAwareMetaCandidates = ({
   return selectedCandidates;
 };
 
-function PokemonTeamPlanner({ onBack, onOpenPokedex, onOpenTcg, onOpenWhos, onOpenQuiz, onOpenTrainerDex }) {
-  const [savedPlanner] = useState(loadSavedTeamPlanner);
+function PokemonTeamPlanner({
+  onBack,
+  onOpenPokedex,
+  onOpenTcg,
+  onOpenWhos,
+  onOpenQuiz,
+  onOpenTrainerDex,
+  routeParams = {},
+}) {
+  const [savedPlanner] = useState(() => (
+    routeParams.resume === '1' ? loadSavedTeamPlanner() : null
+  ));
   const [selectedDex, setSelectedDex] = useState(savedPlanner?.selectedDex || ALL_POKEDEX_OPTION.id);
   const [pokemonList, setPokemonList] = useState([]);
   const [pokemonSearchTerm, setPokemonSearchTerm] = useState('');

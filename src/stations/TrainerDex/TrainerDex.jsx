@@ -337,14 +337,6 @@ const getTrainerDefaultGameId = (trainer) => {
   );
 };
 
-const loadTrainerDexView = () => {
-  try {
-    return JSON.parse(localStorage.getItem(TRAINERDEX_VIEW_STORAGE_KEY)) || {};
-  } catch {
-    return {};
-  }
-};
-
 const isTrainerAvailableForGame = (trainer, gameId) =>
   !trainer.gameIds?.length || trainer.gameIds.includes(gameId) || Boolean(trainer.gameData?.[gameId]);
 
@@ -415,25 +407,19 @@ function TrainerDexPage({
   routeParams = {},
   onRouteChange,
 }) {
-  const savedView = useMemo(() => loadTrainerDexView(), []);
   const initialTrainer = TRAINERDEX_TRAINERS.find(
-    (trainer) => trainer.id === (routeParams.trainer || savedView.trainer),
+    (trainer) => trainer.id === routeParams.trainer,
   ) || TRAINERDEX_TRAINERS.find((trainer) => trainer.regionId === TRAINERDEX_OPTIONS[0].id);
   const initialRegion = initialTrainer?.regionId || TRAINERDEX_OPTIONS[0].id;
   const initialRegionGames = TRAINERDEX_OPTIONS.find(
     (region) => region.id === initialRegion,
   )?.games || [];
-  const isRestoringSavedTrainer = savedView.trainer === initialTrainer?.id;
-  const requestedInitialGame = routeParams.game || (
-    isRestoringSavedTrainer ? savedView.game : ''
-  );
+  const requestedInitialGame = routeParams.game;
   const initialGame = initialRegionGames.some((game) => game.id === requestedInitialGame)
     && isTrainerAvailableForGame(initialTrainer, requestedInitialGame)
     ? requestedInitialGame
     : getTrainerDefaultGameId(initialTrainer);
-  const requestedInitialStage = routeParams.stage || (
-    isRestoringSavedTrainer ? savedView.stage : ''
-  );
+  const requestedInitialStage = routeParams.stage;
   const [selectedRegion, setSelectedRegion] = useState(initialRegion);
   const [selectedGame, setSelectedGame] = useState(initialGame);
   const [selectedBattleStage, setSelectedBattleStage] = useState(requestedInitialStage || 'initial');

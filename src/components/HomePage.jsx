@@ -105,7 +105,10 @@ function HomePage({ onChoose }) {
                 <button
                   type="button"
                   className="nes-btn is-success"
-                  onClick={() => onChoose(continueStation.id, continueParams)}
+                  onClick={() => onChoose(continueStation.id, {
+                    ...continueParams,
+                    resume: '1',
+                  })}
                 >
                   Resume
                 </button>

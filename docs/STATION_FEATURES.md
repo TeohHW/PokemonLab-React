@@ -16,7 +16,7 @@ This document is the detailed feature reference for the stations currently imple
 
 ## Shared application experience
 
-Station and selected-item state is represented in hash-based routes, enabling browser Back/Forward navigation and bookmarkable Pokedex, TCG set, and TrainerDex views. The Home screen shows a compact Continue row that restores the last station route, including its selected Pokedex Pokemon, TCG set, or TrainerDex context when available. No account or sign-in is required.
+Station and selected-item state is represented in hash-based routes, enabling browser Back/Forward navigation and bookmarkable Pokedex, TCG set, and TrainerDex views. Choosing a station from Home or the shared station menu starts from that station's default view. The Home screen's compact Continue row is the dedicated way to restore the last station route, including its selected Pokedex Pokemon, TCG set, TrainerDex context, or saved Team Planner workspace when available. No account or sign-in is required.
 
 Dialogs contain keyboard focus, close with Escape, and restore focus to their trigger. The `Limit animations` preference can be enabled from the station menu and includes explanatory help. Long secondary sections use progressive disclosure, and station controls collapse behind a dedicated toggle on smaller screens.
 

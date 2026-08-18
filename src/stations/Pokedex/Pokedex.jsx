@@ -81,14 +81,6 @@ const GLOBALLY_IDENTICAL_MOVE_VERSION_GROUPS = [
   },
 ];
 
-const loadPokedexView = () => {
-  try {
-    return JSON.parse(localStorage.getItem(POKEDEX_VIEW_STORAGE_KEY)) || {};
-  } catch {
-    return {};
-  }
-};
-
 const isValidPokedexId = (pokedexId) => (
   pokedexId === ALL_POKEDEX_OPTION.id
   || POKEDEX_OPTIONS.some((pokedex) => pokedex.id === pokedexId)
@@ -139,8 +131,7 @@ function PokedexPage({
   routeParams = {},
   onRouteChange,
 }) {
-  const savedView = useMemo(() => loadPokedexView(), []);
-  const requestedDex = routeParams.dex || savedView.selectedDex;
+  const requestedDex = routeParams.dex;
   const initialDex = isValidPokedexId(requestedDex)
     ? requestedDex
     : ALL_POKEDEX_OPTION.id;
@@ -175,7 +166,7 @@ function PokedexPage({
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [mobileDetailSection, setMobileDetailSection] = useState('overview');
   const cryAudioRef = useRef(null);
-  const initialPokemonRef = useRef(routeParams.pokemon || savedView.pokemon || '');
+  const initialPokemonRef = useRef(routeParams.pokemon || '');
 
   useEffect(() => {
     const controller = new AbortController();

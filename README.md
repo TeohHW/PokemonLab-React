@@ -44,7 +44,7 @@ Demo: https://pokemon-lab-react.vercel.app/
 
 ## Features
 
-Pokemon Lab is a collection of casual Pokemon reference and game stations. No account is required. The application supports bookmarkable station routes, browser Back/Forward navigation, a compact Continue shortcut for the last visited context, remembered station choices, accessible dialogs, and an optional `Limit animations` preference. On smaller screens, long station controls collapse behind dedicated toggles.
+Pokemon Lab is a collection of casual Pokemon reference and game stations. No account is required. The application supports bookmarkable station routes, browser Back/Forward navigation, a compact Continue shortcut for the last visited context, fresh entry from station links, accessible dialogs, and an optional `Limit animations` preference. On smaller screens, long station controls collapse behind dedicated toggles.
 
 - **Pokédex** — browse by game/region, search, view stats, weaknesses, abilities, evolutions, forms, moves, cries, and generation sprites
 - **TCG Simulator** — open single, ten-pack, random, and God Pack pulls; filter a persistent binder; review recent pulls; and search cards across released sets

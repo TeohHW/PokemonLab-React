@@ -200,6 +200,7 @@ function App() {
     return (
       <PokemonTeamPlanner
         {...navigationProps}
+        routeParams={route.params}
       />
     );
   }

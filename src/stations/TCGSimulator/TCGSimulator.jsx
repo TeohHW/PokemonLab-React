@@ -142,7 +142,7 @@ function TcgSimulator({
 }) {
   const [allExpansions, setAllExpansions] = useState(null);
   const [selectedSet, setSelectedSet] = useState(() => (
-    routeParams.set || localStorage.getItem(TCG_VIEW_STORAGE_KEY) || 'base1'
+    routeParams.set || 'base1'
   ));
   const [selectedSeries, setSelectedSeries] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
