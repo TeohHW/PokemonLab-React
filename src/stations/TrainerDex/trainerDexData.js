@@ -2187,7 +2187,7 @@ const goldSilverRedTeam = makeTeam([
 export const TRAINERDEX_OPTIONS = [
   { id: 'kanto', label: 'FireRed / LeafGreen', region: 'Kanto', art: ['FireRed.png', 'LeafGreen.png'], games: [{ id: 'firered-leafgreen', label: 'FireRed LeafGreen' }, { id: 'heartgold-soulsilver', label: 'HeartGold SoulSilver' }] },
   { id: 'johto', label: 'HeartGold / SoulSilver', region: 'Johto', art: ['HeartGold.jpg', 'SoulSilver.jpg'], games: [{ id: 'heartgold-soulsilver', label: 'HeartGold SoulSilver' }, { id: 'gold-silver', label: 'Gold Silver' }] },
-  { id: 'hoenn', label: 'Omega Ruby / Alpha Sapphire', region: 'Hoenn', art: ['OmegaRuby.png', 'AlphaSapphire.png'], games: [{ id: 'omega-ruby-alpha-sapphire', label: 'Omega Ruby Alpha Sapphire' }, { id: 'emerald', label: 'Emerald' }, { id: 'ruby-sapphire', label: 'Ruby Sapphire' }] },
+  { id: 'hoenn', label: 'Ruby / Sapphire / Emerald', region: 'Hoenn', art: ['OmegaRuby.png', 'AlphaSapphire.png'], games: [{ id: 'omega-ruby-alpha-sapphire', label: 'Omega Ruby Alpha Sapphire' }, { id: 'emerald', label: 'Emerald' }, { id: 'ruby-sapphire', label: 'Ruby Sapphire' }] },
   { id: 'sinnoh', label: 'Diamond / Pearl / Platinum', region: 'Sinnoh', art: ['Diamond.jpg', 'Pearl.jpg', 'Platinum.png'], games: [{ id: 'platinum', label: 'Platinum' }, { id: 'diamond-pearl', label: 'Diamond Pearl' }] },
   { id: 'unova', label: 'Black / White / Black 2 / White 2', region: 'Unova', art: ['Black.png', 'White.png'], games: [{ id: 'black-white', label: 'Black White' }, { id: 'black-2-white-2', label: 'Black 2 White 2' }] },
   { id: 'kalos', label: 'X / Y', region: 'Kalos', art: ['X.png', 'Y.png'], games: [{ id: 'x-y', label: 'X Y' }] },
