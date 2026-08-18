@@ -8671,7 +8671,6 @@ body.has-open-dialog {
   min-width: 0;
   flex: 1;
   gap: 18px;
-  overflow-x: auto;
   padding: 3px 4px;
 }
 
@@ -8680,7 +8679,8 @@ body.has-open-dialog {
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
-  flex: 0 0 clamp(300px, 34vw, 440px);
+  flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
 }
 
@@ -8750,7 +8750,7 @@ body.has-open-dialog {
   }
 
   .home-continue-task {
-    flex-basis: min(82vw, 360px);
+    width: 100%;
   }
 }
 
