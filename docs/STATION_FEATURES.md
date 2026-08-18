@@ -435,6 +435,7 @@ Every recorded team member can include:
 - Level
 - Sprite
 - Current types
+- Six base stats in a compact Pokédex-style summary
 - Four recorded moves
 
 Pokemon and type data is enriched from PokeAPI when the dossier is opened. If enrichment fails for a member, the locally recorded team entry remains visible.

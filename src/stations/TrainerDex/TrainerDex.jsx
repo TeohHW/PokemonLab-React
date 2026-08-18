@@ -1092,13 +1092,14 @@ function TrainerDexPage({
               {selectedTrainer.team.map((teamMember, teamMemberIndex) => {
                 const candidateMember = enrichedTeam[teamMemberIndex];
                 const enrichedMember = candidateMember?.name === teamMember.name ? candidateMember : null;
+                const teamMemberLabel = teamMember.label || formatPokemonName(teamMember.name);
                 return (
                   <article
                     key={`${teamMember.name}-${teamMember.level}-${teamMemberIndex}`}
                     className="trainerdex-team-row"
                     role="button"
                     tabIndex={0}
-                    aria-label={`Open ${teamMember.label || formatPokemonName(teamMember.name)} TCG cards`}
+                    aria-label={`Open ${teamMemberLabel} TCG cards`}
                     onClick={() => openTeamPokemonTcgCards(teamMember)}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter' || event.key === ' ') {
@@ -1122,15 +1123,31 @@ function TrainerDexPage({
                         )}
                       </div>
                       <div>
-                        <strong>{teamMember.label || formatPokemonName(teamMember.name)}</strong>
+                        <strong>{teamMemberLabel}</strong>
                         <span>Lv. {teamMember.level}</span>
+                        {enrichedMember?.types?.length > 0 && (
+                          <div className="trainerdex-type-row">
+                            {enrichedMember.types.map((typeName) => (
+                              <TypeBadge key={typeName} type={typeName} className="move-type-pill" />
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
-                    {enrichedMember?.types?.length > 0 && (
-                      <div className="trainerdex-type-row">
-                        {enrichedMember.types.map((typeName) => (
-                          <TypeBadge key={typeName} type={typeName} className="move-type-pill" />
-                        ))}
+                    {enrichedMember?.stats && (
+                      <div className="trainerdex-team-base-stats">
+                        <strong>Base Stats</strong>
+                        <dl aria-label={`${teamMemberLabel} base stats`}>
+                          {STAT_SORT_OPTIONS.map((stat) => (
+                            <div key={stat.id}>
+                              <dt>{stat.label}</dt>
+                              <dd>
+                                <meter min="0" max="255" value={enrichedMember.stats[stat.id] || 0} />
+                                <strong>{enrichedMember.stats[stat.id] || 0}</strong>
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
                       </div>
                     )}
                     <ul className="trainerdex-move-list">
