@@ -8,7 +8,7 @@ This document is the detailed feature reference for the stations currently imple
 | --- | --- |
 | Access | Every station and casual game works without an account |
 | Navigation | Hash routes, browser Back/Forward, bookmarkable supported selections, and Home Continue |
-| Local continuity | Compact Home shortcuts for resumable team and collection work, plus remembered Pokedex, TCG, TrainerDex, quiz-best, team, collection, and leaderboard state |
+| Local continuity | A compact Home shortcut for the last visited context, plus remembered Pokedex, TCG, TrainerDex, quiz-best, team, collection, and leaderboard state |
 | Accessibility | Keyboard-operable controls, contained modal focus, Escape closing, focus restoration, and reduced-animation support |
 | Responsive UI | Desktop, tablet, and mobile layouts with collapsible long control panels |
 | Visual direction | Shared retro NES/Game Boy presentation with readable proportional fonts for long body copy |
@@ -16,7 +16,7 @@ This document is the detailed feature reference for the stations currently imple
 
 ## Shared application experience
 
-Station and selected-item state is represented in hash-based routes, enabling browser Back/Forward navigation and bookmarkable Pokedex, TCG set, and TrainerDex views. The Home screen shows a compact Continue row only when there is saved Team Planner work or an existing TCG binder to resume. No account or sign-in is required.
+Station and selected-item state is represented in hash-based routes, enabling browser Back/Forward navigation and bookmarkable Pokedex, TCG set, and TrainerDex views. The Home screen shows a compact Continue row that restores the last station route, including its selected Pokedex Pokemon, TCG set, or TrainerDex context when available. No account or sign-in is required.
 
 Dialogs contain keyboard focus, close with Escape, and restore focus to their trigger. The `Limit animations` preference can be enabled from the station menu and includes explanatory help. Long secondary sections use progressive disclosure, and station controls collapse behind a dedicated toggle on smaller screens.
 

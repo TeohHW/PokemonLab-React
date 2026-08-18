@@ -4,53 +4,27 @@ import tcgLogo from '../../logos/tcg_simulator.png';
 import teamLogo from '../../logos/team_planner.png';
 import trainerdexLogo from '../../logos/trainerdex.png';
 import whoLogo from '../../logos/whos_that_pokemon.png';
-import { GitHubRepoLink, loadCollection } from '../stations/shared/stationShared';
+import { GitHubRepoLink } from '../stations/shared/stationShared';
 import { useAppState } from '../utils/appState';
 
-const TEAM_PLANNER_STORAGE_KEY = 'pokemon-team-planner-saved-team';
-const TCG_VIEW_STORAGE_KEY = 'pokemon-lab-tcg-view-v1';
+const formatRouteLabel = (value = '') => value
+  .split('-')
+  .filter(Boolean)
+  .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
+  .join(' ');
 
-const loadSavedTeamCount = () => {
-  try {
-    const savedTeam = JSON.parse(localStorage.getItem(TEAM_PLANNER_STORAGE_KEY));
-    return Array.isArray(savedTeam?.teamMembers) ? savedTeam.teamMembers.length : 0;
-  } catch {
-    return 0;
+const getContinueDetail = (station, params = {}) => {
+  if (station === 'pokedex' && params.pokemon) {
+    return `Last Pokemon: ${formatRouteLabel(params.pokemon)}`;
   }
-};
-
-const getContinueTasks = (appState) => {
-  const tasks = [];
-  const savedTeamCount = loadSavedTeamCount();
-  const collection = loadCollection();
-  const collectedCards = Object.values(collection).filter((card) => card?.count > 0);
-
-  if (savedTeamCount > 0) {
-    tasks.push({
-      id: 'team',
-      station: 'team',
-      title: 'Team Planner',
-      detail: `${savedTeamCount} of 6 Pokemon selected`,
-      params: {},
-    });
+  if (station === 'trainerdex' && params.trainer) {
+    return `Last trainer: ${formatRouteLabel(params.trainer)}`;
   }
-
-  if (collectedCards.length > 0) {
-    const cardCount = collectedCards.reduce((total, card) => total + card.count, 0);
-    const savedSet = localStorage.getItem(TCG_VIEW_STORAGE_KEY) || '';
-    tasks.push({
-      id: 'tcg',
-      station: 'tcg',
-      title: 'TCG Binder',
-      detail: `${collectedCards.length} unique / ${cardCount} total cards`,
-      params: savedSet ? { set: savedSet } : {},
-    });
-  }
-
-  return tasks.sort((firstTask, secondTask) => (
-    Number(secondTask.station === appState.lastStation)
-    - Number(firstTask.station === appState.lastStation)
-  ));
+  if (station === 'tcg') return 'Return to your selected set and binder';
+  if (station === 'team') return 'Return to your current team';
+  if (station === 'quiz') return 'Return to the quiz';
+  if (station === 'who') return 'Return to your challenge';
+  return 'Return to where you left off';
 };
 
 const HOME_STATIONS = [
@@ -100,7 +74,11 @@ const HOME_STATIONS = [
 
 function HomePage({ onChoose }) {
   const { appState } = useAppState();
-  const continueTasks = getContinueTasks(appState);
+  const continueStationId = appState.lastRoute?.station || appState.lastStation;
+  const continueStation = HOME_STATIONS.find((station) => station.id === continueStationId);
+  const continueParams = appState.lastRoute?.station === continueStationId
+    ? appState.lastRoute.params || {}
+    : {};
 
   return (
     <main className="home-screen">
@@ -115,24 +93,23 @@ function HomePage({ onChoose }) {
           </div>
         </div>
 
-        {continueTasks.length > 0 && (
-          <section className="home-continue-row" aria-labelledby="continue-title">
+        {continueStation && (
+          <section className="home-continue-panel" aria-labelledby="continue-title">
             <h2 id="continue-title">Continue</h2>
             <div className="home-continue-list">
-              {continueTasks.map((task) => (
+              <div className="home-continue-task">
+                <span className="home-continue-copy">
+                  <strong>{continueStation.title}</strong>
+                  <small>{getContinueDetail(continueStation.id, continueParams)}</small>
+                </span>
                 <button
-                  key={task.id}
                   type="button"
-                  className={`home-continue-item home-continue-item-${task.station} nes-btn`}
-                  onClick={() => onChoose(task.station, task.params)}
+                  className="nes-btn is-success"
+                  onClick={() => onChoose(continueStation.id, continueParams)}
                 >
-                  <span>
-                    <strong>{task.title}</strong>
-                    <small>{task.detail}</small>
-                  </span>
-                  <span className="home-continue-arrow" aria-hidden="true">&gt;</span>
+                  Resume
                 </button>
-              ))}
+              </div>
             </div>
           </section>
         )}
