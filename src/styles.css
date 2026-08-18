@@ -5711,18 +5711,28 @@ button.brand-home-button:focus-visible {
   image-rendering: pixelated;
 }
 
+.trainerdex-team-column-headings,
 .trainerdex-team-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 16px;
+}
+
+.trainerdex-team-column-headings {
+  align-items: end;
+  border-bottom: 3px solid #212529;
+  padding: 0 0 10px;
+  color: var(--trainerdex-teal-dark);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.trainerdex-team-row {
   align-items: center;
   padding: 14px 0;
   border-bottom: 3px solid #212529;
   cursor: pointer;
-}
-
-.trainerdex-team-row:first-child {
-  padding-top: 0;
 }
 
 .trainerdex-team-row:last-child {
@@ -5833,27 +5843,26 @@ button.brand-home-button:focus-visible {
 
 .trainerdex-team-base-stats {
   display: grid;
-  gap: 6px;
   min-width: 0;
 }
 
-.trainerdex-team-base-stats > strong {
+.trainerdex-team-stats-status {
   color: #555555;
-  font-size: 0.62rem;
-  text-transform: uppercase;
+  font-size: 0.68rem;
+  font-weight: 900;
 }
 
 .trainerdex-team-base-stats dl {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 5px 10px;
+  gap: 8px 14px;
   margin: 0;
 }
 
 .trainerdex-team-base-stats dl > div {
   display: grid;
-  grid-template-columns: 44px minmax(22px, 1fr) 26px;
-  gap: 4px;
+  grid-template-columns: 52px minmax(34px, 1fr) 30px;
+  gap: 6px;
   align-items: center;
   min-width: 0;
 }
@@ -5865,7 +5874,7 @@ button.brand-home-button:focus-visible {
 
 .trainerdex-team-base-stats dt {
   color: #212529;
-  font-size: 0.56rem;
+  font-size: 0.64rem;
   font-weight: 900;
   white-space: nowrap;
 }
@@ -5876,7 +5885,7 @@ button.brand-home-button:focus-visible {
 
 .trainerdex-team-base-stats meter {
   width: 100%;
-  height: 12px;
+  height: 16px;
 }
 
 .trainerdex-team-base-stats meter::-webkit-meter-bar {
@@ -5891,7 +5900,7 @@ button.brand-home-button:focus-visible {
 
 .trainerdex-team-base-stats dd strong {
   color: #050505;
-  font-size: 0.62rem;
+  font-size: 0.7rem;
   text-align: right;
 }
 
@@ -7276,6 +7285,10 @@ button.choice-card.nes-btn:active:not(:disabled)::after {
   .trainerdex-team-row {
     grid-template-columns: 1fr;
     align-items: start;
+  }
+
+  .trainerdex-team-column-headings {
+    display: none;
   }
 
   .app-container .who-game-panel {

@@ -1089,6 +1089,11 @@ function TrainerDexPage({
               </div>
             )}
             <div className="trainerdex-team-panel">
+              <div className="trainerdex-team-column-headings" aria-hidden="true">
+                <span>Pokemon</span>
+                <span>Base Stats</span>
+                <span>Moves</span>
+              </div>
               {selectedTrainer.team.map((teamMember, teamMemberIndex) => {
                 const candidateMember = enrichedTeam[teamMemberIndex];
                 const enrichedMember = candidateMember?.name === teamMember.name ? candidateMember : null;
@@ -1134,9 +1139,8 @@ function TrainerDexPage({
                         )}
                       </div>
                     </div>
-                    {enrichedMember?.stats && (
-                      <div className="trainerdex-team-base-stats">
-                        <strong>Base Stats</strong>
+                    <div className="trainerdex-team-base-stats">
+                      {enrichedMember?.stats ? (
                         <dl aria-label={`${teamMemberLabel} base stats`}>
                           {STAT_SORT_OPTIONS.map((stat) => (
                             <div key={stat.id}>
@@ -1148,8 +1152,12 @@ function TrainerDexPage({
                             </div>
                           ))}
                         </dl>
-                      </div>
-                    )}
+                      ) : (
+                        <span className="trainerdex-team-stats-status">
+                          {loadingTeamData ? 'Loading stats...' : 'Stats unavailable'}
+                        </span>
+                      )}
+                    </div>
                     <ul className="trainerdex-move-list">
                       {teamMember.moves.map((moveName) => (
                         <li key={moveName}>{moveName}</li>
