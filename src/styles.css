@@ -5085,9 +5085,8 @@ button.brand-home-button:focus-visible {
 
 .move-version-picker {
   display: grid;
-  grid-template-columns: auto minmax(220px, 360px);
-  gap: 12px;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
   width: 100%;
   border: 3px solid var(--pokedex-black);
   padding: 10px 12px;
@@ -5107,6 +5106,7 @@ button.brand-home-button:focus-visible {
 }
 
 .move-version-picker select {
+  width: min(100%, 480px);
   min-width: 0;
   border: 3px solid var(--pokedex-black);
   border-radius: 0;
@@ -5115,6 +5115,35 @@ button.brand-home-button:focus-visible {
   font-size: 0.78rem;
   font-weight: 900;
   box-shadow: inset -3px -3px 0 #adafbc;
+}
+
+.move-version-note {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: fit-content;
+  max-width: 720px;
+  margin: 0;
+  border: 2px solid var(--pokedex-red-dark);
+  padding: 6px 8px;
+  color: var(--pokedex-black);
+  background: #ffffff;
+  font-size: 0.64rem;
+  font-weight: 900;
+  line-height: 1.45;
+}
+
+.move-version-note-icon {
+  display: inline-grid;
+  flex: 0 0 22px;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--pokedex-black);
+  color: #ffffff;
+  background: var(--pokedex-red);
+  line-height: 1;
+  text-transform: lowercase;
 }
 
 .moves-table {

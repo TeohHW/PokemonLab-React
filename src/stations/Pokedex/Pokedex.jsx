@@ -53,6 +53,34 @@ import {
 const POKEMON_LIST_PAGE_SIZE = 24;
 const POKEDEX_VIEW_STORAGE_KEY = 'pokemon-lab-pokedex-view-v1';
 
+const MOVE_VERSION_GROUP_DETAILS = {
+  'mega-dimension': { generation: 'IX', label: 'Mega Dimension' },
+  'legends-za': { generation: 'IX', label: 'Pokemon Legends: Z-A' },
+  'scarlet-violet': { generation: 'IX', label: 'Scarlet & Violet' },
+  'sword-shield': { generation: 'VIII', label: 'Sword & Shield' },
+  'sun-moon': { generation: 'VII', label: 'Sun & Moon' },
+  'omega-ruby-alpha-sapphire': { generation: 'VI', label: 'Omega Ruby & Alpha Sapphire' },
+  'x-y': { generation: 'VI', label: 'X & Y' },
+  'black-2-white-2': { generation: 'V', label: 'Black 2 & White 2' },
+  'black-white': { generation: 'V', label: 'Black & White' },
+  'heartgold-soulsilver': { generation: 'IV', label: 'HeartGold & SoulSilver' },
+  platinum: { generation: 'IV', label: 'Platinum' },
+  'diamond-pearl': { generation: 'IV', label: 'Diamond & Pearl' },
+  emerald: { generation: 'III', label: 'Emerald' },
+  'firered-leafgreen': { generation: 'III', label: 'FireRed & LeafGreen' },
+  'ruby-sapphire': { generation: 'III', label: 'Ruby & Sapphire' },
+};
+
+// These groups have identical level-up movelists for every Pokemon in PokeAPI,
+// including both the learned moves and their levels.
+const GLOBALLY_IDENTICAL_MOVE_VERSION_GROUPS = [
+  {
+    generation: 'III',
+    label: 'Ruby, Sapphire & Emerald',
+    versionGroups: ['ruby-sapphire', 'emerald'],
+  },
+];
+
 const loadPokedexView = () => {
   try {
     return JSON.parse(localStorage.getItem(POKEDEX_VIEW_STORAGE_KEY)) || {};
@@ -649,30 +677,54 @@ function PokedexPage({
     [selectedPokemon],
   );
   const moveVersionOptions = useMemo(() => {
-    const optionsByMoveList = new Map();
+    const availableVersionGroups = new Set(moveVersionGroups);
+    const groupedVersionGroups = new Set();
+    const options = [];
 
     moveVersionGroups.forEach((versionGroup) => {
-      const moves = getLevelUpMovesForVersionGroup(selectedPokemon, versionGroup);
-      const moveListSignature = moves
-        .map((move) => `${move.level}:${move.name}`)
-        .join('|');
-      const matchingOption = optionsByMoveList.get(moveListSignature);
-
-      if (matchingOption) {
-        matchingOption.versionGroups.push(versionGroup);
-      } else {
-        optionsByMoveList.set(moveListSignature, {
-          value: versionGroup,
-          versionGroups: [versionGroup],
-        });
+      if (groupedVersionGroups.has(versionGroup)) {
+        return;
       }
+
+      const identicalGroup = GLOBALLY_IDENTICAL_MOVE_VERSION_GROUPS.find(
+        (group) => group.versionGroups.includes(versionGroup),
+      );
+      const sharedVersionGroups = identicalGroup?.versionGroups.filter(
+        (group) => availableVersionGroups.has(group),
+      ) || [];
+      const shouldMerge = sharedVersionGroups.length > 1;
+      const versionDetails = MOVE_VERSION_GROUP_DETAILS[versionGroup];
+      const optionVersionGroups = shouldMerge ? sharedVersionGroups : [versionGroup];
+
+      optionVersionGroups.forEach((group) => groupedVersionGroups.add(group));
+      options.push({
+        value: versionGroup,
+        versionGroups: optionVersionGroups,
+        generation: shouldMerge ? identicalGroup.generation : versionDetails?.generation || 'Other',
+        label: shouldMerge
+          ? identicalGroup.label
+          : versionDetails?.label || formatVersionGroupName(versionGroup),
+      });
     });
 
-    return [...optionsByMoveList.values()].map((option) => ({
-      ...option,
-      label: option.versionGroups.map(formatVersionGroupName).join(' / '),
-    }));
-  }, [selectedPokemon, moveVersionGroups]);
+    return options;
+  }, [moveVersionGroups]);
+  const moveVersionSections = useMemo(() => {
+    const sectionsByGeneration = new Map();
+
+    moveVersionOptions.forEach((option) => {
+      if (!sectionsByGeneration.has(option.generation)) {
+        sectionsByGeneration.set(option.generation, {
+          generation: option.generation,
+          options: [],
+        });
+      }
+
+      sectionsByGeneration.get(option.generation).options.push(option);
+    });
+
+    return [...sectionsByGeneration.values()];
+  }, [moveVersionOptions]);
   const activeMoveGroup = selectedMoveGroup || moveVersionOptions[0]?.value || '';
   const activeMoveVersionOption = moveVersionOptions.find(
     (option) => option.versionGroups.includes(activeMoveGroup),
@@ -1365,15 +1417,28 @@ function PokedexPage({
                       <label htmlFor="level-up-move-version">Game version</label>
                       <select
                         id="level-up-move-version"
+                        aria-describedby="level-up-move-version-note"
                         value={activeMoveVersionOption?.value || ''}
                         onChange={(event) => setSelectedMoveGroup(event.target.value)}
                       >
-                        {moveVersionOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
+                        {moveVersionSections.map((section) => (
+                          <optgroup
+                            key={section.generation}
+                            label={`Generation ${section.generation}`}
+                          >
+                            {section.options.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </optgroup>
                         ))}
                       </select>
+                      <p id="level-up-move-version-note" className="move-version-note">
+                        <span className="move-version-note-icon" aria-hidden="true">i</span>
+                        Game versions share one option only when every Pokemon has the exact same
+                        level-up movelist, including learned levels.
+                      </p>
                     </div>
                   )}
                 <div className="moves-table-wrap">
