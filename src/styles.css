@@ -5774,6 +5774,61 @@ button.brand-home-button:focus-visible {
   image-rendering: pixelated;
 }
 
+.trainerdex-team-groups {
+  display: grid;
+  gap: 24px;
+  min-width: 0;
+}
+
+.trainerdex-team-variant {
+  min-width: 0;
+}
+
+.trainerdex-team-variant-heading {
+  margin: 0 0 10px;
+  border-left: 5px solid var(--trainerdex-orange);
+  padding: 9px 12px;
+  background: #fff2df;
+  color: #212529;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.trainerdex-starter-dependent-section {
+  display: grid;
+  gap: 14px;
+  border: 4px solid var(--trainerdex-teal-dark);
+  padding: 14px;
+  background: #e7fbf8;
+}
+
+.trainerdex-starter-dependent-heading {
+  display: grid;
+  gap: 6px;
+}
+
+.trainerdex-starter-dependent-heading h4,
+.trainerdex-starter-dependent-heading p {
+  margin: 0;
+}
+
+.trainerdex-starter-dependent-heading h4 {
+  color: #050505;
+  font-size: 0.9rem;
+}
+
+.trainerdex-starter-dependent-heading p {
+  color: #3c4545;
+  font-size: 0.68rem;
+  line-height: 1.5;
+}
+
+.trainerdex-starter-dependent-groups {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
 .trainerdex-team-column-headings,
 .trainerdex-team-row {
   display: grid;
@@ -5840,16 +5895,13 @@ button.brand-home-button:focus-visible {
 .trainerdex-battle-stage-toggle {
   display: flex;
   flex: 1 1 260px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
   min-width: 0;
   max-width: 100%;
   margin-left: auto;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 2px 2px 8px;
-  overscroll-behavior-x: contain;
+  padding: 2px;
 }
 
 .trainerdex-battle-stage-button.nes-btn {
@@ -5983,6 +6035,15 @@ button.brand-home-button:focus-visible {
   color: #050505;
   font-weight: 800;
   line-height: 1.25;
+}
+
+.trainerdex-move-list .trainerdex-moves-unverified {
+  grid-column: 1 / -1;
+  border-left-color: #6b7280;
+  background: #f3f4f6;
+  color: #4b5563;
+  font-size: 0.68rem;
+  font-style: italic;
 }
 
 .trainerdex-tcg-section {
@@ -8037,12 +8098,12 @@ button.choice-card.nes-btn:active:not(:disabled)::after {
 
   .trainerdex-page .trainerdex-battle-stage-toggle,
   .trainerdex-page .trainerdex-game-version-grid {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: flex-start;
     width: 100%;
     max-width: 100%;
-    overflow-x: auto;
-    padding: 2px 2px 8px;
+    overflow: visible;
+    padding: 2px;
   }
 
   .trainerdex-page .trainerdex-battle-stage-button.nes-btn,

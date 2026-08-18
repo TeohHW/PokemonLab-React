@@ -342,7 +342,8 @@ const isTrainerAvailableForGame = (trainer, gameId) =>
 
 const resolveTrainerForGame = (trainer, gameId, battleStage = 'initial') => {
   const gameData = trainer?.gameData?.[gameId] || {};
-  const stageData = battleStage === 'initial' ? {} : gameData.battleStages?.[battleStage] || {};
+  const battleStages = gameData.battleStages || trainer?.battleStages || {};
+  const stageData = battleStage === 'initial' ? {} : battleStages[battleStage] || {};
   return {
     ...trainer,
     ...gameData,
@@ -352,7 +353,13 @@ const resolveTrainerForGame = (trainer, gameId, battleStage = 'initial') => {
     regionId: trainer.regionId,
     resolvedGameId: gameId,
     team: stageData.team || gameData.team || trainer.team,
-    battleStages: gameData.battleStages || trainer.battleStages,
+    teamVariants: battleStage === 'initial'
+      ? gameData.teamVariants || trainer.teamVariants
+      : stageData.teamVariants,
+    teamVariantCondition: battleStage === 'initial'
+      ? gameData.teamVariantCondition || trainer.teamVariantCondition
+      : stageData.teamVariantCondition,
+    battleStages,
   };
 };
 
@@ -370,8 +377,15 @@ const trainerMatchesSearch = (trainer, searchValue = '') => {
 
   const gameDataValues = Object.values(trainer.gameData || {});
   const gameDataTeam = gameDataValues.flatMap((gameData) => gameData.team || []);
+  const rootVariantTeam = (trainer.teamVariants || []).flatMap((variant) => variant.team || []);
+  const gameDataVariantTeam = gameDataValues.flatMap((gameData) =>
+    (gameData.teamVariants || []).flatMap((variant) => variant.team || []),
+  );
   const battleStageTeam = gameDataValues.flatMap((gameData) =>
-    Object.values(gameData.battleStages || {}).flatMap((stage) => stage.team || []),
+    Object.values(gameData.battleStages || {}).flatMap((stage) => [
+      ...(stage.team || []),
+      ...(stage.teamVariants || []).flatMap((variant) => variant.team || []),
+    ]),
   );
   const region = TRAINERDEX_OPTIONS.find((option) => option.id === trainer.regionId);
   const searchableText = normalizeSearchText([
@@ -389,7 +403,9 @@ const trainerMatchesSearch = (trainer, searchValue = '') => {
       ...(gameData.specialty || []),
     ]),
     ...(trainer.team || []).flatMap((member) => [member.name, member.label]),
+    ...rootVariantTeam.flatMap((member) => [member.name, member.label]),
     ...gameDataTeam.flatMap((member) => [member.name, member.label]),
+    ...gameDataVariantTeam.flatMap((member) => [member.name, member.label]),
     ...battleStageTeam.flatMap((member) => [member.name, member.label]),
   ].filter(Boolean).join(' '));
 
@@ -471,17 +487,67 @@ function TrainerDexPage({
   );
   const battleStageOptions = useMemo(() => {
     const stages = selectedTrainerBase?.battleStages || {};
-    return [
-      { id: 'initial', label: 'Initial Team' },
+    const options = [
+      { id: 'initial', label: selectedTrainerBase?.initialStageLabel || 'Initial Team' },
       ...Object.entries(stages).map(([id, stage]) => ({ id, label: stage.label || formatPokemonName(id) })),
     ];
-  }, [selectedTrainerBase]);
+
+    const seenTeams = new Set();
+    return options.filter(({ id }) => {
+      const resolved = resolveTrainerForGame(selectedTrainerBase, selectedGame, id);
+      const fingerprint = JSON.stringify(resolved.teamVariants || resolved.team || []);
+      if (seenTeams.has(fingerprint)) return false;
+      seenTeams.add(fingerprint);
+      return true;
+    });
+  }, [selectedGame, selectedTrainerBase]);
   const activeBattleStage = battleStageOptions.some((stage) => stage.id === selectedBattleStage)
     ? selectedBattleStage
     : 'initial';
   const selectedTrainer = useMemo(
     () => resolveTrainerForGame(selectedTrainerBase, selectedGame, activeBattleStage),
     [selectedTrainerBase, selectedGame, activeBattleStage],
+  );
+  const displayedTeamVariants = useMemo(
+    () => selectedTrainer.teamVariants?.length
+      ? selectedTrainer.teamVariants
+      : [{ label: '', team: selectedTrainer.team }],
+    [selectedTrainer],
+  );
+  const hasTeamVariants = displayedTeamVariants.length > 1;
+  const hasStarterDependentTeam =
+    hasTeamVariants && selectedTrainer.teamVariantCondition === 'player-starter';
+  const sharedStarterTeamMembers = useMemo(() => {
+    if (!hasStarterDependentTeam) return [];
+    return (displayedTeamVariants[0]?.team || []).filter((member) => {
+      const memberFingerprint = JSON.stringify(member);
+      return displayedTeamVariants.every((variant) =>
+        (variant.team || []).some((candidate) => JSON.stringify(candidate) === memberFingerprint));
+    });
+  }, [displayedTeamVariants, hasStarterDependentTeam]);
+  const starterDependentVariants = useMemo(() => {
+    if (!hasStarterDependentTeam) return [];
+    const sharedFingerprints = new Set(sharedStarterTeamMembers.map((member) => JSON.stringify(member)));
+    return displayedTeamVariants.map((variant) => ({
+      ...variant,
+      team: (variant.team || []).filter((member) => !sharedFingerprints.has(JSON.stringify(member))),
+    }));
+  }, [displayedTeamVariants, hasStarterDependentTeam, sharedStarterTeamMembers]);
+  const displayedTeamMembers = useMemo(
+    () => displayedTeamVariants.flatMap((variant) => variant.team || []),
+    [displayedTeamVariants],
+  );
+  const teamMembersToLoad = useMemo(() => {
+    const uniqueMembers = new Map();
+    displayedTeamMembers.forEach((member) => {
+      const memberKey = normalizePokemonLookup(member.apiName || member.name);
+      if (!uniqueMembers.has(memberKey)) uniqueMembers.set(memberKey, member);
+    });
+    return [...uniqueMembers.values()];
+  }, [displayedTeamMembers]);
+  const trainerForCards = useMemo(
+    () => ({ ...selectedTrainer, team: displayedTeamMembers }),
+    [displayedTeamMembers, selectedTrainer],
   );
   const selectedTrainerIndex = regionTrainers.findIndex(
     (trainer) => trainer.id === selectedTrainer.id,
@@ -517,11 +583,11 @@ function TrainerDexPage({
     [visibleTrainers],
   );
   const featuredTrainerCards = useMemo(
-    () => getFeaturedTrainerTcgCards(tcgCards, selectedTrainer)
+    () => getFeaturedTrainerTcgCards(tcgCards, trainerForCards)
       .filter((card) => (
         getCardFaceImage(card) && !unavailableTcgCardArtIds[card.id]
       )),
-    [tcgCards, selectedTrainer, unavailableTcgCardArtIds],
+    [tcgCards, trainerForCards, unavailableTcgCardArtIds],
   );
   const featuredTrainerCardsPageKey = `${selectedTrainer.id}:${selectedGame}:${activeBattleStage}`;
   const featuredTrainerCardsPageCount = Math.max(
@@ -690,7 +756,7 @@ function TrainerDexPage({
     let isCurrentRequest = true;
 
     Promise.all(
-      selectedTrainer.team.map((teamMember) =>
+      teamMembersToLoad.map((teamMember) =>
         fetchPokemonByName(teamMember.apiName || teamMember.name, { signal: controller.signal })
           .then((pokemon) =>
             Promise.all(
@@ -737,7 +803,7 @@ function TrainerDexPage({
       .catch((fetchError) => {
         if (isCurrentRequest && fetchError.name !== 'AbortError') {
           setError(fetchError.message);
-          setEnrichedTeam(selectedTrainer.team);
+          setEnrichedTeam(teamMembersToLoad);
         }
       })
       .finally(() => {
@@ -750,7 +816,87 @@ function TrainerDexPage({
       isCurrentRequest = false;
       controller.abort();
     };
-  }, [selectedTrainer, teamLoadAttempt]);
+  }, [teamLoadAttempt, teamMembersToLoad]);
+
+  const renderTeamMember = (teamMember, teamMemberIndex, variantLabel = '') => {
+    const memberLookupKey = normalizePokemonLookup(teamMember.apiName || teamMember.name);
+    const enrichedMember = enrichedTeam.find(
+      (member) => normalizePokemonLookup(member.apiName || member.name) === memberLookupKey,
+    );
+    const teamMemberLabel = teamMember.label || formatPokemonName(teamMember.name);
+
+    return (
+      <article
+        key={`${variantLabel}-${teamMember.name}-${teamMember.level}-${teamMemberIndex}`}
+        className="trainerdex-team-row"
+        role="button"
+        tabIndex={0}
+        aria-label={`Open ${teamMemberLabel} TCG cards`}
+        onClick={() => openTeamPokemonTcgCards(teamMember)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            openTeamPokemonTcgCards(teamMember);
+          }
+        }}
+      >
+        <div className="trainerdex-team-heading">
+          <div className="trainerdex-team-sprite">
+            {enrichedMember?.sprite && (
+              <CachedImage
+                key={`${teamMember.name}-${enrichedMember.sprite}`}
+                src={enrichedMember.sprite}
+                fallbackSrc={(enrichedMember.spriteFallbacks || [])
+                  .filter((spriteUrl) => spriteUrl && spriteUrl !== enrichedMember.sprite)
+                  .join('|')}
+                alt=""
+                loading="lazy"
+              />
+            )}
+          </div>
+          <div>
+            <strong>{teamMemberLabel}</strong>
+            <span>Lv. {teamMember.level}</span>
+            {enrichedMember?.types?.length > 0 && (
+              <div className="trainerdex-type-row">
+                {enrichedMember.types.map((typeName) => (
+                  <TypeBadge key={typeName} type={typeName} className="move-type-pill" />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="trainerdex-team-base-stats">
+          {enrichedMember?.stats ? (
+            <dl aria-label={`${teamMemberLabel} base stats`}>
+              {STAT_SORT_OPTIONS.map((stat) => (
+                <div key={stat.id}>
+                  <dt>{stat.label}</dt>
+                  <dd>
+                    <meter min="0" max="255" value={enrichedMember.stats[stat.id] || 0} />
+                    <strong>{enrichedMember.stats[stat.id] || 0}</strong>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <span className="trainerdex-team-stats-status">
+              {loadingTeamData ? 'Loading stats...' : 'Stats unavailable'}
+            </span>
+          )}
+        </div>
+        <ul className="trainerdex-move-list">
+          {teamMember.moves?.length > 0 ? (
+            teamMember.moves.map((moveName) => (
+              <li key={moveName}>{moveName}</li>
+            ))
+          ) : (
+            <li className="trainerdex-moves-unverified">Moves not yet source-verified.</li>
+          )}
+        </ul>
+      </article>
+    );
+  };
 
   return (
     <div className="app-container trainerdex-page">
@@ -1000,7 +1146,10 @@ function TrainerDexPage({
                 </div>
                 <div>
                   <dt>Team Size</dt>
-                  <dd>{selectedTrainer.team.length}</dd>
+                  <dd>
+                    {displayedTeamVariants[0]?.team?.length || 0}
+                    {hasTeamVariants ? ' per option' : ''}
+                  </dd>
                 </div>
               </dl>
               <section className="trainerdex-info-cluster" aria-label="Trainer team overview">
@@ -1074,84 +1223,75 @@ function TrainerDexPage({
                 <p>Loading Pokemon team...</p>
               </div>
             )}
-            <div className="trainerdex-team-panel">
-              <div className="trainerdex-team-column-headings" aria-hidden="true">
-                <span>Pokemon</span>
-                <span>Base Stats</span>
-                <span>Moves</span>
-              </div>
-              {selectedTrainer.team.map((teamMember, teamMemberIndex) => {
-                const candidateMember = enrichedTeam[teamMemberIndex];
-                const enrichedMember = candidateMember?.name === teamMember.name ? candidateMember : null;
-                const teamMemberLabel = teamMember.label || formatPokemonName(teamMember.name);
-                return (
-                  <article
-                    key={`${teamMember.name}-${teamMember.level}-${teamMemberIndex}`}
-                    className="trainerdex-team-row"
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Open ${teamMemberLabel} TCG cards`}
-                    onClick={() => openTeamPokemonTcgCards(teamMember)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        openTeamPokemonTcgCards(teamMember);
-                      }
-                    }}
+            <div className="trainerdex-team-groups">
+              {hasStarterDependentTeam ? (
+                <>
+                  {sharedStarterTeamMembers.length > 0 && (
+                    <section className="trainerdex-team-variant" aria-label="Shared Pokemon team members">
+                      <div className="trainerdex-team-panel">
+                        <div className="trainerdex-team-column-headings" aria-hidden="true">
+                          <span>Pokemon</span>
+                          <span>Current Base Stats</span>
+                          <span>Moves</span>
+                        </div>
+                        {sharedStarterTeamMembers.map((teamMember, teamMemberIndex) =>
+                          renderTeamMember(teamMember, teamMemberIndex, 'shared'))}
+                      </div>
+                    </section>
+                  )}
+                  <section
+                    className="trainerdex-starter-dependent-section"
+                    aria-labelledby="trainerdex-starter-dependent-heading"
                   >
-                    <div className="trainerdex-team-heading">
-                      <div className="trainerdex-team-sprite">
-                        {enrichedMember?.sprite && (
-                          <CachedImage
-                            key={`${teamMember.name}-${enrichedMember.sprite}`}
-                            src={enrichedMember.sprite}
-                            fallbackSrc={(enrichedMember.spriteFallbacks || [])
-                              .filter((spriteUrl) => spriteUrl && spriteUrl !== enrichedMember.sprite)
-                              .join('|')}
-                            alt=""
-                            loading="lazy"
-                          />
-                        )}
-                      </div>
-                      <div>
-                        <strong>{teamMemberLabel}</strong>
-                        <span>Lv. {teamMember.level}</span>
-                        {enrichedMember?.types?.length > 0 && (
-                          <div className="trainerdex-type-row">
-                            {enrichedMember.types.map((typeName) => (
-                              <TypeBadge key={typeName} type={typeName} className="move-type-pill" />
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="trainerdex-team-base-stats">
-                      {enrichedMember?.stats ? (
-                        <dl aria-label={`${teamMemberLabel} base stats`}>
-                          {STAT_SORT_OPTIONS.map((stat) => (
-                            <div key={stat.id}>
-                              <dt>{stat.label}</dt>
-                              <dd>
-                                <meter min="0" max="255" value={enrichedMember.stats[stat.id] || 0} />
-                                <strong>{enrichedMember.stats[stat.id] || 0}</strong>
-                              </dd>
+                    <header className="trainerdex-starter-dependent-heading">
+                      <h4 id="trainerdex-starter-dependent-heading">Starter-dependent members</h4>
+                      <p>
+                        Use the group matching the Pokemon the player chose as their starter.
+                        All three possibilities are shown here.
+                      </p>
+                    </header>
+                    <div className="trainerdex-starter-dependent-groups">
+                      {starterDependentVariants.map((variant, variantIndex) => (
+                        <section
+                          key={`${variant.label}-${variantIndex}`}
+                          className="trainerdex-team-variant"
+                          aria-label={variant.label}
+                        >
+                          <h5 className="trainerdex-team-variant-heading">{variant.label}</h5>
+                          <div className="trainerdex-team-panel">
+                            <div className="trainerdex-team-column-headings" aria-hidden="true">
+                              <span>Pokemon</span>
+                              <span>Current Base Stats</span>
+                              <span>Moves</span>
                             </div>
-                          ))}
-                        </dl>
-                      ) : (
-                        <span className="trainerdex-team-stats-status">
-                          {loadingTeamData ? 'Loading stats...' : 'Stats unavailable'}
-                        </span>
-                      )}
-                    </div>
-                    <ul className="trainerdex-move-list">
-                      {teamMember.moves.map((moveName) => (
-                        <li key={moveName}>{moveName}</li>
+                            {(variant.team || []).map((teamMember, teamMemberIndex) =>
+                              renderTeamMember(teamMember, teamMemberIndex, variant.label))}
+                          </div>
+                        </section>
                       ))}
-                    </ul>
-                  </article>
-                );
-              })}
+                    </div>
+                  </section>
+                </>
+              ) : displayedTeamVariants.map((variant, variantIndex) => (
+                <section
+                  key={`${variant.label || 'team'}-${variantIndex}`}
+                  className="trainerdex-team-variant"
+                  aria-label={variant.label || 'Pokemon team'}
+                >
+                  {hasTeamVariants && (
+                    <h4 className="trainerdex-team-variant-heading">{variant.label}</h4>
+                  )}
+                  <div className="trainerdex-team-panel">
+                    <div className="trainerdex-team-column-headings" aria-hidden="true">
+                      <span>Pokemon</span>
+                      <span>Current Base Stats</span>
+                      <span>Moves</span>
+                    </div>
+                    {(variant.team || []).map((teamMember, teamMemberIndex) =>
+                      renderTeamMember(teamMember, teamMemberIndex, variant.label))}
+                  </div>
+                </section>
+              ))}
             </div>
           </section>
 
