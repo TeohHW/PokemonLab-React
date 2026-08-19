@@ -119,16 +119,7 @@ const compareCardsByRarity = (firstCard, secondCard, rarityDirection) => {
 };
 
 const TCG_VIEW_STORAGE_KEY = 'pokemon-lab-tcg-view-v1';
-const TCG_PULL_HISTORY_KEY = 'pokemon-lab-tcg-pull-history-v1';
 const EXPANSION_PAGE_SIZE = 8;
-
-const loadPullHistory = () => {
-  try {
-    return JSON.parse(localStorage.getItem(TCG_PULL_HISTORY_KEY)) || [];
-  } catch {
-    return [];
-  }
-};
 
 function TcgSimulator({
   onBack,
@@ -162,8 +153,6 @@ function TcgSimulator({
   const [selectedCard, setSelectedCard] = useState(null);
   const [showClearBinderDialog, setShowClearBinderDialog] = useState(null);
   const [collection, setCollection] = useState(loadCollection);
-  const [pullHistory, setPullHistory] = useState(loadPullHistory);
-  const [lastPullCardIds, setLastPullCardIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [loadAttempt, setLoadAttempt] = useState(0);
@@ -250,26 +239,6 @@ function TcgSimulator({
         };
       }, prevCollection),
     );
-    setLastPullCardIds([...new Set(cards.map((card) => card.id))]);
-    setPullHistory((currentHistory) => {
-      const nextHistory = [
-        {
-          id: `${Date.now()}-${cards[0]?.setId || 'set'}`,
-          setId: cards[0]?.setId,
-          setName: cards[0]?.setName || 'Unknown set',
-          cardCount: cards.length,
-          newCount: cards.filter((card) => card.isNewPull).length,
-          rareNames: cards
-            .filter((card) => card.isRare)
-            .slice(0, 6)
-            .map((card) => card.name),
-          openedAt: Date.now(),
-        },
-        ...currentHistory,
-      ].slice(0, 10);
-      localStorage.setItem(TCG_PULL_HISTORY_KEY, JSON.stringify(nextHistory));
-      return nextHistory;
-    });
     setPackAdded(true);
   }, []);
 
@@ -544,8 +513,6 @@ function TcgSimulator({
       const ownedCount = collection[card.id]?.count || 0;
       if (binderFilter === 'owned') return ownedCount > 0 || activeSetIsReferenceOnly;
       if (binderFilter === 'missing') return ownedCount === 0 && !activeSetIsReferenceOnly;
-      if (binderFilter === 'duplicates') return ownedCount > 1;
-      if (binderFilter === 'new') return lastPullCardIds.includes(card.id);
       return true;
     });
 
@@ -567,7 +534,6 @@ function TcgSimulator({
     binderSortMode,
     collection,
     hasInvalidBinderSearch,
-    lastPullCardIds,
     normalizedBinderSearch,
   ]);
   const allSetSearchCards = useMemo(() => {
@@ -1109,15 +1075,12 @@ function TcgSimulator({
             ['all', 'All'],
             ['owned', 'Owned'],
             ['missing', 'Missing'],
-            ['duplicates', 'Duplicates'],
-            ['new', 'Latest Pull'],
           ].map(([filterId, label]) => (
             <button
               key={filterId}
               type="button"
               className={`series-button ${binderFilter === filterId ? 'is-active' : ''}`}
               onClick={() => setBinderFilter(filterId)}
-              disabled={filterId === 'new' && !lastPullCardIds.length}
               aria-pressed={binderFilter === filterId}
             >
               {label}
@@ -1196,30 +1159,6 @@ function TcgSimulator({
           )}
         </div>
       </section>
-
-      {pullHistory.length > 0 && (
-        <section className="binder-panel pull-history-panel" aria-labelledby="pull-history-title">
-          <details className="disclosure-panel">
-            <summary id="pull-history-title">Recent Pulls ({pullHistory.length})</summary>
-            <ol className="pull-history-list">
-              {pullHistory.map((pull) => (
-                <li key={pull.id}>
-                  <div>
-                    <strong>{pull.setName}</strong>
-                    <span>
-                      {pull.cardCount} cards · {pull.newCount} new
-                    </span>
-                  </div>
-                  <p>{pull.rareNames.length ? pull.rareNames.join(', ') : 'No rare cards recorded'}</p>
-                  <time dateTime={new Date(pull.openedAt).toISOString()}>
-                    {new Date(pull.openedAt).toLocaleString()}
-                  </time>
-                </li>
-              ))}
-            </ol>
-          </details>
-        </section>
-      )}
 
       {showClearBinderDialog && (
         <div

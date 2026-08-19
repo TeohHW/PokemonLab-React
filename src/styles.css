@@ -579,17 +579,24 @@ button.brand-home-button:focus-visible {
 }
 
 .series-button {
+  flex: 0 0 auto;
+  min-height: 36px;
+  border: 1px solid var(--border);
+  padding: 0 14px;
+  color: var(--text);
+  background: #ffffff;
+  font-size: 0.9rem;
+  box-shadow: none;
+}
+
+.series-filter .series-button {
   width: 100%;
   height: 100%;
   min-width: 0;
   min-height: 48px;
-  border: 1px solid var(--border);
   padding: 6px 8px;
-  color: var(--text);
-  background: #ffffff;
   font-size: 0.76rem;
   line-height: 1.15;
-  box-shadow: none;
 }
 
 .series-button:hover:not(:disabled),
@@ -8442,39 +8449,6 @@ button.choice-card.nes-btn:active:not(:disabled)::after {
   flex-wrap: wrap;
   gap: 8px;
   margin: 12px 0 18px;
-}
-
-.pull-history-panel {
-  margin-top: 22px;
-}
-
-.pull-history-list {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding-left: 28px;
-}
-
-.pull-history-list li {
-  border-bottom: 2px dashed #adafbc;
-  padding: 10px;
-}
-
-.pull-history-list li > div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: space-between;
-}
-
-.pull-history-list p,
-.pull-history-list time {
-  margin: 5px 0 0;
-}
-
-.pull-history-list time {
-  color: #555555;
-  font-size: 0.75rem;
 }
 
 .pack-skip-button.nes-btn {
