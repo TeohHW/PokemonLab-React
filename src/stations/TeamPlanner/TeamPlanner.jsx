@@ -2519,8 +2519,8 @@ function PokemonTeamPlanner({
 
                 <details className="team-member-build-disclosure">
                   <summary>Build options</summary>
-                <div className="team-form-slot">
-                  {(member.formOptions?.length || 0) > 1 && (
+                {(member.formOptions?.length || 0) > 1 && (
+                  <div className="team-form-slot">
                     <div className="team-form-control">
                       <label>
                         <span>Forme</span>
@@ -2538,8 +2538,8 @@ function PokemonTeamPlanner({
                       </label>
                       <span className="team-form-stat">BST {member.baseStatTotal}</span>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 {member.metaContext?.eraWarning && (
                   <details className="team-era-details">

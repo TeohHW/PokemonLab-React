@@ -2168,6 +2168,7 @@ button.brand-home-button:focus-visible {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+  align-items: start;
 }
 
 .team-member-card {
@@ -2943,7 +2944,7 @@ button.brand-home-button:focus-visible {
   display: grid;
   gap: 16px;
   width: 100%;
-  margin-top: auto;
+  margin-top: 16px;
 }
 
 .team-score-breakdown div {
@@ -8484,9 +8485,6 @@ button.choice-card.nes-btn:active:not(:disabled)::after {
 }
 
 .team-view-tabs {
-  position: sticky;
-  top: 8px;
-  z-index: 8;
   justify-content: flex-start;
   border: 0;
   padding: 8px;
@@ -8497,6 +8495,15 @@ button.choice-card.nes-btn:active:not(:disabled)::after {
 .team-member-build-disclosure {
   margin-top: 12px;
   border-top: 2px dashed #adafbc;
+}
+
+.team-member-build-disclosure[open] {
+  display: grid;
+  gap: 16px;
+}
+
+.team-member-build-disclosure[open] > summary {
+  margin-bottom: 0;
 }
 
 .team-member-build-disclosure > summary {
