@@ -152,7 +152,7 @@ function TcgSimulator({
   const [binderRarityDirection, setBinderRarityDirection] = useState('rarest');
   const [binderFilter, setBinderFilter] = useState('all');
   const [showUnownedCardArt, setShowUnownedCardArt] = useState(false);
-  const [sortMode, setSortMode] = useState('release-oldest');
+  const [sortMode, setSortMode] = useState('release-newest');
   const [currentPack, setCurrentPack] = useState([]);
   const [currentPackSet, setCurrentPackSet] = useState(null);
   const [showPackModal, setShowPackModal] = useState(false);
@@ -652,20 +652,16 @@ function TcgSimulator({
           return matchesSeries && matchesSearch;
         })
         .sort(([, firstExpansion], [, secondExpansion]) => {
-          if (selectedSeries === 'All') {
-            const firstIsReference = firstExpansion.seriesFilter === 'Special / Limited';
-            const secondIsReference = secondExpansion.seriesFilter === 'Special / Limited';
-            if (firstIsReference !== secondIsReference) return firstIsReference ? 1 : -1;
-          }
-
           if (sortMode === 'name') {
             return firstExpansion.setName.localeCompare(secondExpansion.setName);
           }
 
-          const firstDate = firstExpansion.releaseDate || '9999/99/99';
-          const secondDate = secondExpansion.releaseDate || '9999/99/99';
-          const dateSort = firstDate.localeCompare(secondDate);
-          return sortMode === 'release-newest' ? dateSort * -1 : dateSort;
+          const dateSort =
+            parseReleaseDate(firstExpansion.releaseDate) -
+            parseReleaseDate(secondExpansion.releaseDate);
+          if (dateSort) return sortMode === 'release-newest' ? dateSort * -1 : dateSort;
+
+          return firstExpansion.setName.localeCompare(secondExpansion.setName);
         }),
     [
       compactSetSearch,
@@ -763,30 +759,58 @@ function TcgSimulator({
         >
           <summary>Browse expansions ({visibleExpansions.length})</summary>
           <div className="tcg-set-browser-content">
-        <div className="series-filter" aria-label="Filter by series">
-          {seriesOptions.map((series) => (
-            <button
-              key={series}
-              type="button"
-              className={`series-button ${selectedSeries === series ? 'is-active' : ''}`}
-              onClick={() => {
-                setSelectedSeries(series);
-                setExpansionPage(1);
-              }}
-              disabled={loading}
-            >
-              {series}
-            </button>
-          ))}
-        </div>
+            <div className="series-selector">
+              <span id="series-filter-label" className="series-filter-label">
+                Series
+              </span>
+              <div
+                className="series-filter"
+                role="group"
+                aria-labelledby="series-filter-label"
+                style={{ '--series-columns': Math.ceil(seriesOptions.length / 2) }}
+              >
+                {seriesOptions.map((series) => (
+                  <button
+                    key={series}
+                    type="button"
+                    className={`series-button ${selectedSeries === series ? 'is-active' : ''}`}
+                    onClick={() => {
+                      setSelectedSeries(series);
+                      setExpansionPage(1);
+                    }}
+                    disabled={loading}
+                    aria-pressed={selectedSeries === series}
+                  >
+                    {series === 'All' ? 'All series' : series}
+                  </button>
+                ))}
+              </div>
+              <select
+                className="series-filter-mobile"
+                value={selectedSeries}
+                onChange={(event) => {
+                  setSelectedSeries(event.target.value);
+                  setExpansionPage(1);
+                }}
+                disabled={loading}
+                aria-labelledby="series-filter-label"
+              >
+                {seriesOptions.map((series) => (
+                  <option key={series} value={series}>
+                    {series === 'All' ? 'All series' : series}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        {latestReleasedExpansion && (
-          <p className="tcg-latest-expansion">
-            Sets available through {latestReleasedExpansion.setName} ({latestReleasedExpansion.releaseYear}).
-          </p>
-        )}
+            {latestReleasedExpansion && (
+              <p className="tcg-latest-expansion">
+                Expansions available through {latestReleasedExpansion.setName} (
+                {latestReleasedExpansion.releaseYear}).
+              </p>
+            )}
         <p className="tcg-artwork-note" role="note">
-          <strong>Artwork notice:</strong> Cards without available front artwork are excluded from set lists, binders, search results, and featured card galleries.
+          <strong>Artwork notice:</strong> Cards without available front artwork are excluded from expansion lists, binders, search results, and featured card galleries.
         </p>
         {(selectedSeries === 'Special / Limited' || activeSetIsReferenceOnly) && (
           <p className="tcg-other-note">
@@ -840,7 +864,7 @@ function TcgSimulator({
           </button>
         </div>
 
-        <label htmlFor="set-sort">Sort sets</label>
+        <label htmlFor="set-sort">Sort expansions</label>
         <select
           id="set-sort"
           value={sortMode}
@@ -850,8 +874,8 @@ function TcgSimulator({
           }}
           disabled={loading}
         >
-          <option value="release-oldest">Release year: oldest first</option>
           <option value="release-newest">Release year: newest first</option>
+          <option value="release-oldest">Release year: oldest first</option>
           <option value="name">Name: A to Z</option>
         </select>
 
@@ -860,7 +884,9 @@ function TcgSimulator({
             <button
               key={key}
               type="button"
-              className={`set-card nes-btn ${selectedSet === key ? 'is-selected is-primary' : ''}`}
+              className={`set-card nes-btn ${expansion.logo ? 'has-logo' : 'has-no-logo'} ${
+                selectedSet === key ? 'is-selected is-primary' : ''
+              }`}
               onClick={() => chooseSet(key)}
             >
               {expansion.logo && (
@@ -890,13 +916,13 @@ function TcgSimulator({
             </button>
           ))}
           {!loading && hasInvalidSetSearch && (
-            <p className="pokedex-status" role="status">Enter letters or numbers to search sets and cards.</p>
+            <p className="pokedex-status" role="status">Enter letters or numbers to search expansions and cards.</p>
           )}
           {!loading && !hasInvalidSetSearch && isSetCardSearchTooShort && (
-            <p className="pokedex-status" role="status">Enter at least 2 characters to search cards across sets.</p>
+            <p className="pokedex-status" role="status">Enter at least 2 characters to search cards across expansions.</p>
           )}
           {!loading && normalizedSetSearch && !isSetCardSearchTooShort && !visibleExpansions.length && !allSetSearchCards.length && (
-            <p className="pokedex-status" role="status">No sets or cards match this search.</p>
+            <p className="pokedex-status" role="status">No expansions or cards match this search.</p>
           )}
         </div>
 
@@ -911,7 +937,7 @@ function TcgSimulator({
               Prev
             </button>
             <span aria-live="polite">
-              Page {activeExpansionPage} / {expansionPageCount} · {visibleExpansions.length} sets
+              Page {activeExpansionPage} / {expansionPageCount} · {visibleExpansions.length} expansions
             </span>
             <button
               type="button"
