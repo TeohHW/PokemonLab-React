@@ -3,4 +3,22 @@
   <url>
     <loc>https://pokemon-lab-react.vercel.app/</loc>
   </url>
+  <url>
+    <loc>https://pokemon-lab-react.vercel.app/pokedex</loc>
+  </url>
+  <url>
+    <loc>https://pokemon-lab-react.vercel.app/tcg</loc>
+  </url>
+  <url>
+    <loc>https://pokemon-lab-react.vercel.app/who</loc>
+  </url>
+  <url>
+    <loc>https://pokemon-lab-react.vercel.app/team</loc>
+  </url>
+  <url>
+    <loc>https://pokemon-lab-react.vercel.app/quiz</loc>
+  </url>
+  <url>
+    <loc>https://pokemon-lab-react.vercel.app/trainerdex</loc>
+  </url>
 </urlset>
