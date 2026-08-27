@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pokemon-lab-react.vercel.app/sitemap.xml
