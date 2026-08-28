@@ -230,11 +230,13 @@ h2 {
 }
 
 .app-disclaimer {
-  width: min(900px, calc(100% - 32px));
-  margin: -12px auto 20px;
-  color: var(--muted);
-  font-size: 0.68rem;
-  line-height: 1.5;
+  width: min(980px, calc(100% - 32px));
+  margin: -4px auto 24px;
+  border-top: 1px solid #b7b7b7;
+  padding: 10px 12px 0;
+  color: #3f3f3f;
+  font-size: 0.75rem;
+  line-height: 1.45;
   text-align: center;
 }
 
