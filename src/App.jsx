@@ -273,6 +273,9 @@ function App() {
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <footer className="app-disclaimer">
+        Pokémon and Pokémon character names are trademarks of Nintendo. This project is an unofficial fan-made project and is not affiliated with, endorsed by, or sponsored by Nintendo, The Pokémon Company, or Game Freak. Pokémon data is provided through PokéAPI.
+      </footer>
     </>
   );
 }

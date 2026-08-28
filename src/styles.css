@@ -229,6 +229,15 @@ h2 {
   padding: 32px 0;
 }
 
+.app-disclaimer {
+  width: min(900px, calc(100% - 32px));
+  margin: -12px auto 20px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
 .pokedex-page.app-container {
   width: min(1680px, calc(100% - 24px));
 }
