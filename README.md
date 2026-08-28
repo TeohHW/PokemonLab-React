@@ -77,4 +77,4 @@ An extensive Playwright test suite for this application can be found here : http
 
 Personal project, not for commercial use. Built to study React and experiment with Pokémon data and small game-like tools. AI coding tools were used during development.
 
-Pokémon and Pokémon character names are trademarks of Nintendo. Pokémon TCG and related artwork are trademarks and/or copyrighted properties of their respective owners. This project is an unofficial fan-made project and is not affiliated with, endorsed by, or sponsored by Nintendo, The Pokémon Company, or Game Freak. Pokémon data is provided through PokéAPI
+Pokémon, Pokémon character names, Pokémon TCG, and related artwork are trademarks and/or copyrighted properties of their respective owners. This unofficial fan project is not affiliated with, endorsed by, or sponsored by Nintendo, The Pokémon Company, or Game Freak. Pokémon data is provided through PokéAPI.
